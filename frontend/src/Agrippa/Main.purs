@@ -1,4 +1,4 @@
-module Main where
+module Agrippa.Main (main) where
 
 import Prelude (Unit, bind, ($), (/=))
 
