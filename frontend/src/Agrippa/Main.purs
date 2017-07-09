@@ -11,6 +11,7 @@ import Data.Foreign (readString)
 import Data.Maybe (Maybe(..))
 import Data.String (Pattern(..), stripPrefix, takeWhile)
 
+-- TODO load plugins dynamically
 import Agrippa.Plugins.Calculator as Calc
 
 main :: forall e. Eff (dom :: DOM | e) Unit

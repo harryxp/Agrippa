@@ -1,11 +1,11 @@
 module Agrippa.Plugins.Calculator  where -- TODO export only process
 
-import Prelude (class Show, bind, discard, id, negate, pure, show, ($), (<$>), (<<<), (<>), (==), (+), (*), (/))
+import Prelude (class Show, bind, discard, negate, pure, show, ($), (<$>), (<<<), (<>), (==), (+), (*), (/))
 
 import Control.Alt ((<|>))
 import Data.Either (Either(..))
 import Data.Foldable (foldl, intercalate)
-import Data.Int (fromString)
+import Data.Number (fromString)
 import Data.List (List(..), toUnfoldable)
 import Data.Maybe (Maybe(..))
 import Data.String (fromCharArray,trim)
@@ -16,9 +16,9 @@ import Text.Parsing.StringParser.String (anyDigit, char, eof, skipSpaces)
 process :: String -> String
 process = evalExpr <<< parseExpr
 
+-- TODO parens, factor signs
+-- TODO try the expr builder
 
--- TODO parens, floating numbers, factor signs
--- TODO deriving Show?
 data Expr = Expr (List Term)
 instance showExpr :: Show Expr where
   show (Expr terms) = "Expr\n" <> intercalate "\n" (show <$> terms)
@@ -38,7 +38,7 @@ instance showFactorOp :: Show FactorOp where
   show Mul = "*"
   show Div = "/"
 
-data Factor = Factor FactorOp Int
+data Factor = Factor FactorOp Number
 instance showFactor :: Show Factor where
   show (Factor op n) = show op <> show n
 
@@ -72,38 +72,38 @@ termParser = do
 
 initialFactorParser :: Parser Factor
 initialFactorParser = do
-  n <- many1 anyDigit
+  n <- many1 (anyDigit <|> char '.')
   skipSpaces
-  let maybeNum = (fromString <<< fromCharArray <<< toUnfoldable) n
+  let strNum = (fromCharArray <<< toUnfoldable) n
+      maybeNum = fromString strNum
   case maybeNum of
-    Nothing -> fail "Can't parse digits to number."
+    Nothing -> fail $ "Can't parse " <> strNum <> " to number."
     Just num -> pure $ Factor Mul num
 
 factorParser :: Parser Factor
 factorParser = do
   op <- char '*' <|> char '/'
   skipSpaces
-  n <- many1 anyDigit
+  n <- many1 (anyDigit <|> char '.')
   skipSpaces
-  let maybeNum = (fromString <<< fromCharArray <<< toUnfoldable) n
+  let strNum = (fromCharArray <<< toUnfoldable) n
+      maybeNum = fromString strNum
   case maybeNum of
-    Nothing -> fail "Can't parse digits to number."
+    Nothing -> fail $ "Can't parse " <> strNum <> " to number."
     Just num -> pure $ Factor (if op == '*' then Mul else Div) num
 
 evalExpr :: Either ParseError Expr -> String
 evalExpr (Left (ParseError e)) = e
 evalExpr (Right (Expr Nil)) = "N/A"
 evalExpr (Right (Expr terms)) =
-  show $ foldl (\acc term -> evalTerm term + acc) 0 terms
+  show $ foldl (\acc term -> evalTerm term + acc) 0.0 terms
 
-evalTerm :: Term -> Int
-evalTerm (Term op Nil) = 0
-evalTerm (Term op factors) =
-  let negateOrNot = case op of
-                      Plus -> id
-                      Minus -> negate
-  in negateOrNot $ foldl (\acc factor -> evalFactor factor * acc) 1 factors
+evalTerm :: Term -> Number
+evalTerm (Term op Nil) = 0.0
+evalTerm (Term Plus factors) =
+  foldl (\acc factor -> evalFactor factor acc) 1.0 factors
+evalTerm (Term Minus factors) = negate $ evalTerm (Term Plus factors)
 
-evalFactor :: Factor -> Int
-evalFactor (Factor Mul n) = n
-evalFactor (Factor Div n) = 1 / n   -- TODO
+evalFactor :: Factor -> Number -> Number
+evalFactor (Factor Mul n) acc = acc * n
+evalFactor (Factor Div n) acc = acc / n
