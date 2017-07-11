@@ -1,4 +1,4 @@
-module Agrippa.Plugins.Calculator  where -- TODO export only process
+module Agrippa.Plugins.Calculator (calculate) where
 
 import Prelude (class Show, bind, discard, negate, pure, show, ($), (<$>), (<<<), (<>), (==), (+), (*), (/))
 
@@ -10,11 +10,12 @@ import Data.List (List(..), toUnfoldable)
 import Data.Maybe (Maybe(..))
 import Data.String (fromCharArray,trim)
 import Text.Parsing.StringParser (ParseError(..), Parser, fail, runParser)
-import Text.Parsing.StringParser.Combinators (many, many1, option)
-import Text.Parsing.StringParser.String (anyDigit, char, eof, skipSpaces)
+import Text.Parsing.StringParser.Combinators --(many, many1, option)
+import Text.Parsing.StringParser.String --(anyDigit, char, eof, skipSpaces)
+import Text.Parsing.StringParser.Expr
 
-process :: String -> String
-process = evalExpr <<< parseExpr
+calculate :: String -> String
+calculate = evalExpr <<< parseExpr
 
 -- TODO parens, factor signs
 -- TODO try the expr builder
@@ -43,8 +44,24 @@ instance showFactor :: Show Factor where
   show (Factor op n) = show op <> show n
 
 parseExpr :: String -> Either ParseError Expr
-parseExpr = runParser exprParser <<< trim
+parseExpr = runParser exprParser
 
+exprParser :: Parser Expr
+exprParser = buildExprParser table simpleExprParser
+
+simpleExprParser :: Parser Expr
+simpleExprParser = pure $ Expr Nil --between (char '(') (char ')') exprParser
+
+table :: OperatorTable Expr
+table = []
+{-
+table = [ [Prefix (string "-"), Prefix (string "+")]
+        , [Infix (string "*") AssocLeft, Infix (string "/") AssocLeft]
+        , [Infix (string "+") AssocLeft, Infix (string "-") AssocLeft]
+        ]
+-}
+
+{-
 exprParser :: Parser Expr
 exprParser = do
   initialTerm <- initialTermParser
@@ -91,6 +108,7 @@ factorParser = do
   case maybeNum of
     Nothing -> fail $ "Can't parse " <> strNum <> " to number."
     Just num -> pure $ Factor (if op == '*' then Mul else Div) num
+-}
 
 evalExpr :: Either ParseError Expr -> String
 evalExpr (Left (ParseError e)) = e
