@@ -1,19 +1,26 @@
 module Agrippa.Plugins.Calculator (calculate) where
 
-import Prelude (class Show, bind, id, negate, pure, show, ($>), (<<<), (<>), (+), (-), (*), (/))
+import Prelude --(class Show, bind, id, negate, pure, show, ($>), (<<<), (<>), (+), (-), (*), (/))
 import Control.Alt ((<|>))
+import Control.Monad.Eff (Eff)
+import Control.Monad.Eff.Exception (EXCEPTION)
 import Data.Either (Either(..))
 import Data.Number (fromString)
 import Data.List (toUnfoldable)
 import Data.Maybe (Maybe(..))
 import Data.String (fromCharArray, trim)
+import DOM (DOM)
+import Network.HTTP.Affjax
 import Text.Parsing.StringParser (ParseError(..), Parser, fail, runParser)
 import Text.Parsing.StringParser.Combinators (between, fix, many1)
 import Text.Parsing.StringParser.String (anyDigit, char, string)
 import Text.Parsing.StringParser.Expr (Assoc(..), Operator(..), OperatorTable, buildExprParser)
+import Unsafe.Coerce (unsafeCoerce)
 
-calculate :: String -> String
-calculate = evalExpr <<< parseExpr <<< trim
+calculate :: forall e. String
+                    -> (AffjaxResponse String -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
+                    -> Eff (ajax :: AJAX, dom :: DOM | e) String
+calculate input _ = (pure <<< evalExpr <<< parseExpr <<< trim) input
 
 data Expr = ExprAdd Expr Expr
           | ExprSub Expr Expr
