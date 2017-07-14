@@ -40,3 +40,5 @@ dispatchToPlugin keyword input =
 pluginsByKeyword :: StrMap Plugin
 pluginsByKeyword = fromFoldable ((\p@(Plugin { keyword: k }) -> Tuple k p) <$> plugins)
 
+-- TODO focus on input when ready
+-- TODO help text for plugins
