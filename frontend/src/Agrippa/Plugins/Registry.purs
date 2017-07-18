@@ -1,4 +1,4 @@
-module Agrippa.Plugins.Registry (Plugin(..), plugins) where
+module Agrippa.Plugins.Registry (Plugin(..), PluginActivationMode(..), plugins) where
 
 import Prelude (Unit)
 import Control.Monad.Eff (Eff)
@@ -8,17 +8,28 @@ import Network.HTTP.Affjax (AJAX, AffjaxResponse)
 import Agrippa.Plugins.Calculator as Calc
 import Agrippa.Plugins.FileSearcher as F
 
+data PluginActivationMode = Incremental | Enter
+
 newtype Plugin =
-  Plugin { name        :: String
-         , keyword     :: String
-         , computation :: forall e. String
+  Plugin { name           :: String
+         , keyword        :: String
+         , computation    :: forall e. String
                                  -> (AffjaxResponse String -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
                                  -> Eff (ajax :: AJAX, dom :: DOM | e) String
+         , activationMode :: PluginActivationMode
          }
 
 plugins :: Array Plugin
-plugins = [ Plugin { name: "Calculator",   keyword: "=", computation: Calc.calculate }
-          , Plugin { name: "FileSearcher", keyword: "'", computation: F.search }
+plugins = [ Plugin { name: "Calculator"
+                   , keyword: "="
+                   , computation: Calc.calculate
+                   , activationMode: Incremental
+                   }
+          , Plugin { name: "FileSearcher"
+                   , keyword: "'"
+                   , computation: F.search
+                   , activationMode: Enter
+                   }
           ]
 
 -- TODO load plugins dynamically

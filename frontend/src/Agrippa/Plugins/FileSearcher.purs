@@ -10,7 +10,7 @@ search :: forall e. String
                  -> (AffjaxResponse String -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
                  -> Eff (ajax :: AJAX, dom :: DOM | e) String
 search input displayResult =
-  "Searching..."
+  "FileSearcher: searching..."
   <$
   runAff (const (pure unit)) displayResult (get ("/agrippa/file-search/" <> input))
 
