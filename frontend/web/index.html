@@ -16,8 +16,27 @@
 <body>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
   <script src="js/scripts.js"></script>
-  <h1>Agrippa is your loyal friend!</h1>
   <input id="agrippa-input" autofocus/></input>
-  <div id="status" style="margin-top: 10px; width: 600px; height: 100px; border: 1px dashed black;">No plugin selected.</div>
+  <div id="agrippa-output" style="margin-top: 10px; width: 1200px; height: 400px; border: 1px dashed black; overflow-y: scroll">No plugin selected.</div>
+  <br>
+  <a href="#" id="agrippa-help-link">Help</a>
+  <div id="agrippa-help-content" hidden>
+    <hr>
+    <strong>Agrippa is a keyboard-driven web application that helps the user perform various tasks.</strong>
+    <br>
+    <br>
+    To use it:
+    <ol>
+      <li>Please choose a plugin by typing a keyword, followed by a space.</li>
+      <li>The chosen plugin is activated either when the user types incrementally or when the user press &lt;Enter&gt;.</li>
+      <li>Please see the table below regarding loaded plugins, their keywords and activation modes.</li>
+    </ol>
+    Currently loaded plugins:
+    <br>
+    <br>
+    <table id="agrippa-help-table" style="border: 1px solid">
+      <th>Name</th><th>Keyword</th><th>Activation Mode</th>
+    </table>
+  </div>
 </body>
 </html>

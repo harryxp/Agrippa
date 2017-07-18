@@ -16,3 +16,4 @@ search input displayResult =
 
 -- TODO limit size of output
 -- TODO highlight keyword
+-- TODO error handler

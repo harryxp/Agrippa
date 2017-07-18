@@ -1,10 +1,11 @@
 module Agrippa.Main (main) where
 
-import Prelude (Unit, bind, pure, (<$>), (>>=), (<>))
+import Prelude (Unit, bind, discard, pure, show, unit, (<$>), (*>), (>>=), (<>))
 import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.JQuery (JQuery, JQueryEvent, getWhich, getValue, on, ready, select, setText)
+import Control.Monad.Eff.JQuery (JQuery, JQueryEvent, append, create, getWhich, getValue, on, ready, select, setText, toggle)
 import Control.Monad.Except (runExcept)
 import DOM (DOM)
+import Data.Array (foldM)
 import Data.Foldable (for_)
 import Data.Foreign (readString)
 import Data.Maybe (Maybe(..))
@@ -17,16 +18,22 @@ import Agrippa.Plugins.Registry (Plugin(..), PluginActivationMode(..), plugins)
 
 main :: forall e. Eff (ajax :: AJAX, dom :: DOM | e) Unit
 main = ready do
-  agrippaInput <- select "#agrippa-input"
-  on "keyup" handleAgrippaInput agrippaInput
+  input <- select "#agrippa-input"
+  on "keyup" handleInput input
+  helpLink <- select "#agrippa-help-link"
+  helpDiv <- select "#agrippa-help-content"
+  buildHelpTextForPlugins helpDiv
+  on "click" (handleHelpLink helpDiv) helpLink
 
-handleAgrippaInput :: forall e. JQueryEvent
-                             -> JQuery
-                             -> Eff (ajax :: AJAX, dom :: DOM | e) Unit
-handleAgrippaInput event inputElem = do
+-- input
+
+handleInput :: forall e. JQueryEvent
+                      -> JQuery
+                      -> Eff (ajax :: AJAX, dom :: DOM | e) Unit
+handleInput event inputElem = do
   keyCode <- getWhich event
   v <- getValue inputElem
-  outputElem <- select "#status"
+  outputElem <- select "#agrippa-output"
   for_ (runExcept (readString v)) (dispatchToPlugin outputElem keyCode)
 
 dispatchToPlugin :: forall e. JQuery
@@ -47,9 +54,9 @@ dispatchToPlugin outputElem keyCode s =
       Nothing             -> setText "No plugin selected." outputElem
 
 shouldFirePlugin :: PluginActivationMode -> Int -> Boolean
-shouldFirePlugin Enter 13       = true
-shouldFirePlugin Enter  _       = false
-shouldFirePlugin     _  _       = true
+shouldFirePlugin Enter 13 = true
+shouldFirePlugin Enter  _ = false
+shouldFirePlugin     _  _ = true
 
 displayResultOn :: forall e. JQuery -> AffjaxResponse String -> Eff (dom :: DOM | e) Unit
 displayResultOn outputElem { response: r } = setText r outputElem -- TODO check status code?
@@ -57,4 +64,22 @@ displayResultOn outputElem { response: r } = setText r outputElem -- TODO check 
 pluginsByKeyword :: StrMap Plugin
 pluginsByKeyword = fromFoldable ((\p@(Plugin { keyword: k }) -> Tuple k p) <$> plugins)
 
--- TODO help text for plugins
+-- help
+
+buildHelpTextForPlugins :: forall e. JQuery -> Eff (dom :: DOM | e) Unit
+buildHelpTextForPlugins helpDiv = foldM buildHelpTextForPlugin unit plugins
+
+buildHelpTextForPlugin :: forall e. Unit -> Plugin -> Eff (dom :: DOM | e) Unit
+buildHelpTextForPlugin _ (Plugin { name: n, keyword: key, activationMode: mode }) = do
+  helpTable <- select "#agrippa-help-table"
+  tr <- create "<tr>"
+  createTd n tr *> createTd key tr *> createTd (show mode) tr *> append tr helpTable
+  where
+    createTd :: String -> JQuery -> Eff (dom :: DOM | e) Unit
+    createTd txt tr = create "<td>" >>= \td -> setText txt td *> append td tr
+
+handleHelpLink :: forall e. JQuery
+                         -> JQueryEvent
+                         -> JQuery
+                         -> Eff (dom :: DOM | e) Unit
+handleHelpLink helpDiv _ _ = toggle helpDiv
