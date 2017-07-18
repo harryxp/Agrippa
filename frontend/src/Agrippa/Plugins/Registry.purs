@@ -17,7 +17,7 @@ newtype Plugin =
          }
 
 plugins :: Array Plugin
-plugins = [ Plugin { name: "Calculator", keyword: "=", computation: Calc.calculate }
+plugins = [ Plugin { name: "Calculator",   keyword: "=", computation: Calc.calculate }
           , Plugin { name: "FileSearcher", keyword: "'", computation: F.search }
           ]
 

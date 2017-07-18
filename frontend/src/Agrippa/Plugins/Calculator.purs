@@ -51,7 +51,7 @@ exprNumParser = do
   let strNum = (fromCharArray <<< toUnfoldable) n
       maybeNum = fromString strNum
   case maybeNum of
-    Nothing -> fail ("Can't parse " <> strNum <> " to number.")
+    Nothing  -> fail ("Can't parse " <> strNum <> " to number.")
     Just num -> pure (ExprNum num)
 
 -- TODO support power.  See purescript-math's Math.pow
