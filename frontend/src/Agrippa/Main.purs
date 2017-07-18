@@ -8,8 +8,8 @@ import DOM (DOM)
 import Data.Foldable (for_)
 import Data.Foreign (readString)
 import Data.Maybe (Maybe(..))
-import Data.String (Pattern(..), indexOf, splitAt, trim)
 import Data.StrMap (StrMap, fromFoldable, lookup)
+import Data.String (Pattern(..), indexOf, splitAt, trim)
 import Data.Tuple (Tuple(..))
 import Network.HTTP.Affjax (AJAX, AffjaxResponse)
 
@@ -57,5 +57,4 @@ displayResultOn outputElem { response: r } = setText r outputElem -- TODO check 
 pluginsByKeyword :: StrMap Plugin
 pluginsByKeyword = fromFoldable ((\p@(Plugin { keyword: k }) -> Tuple k p) <$> plugins)
 
--- TODO focus on input when ready
 -- TODO help text for plugins

@@ -15,3 +15,4 @@ search input displayResult =
   runAff (const (pure unit)) displayResult (get ("/agrippa/file-search/" <> input))
 
 -- TODO limit size of output
+-- TODO highlight keyword
