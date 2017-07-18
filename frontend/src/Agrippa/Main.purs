@@ -1,8 +1,7 @@
 module Agrippa.Main (main) where
 
-import Prelude --(Unit, bind, pure, (/=), (<$>), (>>=))
+import Prelude (Unit, bind, pure, (/=), (<$>), (>>=))
 import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.Exception (EXCEPTION)
 import Control.Monad.Eff.JQuery (JQuery, JQueryEvent, getValue, on, ready, select, setText)
 import Control.Monad.Except (runExcept)
 import DOM (DOM)
@@ -12,11 +11,11 @@ import Data.Maybe (Maybe(..))
 import Data.String (Pattern(..), stripPrefix, takeWhile)
 import Data.StrMap (StrMap, fromFoldable, lookup)
 import Data.Tuple (Tuple(..))
-import Network.HTTP.Affjax
-import Unsafe.Coerce (unsafeCoerce)
+import Network.HTTP.Affjax (AJAX, AffjaxResponse)
 
 import Agrippa.Plugins.Registry (Plugin(..), plugins)
 
+main :: forall e. Eff (ajax :: AJAX, dom :: DOM | e) Unit
 main = ready do
   agrippaInput <- select "#agrippa-input"
   on "input" handleAgrippaInput agrippaInput
@@ -30,7 +29,7 @@ handleAgrippaInput _ inputElem = do
   for_ (runExcept (readString v)) \s ->
     let keyword = takeWhile ((/=) ' ') s  -- TODO
         maybeInput = stripPrefix (Pattern keyword) s
-        pluginFeedback :: forall e. Eff (ajax :: AJAX, dom :: DOM | e) String
+        pluginFeedback :: forall e1. Eff (ajax :: AJAX, dom :: DOM | e1) String
         pluginFeedback =
           case maybeInput of
             Just input -> dispatchToPlugin keyword input (displayResultOn statusArea)
