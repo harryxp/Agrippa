@@ -1,6 +1,6 @@
 module Agrippa.Main (main) where
 
-import Prelude (Unit, bind, pure, (/=), (<$>), (>>=))
+import Prelude (Unit, bind, pure, (<$>), (>>=))
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.JQuery (JQuery, JQueryEvent, getValue, on, ready, select, setText)
 import Control.Monad.Except (runExcept)
@@ -8,7 +8,7 @@ import DOM (DOM)
 import Data.Foldable (for_)
 import Data.Foreign (readString)
 import Data.Maybe (Maybe(..))
-import Data.String (Pattern(..), stripPrefix, takeWhile)
+import Data.String (Pattern(..), indexOf, splitAt)
 import Data.StrMap (StrMap, fromFoldable, lookup)
 import Data.Tuple (Tuple(..))
 import Network.HTTP.Affjax (AJAX, AffjaxResponse)
@@ -26,24 +26,21 @@ handleAgrippaInput :: forall e. JQueryEvent
 handleAgrippaInput _ inputElem = do
   v <- getValue inputElem
   statusArea <- select "#status"
-  for_ (runExcept (readString v)) \s ->
-    let keyword = takeWhile ((/=) ' ') s  -- TODO
-        maybeInput = stripPrefix (Pattern keyword) s
-        pluginFeedback :: forall e1. Eff (ajax :: AJAX, dom :: DOM | e1) String
-        pluginFeedback =
-          case maybeInput of
-            Just input -> dispatchToPlugin keyword input (displayResultOn statusArea)
-            Nothing    -> pure "Aww, something went wrong!"
-    in pluginFeedback >>= (\o -> setText o statusArea)
+  for_ (runExcept (readString v)) (dispatchToPlugin statusArea)
 
-dispatchToPlugin :: forall e. String
+dispatchToPlugin :: forall e. JQuery
                            -> String
-                           -> (AffjaxResponse String -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
-                           -> Eff (ajax :: AJAX, dom :: DOM | e) String
-dispatchToPlugin keyword input displayResult =
-  case lookup keyword pluginsByKeyword of
-    Just (Plugin { computation: c }) -> c input displayResult
-    Nothing                          -> pure "Awaiting user input."
+                           -> Eff (ajax :: AJAX, dom :: DOM | e) Unit
+dispatchToPlugin outputElem s =
+  let maybePluginFeedback :: forall e1. Maybe (Eff (ajax :: AJAX, dom :: DOM | e1) String)
+      maybePluginFeedback = do
+        i                                 <- indexOf (Pattern " ") s
+        { before: keyword, after: input } <- splitAt i s
+        Plugin { computation: comp }      <- lookup keyword pluginsByKeyword
+        pure (comp input (displayResultOn outputElem))
+  in case maybePluginFeedback of
+      Just pluginFeedback -> pluginFeedback >>= (\fb -> setText fb outputElem)
+      Nothing             -> setText "No plugin selected." outputElem
 
 displayResultOn :: forall e. JQuery -> AffjaxResponse String -> Eff (dom :: DOM | e) Unit
 displayResultOn outputElem { response: r } = setText r outputElem -- TODO check status code?

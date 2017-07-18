@@ -10,5 +10,8 @@ search :: forall e. String
                  -> (AffjaxResponse String -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
                  -> Eff (ajax :: AJAX, dom :: DOM | e) String
 search input displayResult =
-  "Searching..." <$ runAff (const (pure unit)) displayResult (get ("/agrippa/file-search/" <> input))
+  "Searching..."
+  <$
+  runAff (const (pure unit)) displayResult (get ("/agrippa/file-search/" <> input))
 
+-- TODO limit size of output
