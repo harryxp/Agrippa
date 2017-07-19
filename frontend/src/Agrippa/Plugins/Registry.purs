@@ -19,8 +19,8 @@ newtype Plugin =
   Plugin { name           :: String
          , keyword        :: String
          , computation    :: forall e. String
-                                 -> (AffjaxResponse String -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
-                                 -> Eff (ajax :: AJAX, dom :: DOM | e) String
+                                    -> (AffjaxResponse String -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
+                                    -> Eff (ajax :: AJAX, dom :: DOM | e) String
          , activationMode :: PluginActivationMode
          }
 

@@ -16,8 +16,8 @@ import Text.Parsing.StringParser.Expr (Assoc(..), Operator(..), OperatorTable, b
 import Text.Parsing.StringParser.String (anyDigit, char, string)
 
 calculate :: forall e. String
-                    -> (AffjaxResponse String -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
-                    -> Eff (ajax :: AJAX, dom :: DOM | e) String
+                    -> (AffjaxResponse String -> Eff e Unit)
+                    -> Eff e String
 calculate input _ = (pure <<< evalExpr <<< parseExpr <<< trim) input
 
 data Expr = ExprAdd Expr Expr

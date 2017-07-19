@@ -41,7 +41,7 @@ dispatchToPlugin :: forall e. JQuery
                            -> String
                            -> Eff (ajax :: AJAX, dom :: DOM | e) Unit
 dispatchToPlugin outputElem keyCode s =
-  let maybePluginFeedback :: forall e1. Maybe (Eff (ajax :: AJAX, dom :: DOM | e1) String)
+  let maybePluginFeedback :: Maybe (Eff (ajax :: AJAX, dom :: DOM | e) String)
       maybePluginFeedback = do
         i                                                             <- indexOf (Pattern " ") s
         { before: keyword, after: input }                             <- splitAt i s
