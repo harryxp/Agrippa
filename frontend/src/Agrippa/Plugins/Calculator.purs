@@ -3,20 +3,18 @@ module Agrippa.Plugins.Calculator (calculate) where
 import Prelude (class Show, Unit, bind, id, negate, pure, show, ($>), (*), (+), (-), (/), (<<<), (<>))
 import Control.Alt ((<|>))
 import Control.Monad.Eff (Eff)
-import DOM (DOM)
 import Data.Either (Either(..))
 import Data.List (toUnfoldable)
 import Data.Maybe (Maybe(..))
 import Data.Number (fromString)
 import Data.String (fromCharArray, trim)
-import Network.HTTP.Affjax (AJAX, AffjaxResponse)
 import Text.Parsing.StringParser (ParseError(..), Parser, fail, runParser)
 import Text.Parsing.StringParser.Combinators (between, fix, many1)
 import Text.Parsing.StringParser.Expr (Assoc(..), Operator(..), OperatorTable, buildExprParser)
 import Text.Parsing.StringParser.String (anyDigit, char, string)
 
 calculate :: forall e. String
-                    -> (AffjaxResponse String -> Eff e Unit)
+                    -> (String -> Eff e Unit)
                     -> Eff e String
 calculate input _ = (pure <<< evalExpr <<< parseExpr <<< trim) input
 
@@ -62,7 +60,7 @@ table = [ [Prefix (string "-" $> ExprNeg), Prefix (string "+" $> id)]
         ]
 
 evalExpr :: Either ParseError Expr -> String
-evalExpr (Left (ParseError _)) = "Calculator: invalid expression."
+evalExpr (Left (ParseError _)) = "Invalid expression."
 evalExpr (Right e) = show (evalExpr' e)
 
 evalExpr' :: Expr -> Number

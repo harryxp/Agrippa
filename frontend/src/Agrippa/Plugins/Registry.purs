@@ -3,7 +3,7 @@ module Agrippa.Plugins.Registry (Plugin(..), PluginActivationMode(..), plugins) 
 import Prelude (class Show, Unit)
 import Control.Monad.Eff (Eff)
 import DOM (DOM)
-import Network.HTTP.Affjax (AJAX, AffjaxResponse)
+import Network.HTTP.Affjax (AJAX)
 
 import Agrippa.Plugins.Calculator as Calc
 import Agrippa.Plugins.FileSearcher as F
@@ -19,7 +19,7 @@ newtype Plugin =
   Plugin { name           :: String
          , keyword        :: String
          , computation    :: forall e. String
-                                    -> (AffjaxResponse String -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
+                                    -> (String -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
                                     -> Eff (ajax :: AJAX, dom :: DOM | e) String
          , activationMode :: PluginActivationMode
          }

@@ -1,6 +1,6 @@
 module Agrippa.Main (main) where
 
-import Prelude (Unit, bind, discard, pure, show, unit, (<$>), (*>), (>>=), (<>))
+import Prelude (Unit, bind, discard, show, unit, (<$>), (*>), (>>=), (<>))
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.JQuery (JQuery, JQueryEvent, append, create, getWhich, getValue, on, ready, select, setText, toggle)
 import Control.Monad.Except (runExcept)
@@ -12,7 +12,7 @@ import Data.Maybe (Maybe(..))
 import Data.StrMap (StrMap, fromFoldable, lookup)
 import Data.String (Pattern(..), indexOf, splitAt, trim)
 import Data.Tuple (Tuple(..))
-import Network.HTTP.Affjax (AJAX, AffjaxResponse)
+import Network.HTTP.Affjax (AJAX)
 
 import Agrippa.Plugins.Registry (Plugin(..), PluginActivationMode(..), plugins)
 
@@ -39,26 +39,35 @@ dispatchToPlugin :: forall e. Int
                            -> String
                            -> Eff (ajax :: AJAX, dom :: DOM | e) Unit
 dispatchToPlugin keyCode s =
-  let maybePluginFeedback :: Maybe (Eff (ajax :: AJAX, dom :: DOM | e) String)
-      maybePluginFeedback = do
-        i                                                             <- indexOf (Pattern " ") s
-        { before: keyword, after: input }                             <- splitAt i s
-        (Plugin { name: n, computation: comp, activationMode: mode }) <- lookup keyword pluginsByKeyword
+  let maybePlugin :: Maybe (Tuple Plugin String)
+      maybePlugin = do
+        i                                 <- indexOf (Pattern " ") s
+        { before: keyword, after: input } <- splitAt i s
+        plugin                            <- lookup keyword pluginsByKeyword
+        Just (Tuple plugin input)
+  in do
+    indicatorElem <- select "#agrippa-plugin-indicator"
+    case maybePlugin of
+      Just (Tuple (Plugin { name: n, computation: comp, activationMode: mode }) input) -> do
+        setText n indicatorElem
         if shouldFirePlugin mode keyCode
-          then Just (comp (trim input) displayResult)
-          else Just (pure ("Plugin <" <> n <> "> selected.  Press <Enter> to activate."))
-    in select "#agrippa-status" >>= \statusElem ->
-        case maybePluginFeedback of
-          Just pluginFeedback -> pluginFeedback >>= (\fb -> setText fb statusElem)
-          Nothing             -> setText "No plugin selected." statusElem
+          -- if a plugin is found and should be fired
+          --   show immediate feedback from plugin
+          --   also give it the ability to update the output div later since it may run asynchronous computation
+          then comp (trim input) displayOnOutputDiv >>= displayOnOutputDiv
+          else displayOnOutputDiv ("Plugin <" <> n <> "> selected.  Press <Enter> to activate.")
+      Nothing -> setText "No plugin selected." indicatorElem *> clearOutputDiv
 
 shouldFirePlugin :: PluginActivationMode -> Int -> Boolean
 shouldFirePlugin Enter 13 = true
 shouldFirePlugin Enter  _ = false
 shouldFirePlugin     _  _ = true
 
-displayResult :: forall e. AffjaxResponse String -> Eff (dom :: DOM | e) Unit
-displayResult { response: r } = select "#agrippa-output" >>= setText r -- TODO check status code?
+displayOnOutputDiv :: forall e. String -> Eff (dom :: DOM | e) Unit
+displayOnOutputDiv r = select "#agrippa-output" >>= setText r
+
+clearOutputDiv :: forall e. Eff (dom :: DOM | e) Unit
+clearOutputDiv = select "#agrippa-output" >>= setText ""
 
 pluginsByKeyword :: StrMap Plugin
 pluginsByKeyword = fromFoldable ((\p@(Plugin { keyword: k }) -> Tuple k p) <$> plugins)
