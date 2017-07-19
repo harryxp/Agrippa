@@ -12,6 +12,16 @@
 -->
 
   <style>
+      #agrippa-input {
+          width: 40em;
+          height: 1.4em;
+      }
+      #agrippa-status {
+          margin-top: 10px;
+          width: 1200px;
+          height: 1.2em;
+          border: 1px dashed black;
+      }
       #agrippa-output {
           margin-top: 10px;
           width: 1200px;
@@ -36,7 +46,8 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
   <script src="js/scripts.js"></script>
   <input id="agrippa-input" autofocus/></input>
-  <div id="agrippa-output">No plugin selected.</div>
+  <div id="agrippa-status">No plugin selected.</div>
+  <div id="agrippa-output"></div>
   <br>
   <a href="#" id="agrippa-help-link">Help</a>
   <div id="agrippa-help-content" hidden>

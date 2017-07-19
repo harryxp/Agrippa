@@ -33,33 +33,32 @@ handleInput :: forall e. JQueryEvent
 handleInput event inputElem = do
   keyCode <- getWhich event
   v <- getValue inputElem
-  outputElem <- select "#agrippa-output"
-  for_ (runExcept (readString v)) (dispatchToPlugin outputElem keyCode)
+  for_ (runExcept (readString v)) (dispatchToPlugin keyCode)
 
-dispatchToPlugin :: forall e. JQuery
-                           -> Int
+dispatchToPlugin :: forall e. Int
                            -> String
                            -> Eff (ajax :: AJAX, dom :: DOM | e) Unit
-dispatchToPlugin outputElem keyCode s =
+dispatchToPlugin keyCode s =
   let maybePluginFeedback :: Maybe (Eff (ajax :: AJAX, dom :: DOM | e) String)
       maybePluginFeedback = do
         i                                                             <- indexOf (Pattern " ") s
         { before: keyword, after: input }                             <- splitAt i s
         (Plugin { name: n, computation: comp, activationMode: mode }) <- lookup keyword pluginsByKeyword
         if shouldFirePlugin mode keyCode
-          then Just (comp (trim input) (displayResultOn outputElem))
+          then Just (comp (trim input) displayResult)
           else Just (pure ("Plugin <" <> n <> "> selected.  Press <Enter> to activate."))
-    in case maybePluginFeedback of
-      Just pluginFeedback -> pluginFeedback >>= (\fb -> setText fb outputElem)
-      Nothing             -> setText "No plugin selected." outputElem
+    in select "#agrippa-status" >>= \statusElem ->
+        case maybePluginFeedback of
+          Just pluginFeedback -> pluginFeedback >>= (\fb -> setText fb statusElem)
+          Nothing             -> setText "No plugin selected." statusElem
 
 shouldFirePlugin :: PluginActivationMode -> Int -> Boolean
 shouldFirePlugin Enter 13 = true
 shouldFirePlugin Enter  _ = false
 shouldFirePlugin     _  _ = true
 
-displayResultOn :: forall e. JQuery -> AffjaxResponse String -> Eff (dom :: DOM | e) Unit
-displayResultOn outputElem { response: r } = setText r outputElem -- TODO check status code?
+displayResult :: forall e. AffjaxResponse String -> Eff (dom :: DOM | e) Unit
+displayResult { response: r } = select "#agrippa-output" >>= setText r -- TODO check status code?
 
 pluginsByKeyword :: StrMap Plugin
 pluginsByKeyword = fromFoldable ((\p@(Plugin { keyword: k }) -> Tuple k p) <$> plugins)
