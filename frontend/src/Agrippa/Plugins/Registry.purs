@@ -26,7 +26,7 @@ plugins = [ Plugin { name: "Calculator"
                    , onActivation: C.calculateOnActivation
                    }
           , Plugin { name: "FileSearch"
-                   , keyword: "'"
+                   , keyword: "f"
                    , onIncrementalChange: F.prompt
                    , onActivation: F.search
                    }
