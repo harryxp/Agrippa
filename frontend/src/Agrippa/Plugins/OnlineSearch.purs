@@ -1,4 +1,4 @@
-module Agrippa.Plugins.Bookmark (goto, prompt) where
+module Agrippa.Plugins.OnlineSearch (search, prompt) where
 
 import Prelude (Unit, bind, otherwise, pure, (<>))
 import Control.Monad.Eff (Eff)
@@ -20,10 +20,10 @@ prompt input
       : matchWebsites (trim input)
       )
 
-goto :: forall e. String
-               -> (String -> Eff (dom :: DOM, window :: WINDOW | e) Unit)
-               -> Eff (dom :: DOM, window :: WINDOW | e) String
-goto input _ =
+search :: forall e. String
+                 -> (String -> Eff (dom :: DOM, window :: WINDOW | e) Unit)
+                 -> Eff (dom :: DOM, window :: WINDOW | e) String
+search input _ =
   let trimmedInput = trim input
       websites = matchWebsites trimmedInput
   in case (head websites) of
@@ -48,6 +48,8 @@ urlsByKey :: StrMap String
 urlsByKey = fromFoldable
   [ Tuple "spark api" "https://spark.apache.org/docs/latest/api/java/"
   , Tuple "github"    "https://github.com"
+  , Tuple "pursuit"   "https://pursuit.purescript.org/search?q=${q}"
+  , Tuple "wiki"      "https://wikipedia.org/wiki/Special:Search/${q}"
   ]
 
 -- TODO put urls in a config file

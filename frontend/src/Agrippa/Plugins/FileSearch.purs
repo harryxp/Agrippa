@@ -1,4 +1,4 @@
-module Agrippa.Plugins.FileSearcher (prompt, search) where
+module Agrippa.Plugins.FileSearch (prompt, search) where
 
 import Prelude (Unit, const, pure, unit, (<$), (<>))
 import Control.Monad.Aff (runAff)

@@ -6,10 +6,9 @@ import DOM (DOM)
 import DOM.HTML.Types (WINDOW)
 import Network.HTTP.Affjax (AJAX)
 
-import Agrippa.Plugins.Calculator as C
-import Agrippa.Plugins.Bookmark as B
-import Agrippa.Plugins.FileSearcher as F
-import Agrippa.Plugins.WikiSearcher as W
+import Agrippa.Plugins.Calculator   as C
+import Agrippa.Plugins.FileSearch   as F
+import Agrippa.Plugins.OnlineSearch as O
 
 newtype Plugin =
   Plugin { name                :: String
@@ -26,20 +25,15 @@ plugins = [ Plugin { name: "Calculator"
                    , onIncrementalChange: C.calculate
                    , onActivation: C.calculateOnActivation
                    }
-          , Plugin { name: "FileSearcher"
+          , Plugin { name: "FileSearch"
                    , keyword: "'"
                    , onIncrementalChange: F.prompt
                    , onActivation: F.search
                    }
-          , Plugin { name: "WikiSearcher"
-                   , keyword: "w"
-                   , onIncrementalChange: W.prompt
-                   , onActivation: W.search
-                   }
-          , Plugin { name: "Bookmark"
-                   , keyword: "b"
-                   , onIncrementalChange: B.prompt
-                   , onActivation: B.goto
+          , Plugin { name: "OnlineSearch"
+                   , keyword: "o"
+                   , onIncrementalChange: O.prompt
+                   , onActivation: O.search
                    }
           ]
 
