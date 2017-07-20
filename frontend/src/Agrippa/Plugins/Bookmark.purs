@@ -15,7 +15,7 @@ import DOM.HTML.Window (open)
 prompt :: String -> String
 prompt input
   | null (trim input) = ""
-  | otherwise = joinWith " "
+  | otherwise = joinWith "\n"
       ( "Matching websites (press <Enter> to goto the first one):"
       : matchWebsites (trim input)
       )
@@ -50,4 +50,4 @@ urlsByKey = fromFoldable
   , Tuple "github"    "https://github.com"
   ]
 
--- TODO newline in prompt
+-- TODO put urls in a config file

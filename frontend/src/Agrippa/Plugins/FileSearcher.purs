@@ -14,11 +14,14 @@ search :: forall e. String
                  -> (String -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
                  -> Eff (ajax :: AJAX, dom :: DOM | e) String
 search input displayResult =
-  "Searching..."
-  <$
-  runAff (const (pure unit)) (\{ response: r } -> displayResult r) (get ("/agrippa/file-search/" <> (trim input)))
+  "Searching..." <$
+  runAff
+    (const (pure unit))
+    (\{ response: r } -> displayResult r)
+    (get ("/agrippa/file-search/" <> (trim input)))
 
 -- TODO limit size of output
 -- TODO highlight keyword
 -- TODO error handler
 -- TODO check status code?
+-- TODO 500 internal error when locate fails
