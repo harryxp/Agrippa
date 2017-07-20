@@ -7,14 +7,14 @@ import Data.Either (Either(..))
 import Data.List (toUnfoldable)
 import Data.Maybe (Maybe(..))
 import Data.Number (fromString)
-import Data.String (fromCharArray, trim)
+import Data.String (Pattern(..), Replacement(..), fromCharArray, replaceAll)
 import Text.Parsing.StringParser (ParseError(..), Parser, fail, runParser)
 import Text.Parsing.StringParser.Combinators (between, fix, many1)
 import Text.Parsing.StringParser.Expr (Assoc(..), Operator(..), OperatorTable, buildExprParser)
 import Text.Parsing.StringParser.String (anyDigit, char, string)
 
 calculate :: String -> String
-calculate = evalExpr <<< parseExpr <<< trim
+calculate = evalExpr <<< parseExpr <<< (replaceAll (Pattern " ") (Replacement ""))
 
 calculateOnActivation :: forall e. String -> (String -> Eff e Unit) -> Eff e String
 calculateOnActivation input _ = pure (calculate input)
