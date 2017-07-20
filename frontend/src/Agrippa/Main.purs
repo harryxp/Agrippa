@@ -1,6 +1,6 @@
 module Agrippa.Main (main) where
 
-import Prelude (Unit, bind, discard, show, unit, (<$>), (*>), (>>=), (<>))
+import Prelude (Unit, bind, discard, unit, (<$>), (*>), (>>=))
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.JQuery (JQuery, JQueryEvent, append, create, getWhich, getValue, on, ready, select, setText, toggle)
 import Control.Monad.Except (runExcept)
@@ -11,11 +11,11 @@ import Data.Foldable (for_)
 import Data.Foreign (readString)
 import Data.Maybe (Maybe(..))
 import Data.StrMap (StrMap, fromFoldable, lookup)
-import Data.String (Pattern(..), indexOf, splitAt, trim)
+import Data.String (Pattern(..), indexOf, splitAt)
 import Data.Tuple (Tuple(..))
 import Network.HTTP.Affjax (AJAX)
 
-import Agrippa.Plugins.Registry (Plugin(..), PluginActivationMode(..), plugins)
+import Agrippa.Plugins.Registry (Plugin(..), plugins)
 
 main :: forall e. Eff (ajax :: AJAX, dom :: DOM, window :: WINDOW | e) Unit
 main = ready do
@@ -49,20 +49,12 @@ dispatchToPlugin keyCode s =
   in do
     indicatorElem <- select "#agrippa-plugin-indicator"
     case maybePlugin of
-      Just (Tuple (Plugin { name: n, computation: comp, activationMode: mode }) input) -> do
+      Just (Tuple (Plugin { name: n, onIncrementalChange: inc, onActivation: act }) input) -> do
         setText n indicatorElem
-        if shouldFirePlugin mode keyCode
-          -- if a plugin is found and should be fired
-          --   show immediate feedback from plugin
-          --   also give it the ability to update the output div later since it may run asynchronous computation
-          then comp (trim input) displayOnOutputDiv >>= displayOnOutputDiv
-          else displayOnOutputDiv ("Plugin <" <> n <> "> selected.  Press <Enter> to activate.")
+        case keyCode of
+          13 -> act input displayOnOutputDiv >>= displayOnOutputDiv
+          otherwise -> displayOnOutputDiv (inc input)
       Nothing -> setText "No plugin selected." indicatorElem *> clearOutputDiv
-
-shouldFirePlugin :: PluginActivationMode -> Int -> Boolean
-shouldFirePlugin Enter 13 = true
-shouldFirePlugin Enter  _ = false
-shouldFirePlugin     _  _ = true
 
 displayOnOutputDiv :: forall e. String -> Eff (dom :: DOM | e) Unit
 displayOnOutputDiv r = select "#agrippa-output" >>= setText r
@@ -79,10 +71,10 @@ buildHelpTextForPlugins :: forall e. JQuery -> Eff (dom :: DOM | e) Unit
 buildHelpTextForPlugins helpDiv = foldM buildHelpTextForPlugin unit plugins
 
 buildHelpTextForPlugin :: forall e. Unit -> Plugin -> Eff (dom :: DOM | e) Unit
-buildHelpTextForPlugin _ (Plugin { name: n, keyword: key, activationMode: mode }) = do
+buildHelpTextForPlugin _ (Plugin { name: n, keyword: key }) = do
   helpTable <- select "#agrippa-help-table"
   tr <- create "<tr>"
-  createTd n tr *> createTd key tr *> createTd (show mode) tr *> append tr helpTable
+  createTd n tr *> createTd key tr *> append tr helpTable
   where
     createTd :: String -> JQuery -> Eff (dom :: DOM | e) Unit
     createTd txt tr = create "<td>" >>= \td -> setText txt td *> append td tr

@@ -1,4 +1,4 @@
-module Agrippa.Plugins.WikiSearcher (search) where
+module Agrippa.Plugins.WikiSearcher (prompt, search) where
 
 import Prelude (Unit, bind, pure, (<>))
 import Control.Monad.Eff (Eff)
@@ -6,6 +6,9 @@ import DOM (DOM)
 import DOM.HTML (window)
 import DOM.HTML.Types (WINDOW)
 import DOM.HTML.Window (open)
+
+prompt :: String -> String
+prompt _ = "Press <Enter> to search on Wikipedia."
 
 search :: forall e. String
                  -> (String -> Eff (dom :: DOM, window :: WINDOW | e) Unit)

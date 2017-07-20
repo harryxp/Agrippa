@@ -1,4 +1,4 @@
-module Agrippa.Plugins.Calculator (calculate) where
+module Agrippa.Plugins.Calculator (calculate, calculateOnActivation) where
 
 import Prelude (class Show, Unit, bind, id, negate, pure, show, ($>), (*), (+), (-), (/), (<<<), (<>))
 import Control.Alt ((<|>))
@@ -13,10 +13,11 @@ import Text.Parsing.StringParser.Combinators (between, fix, many1)
 import Text.Parsing.StringParser.Expr (Assoc(..), Operator(..), OperatorTable, buildExprParser)
 import Text.Parsing.StringParser.String (anyDigit, char, string)
 
-calculate :: forall e. String
-                    -> (String -> Eff e Unit)
-                    -> Eff e String
-calculate input _ = (pure <<< evalExpr <<< parseExpr <<< trim) input
+calculate :: String -> String
+calculate = evalExpr <<< parseExpr <<< trim
+
+calculateOnActivation :: forall e. String -> (String -> Eff e Unit) -> Eff e String
+calculateOnActivation input _ = pure (calculate input)
 
 data Expr = ExprAdd Expr Expr
           | ExprSub Expr Expr
