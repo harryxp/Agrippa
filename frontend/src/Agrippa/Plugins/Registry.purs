@@ -3,9 +3,11 @@ module Agrippa.Plugins.Registry (Plugin(..), PluginActivationMode(..), plugins) 
 import Prelude (class Show, Unit)
 import Control.Monad.Eff (Eff)
 import DOM (DOM)
+import DOM.HTML.Types (WINDOW)
 import Network.HTTP.Affjax (AJAX)
 
 import Agrippa.Plugins.Calculator as Calc
+import Agrippa.Plugins.Bookmark as B
 import Agrippa.Plugins.FileSearcher as F
 import Agrippa.Plugins.WikiSearcher as W
 
@@ -19,8 +21,8 @@ newtype Plugin =
   Plugin { name           :: String
          , keyword        :: String
          , computation    :: forall e. String
-                                    -> (String -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
-                                    -> Eff (ajax :: AJAX, dom :: DOM | e) String
+                                    -> (String -> Eff (ajax :: AJAX, dom :: DOM, window :: WINDOW | e) Unit)
+                                    -> Eff (ajax :: AJAX, dom :: DOM, window :: WINDOW | e) String
          , activationMode :: PluginActivationMode
          }
 
@@ -38,6 +40,11 @@ plugins = [ Plugin { name: "Calculator"
           , Plugin { name: "WikiSearcher"
                    , keyword: "w"
                    , computation: W.search
+                   , activationMode: Enter
+                   }
+          , Plugin { name: "Bookmark"
+                   , keyword: "b"
+                   , computation: B.goto
                    , activationMode: Enter
                    }
           ]

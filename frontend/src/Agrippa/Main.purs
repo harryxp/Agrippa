@@ -5,6 +5,7 @@ import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.JQuery (JQuery, JQueryEvent, append, create, getWhich, getValue, on, ready, select, setText, toggle)
 import Control.Monad.Except (runExcept)
 import DOM (DOM)
+import DOM.HTML.Types (WINDOW)
 import Data.Array (foldM)
 import Data.Foldable (for_)
 import Data.Foreign (readString)
@@ -16,7 +17,7 @@ import Network.HTTP.Affjax (AJAX)
 
 import Agrippa.Plugins.Registry (Plugin(..), PluginActivationMode(..), plugins)
 
-main :: forall e. Eff (ajax :: AJAX, dom :: DOM | e) Unit
+main :: forall e. Eff (ajax :: AJAX, dom :: DOM, window :: WINDOW | e) Unit
 main = ready do
   input <- select "#agrippa-input"
   on "keyup" handleInput input
@@ -29,7 +30,7 @@ main = ready do
 
 handleInput :: forall e. JQueryEvent
                       -> JQuery
-                      -> Eff (ajax :: AJAX, dom :: DOM | e) Unit
+                      -> Eff (ajax :: AJAX, dom :: DOM, window :: WINDOW | e) Unit
 handleInput event inputElem = do
   keyCode <- getWhich event
   v <- getValue inputElem
@@ -37,7 +38,7 @@ handleInput event inputElem = do
 
 dispatchToPlugin :: forall e. Int
                            -> String
-                           -> Eff (ajax :: AJAX, dom :: DOM | e) Unit
+                           -> Eff (ajax :: AJAX, dom :: DOM, window :: WINDOW | e) Unit
 dispatchToPlugin keyCode s =
   let maybePlugin :: Maybe (Tuple Plugin String)
       maybePlugin = do
