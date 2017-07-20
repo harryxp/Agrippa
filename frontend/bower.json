@@ -12,7 +12,8 @@
     "purescript-string-parsers": "^3.0.1",
     "purescript-numbers": "^5.0.0",
     "purescript-jquery": "^4.2.1",
-    "purescript-affjax": "^4.0.0"
+    "purescript-affjax": "^4.0.0",
+    "purescript-stringutils": "^0.0.6"
   },
   "devDependencies": {
     "purescript-psci-support": "^3.0.0"

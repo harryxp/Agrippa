@@ -1,11 +1,12 @@
 module Agrippa.Plugins.OnlineSearch (search, prompt) where
 
-import Prelude (Unit, bind, otherwise, pure, (==), (<<<), (<>))
+import Prelude (Unit, bind, not, otherwise, pure, (==), (<<<), (<>))
 import Control.Monad.Eff (Eff)
-import Data.Array (head, (:))
+import Data.Array (filter, head, uncons, (:))
 import Data.Maybe (Maybe(..))
 import Data.StrMap (StrMap, filterKeys, fromFoldable, keys, size, values)
-import Data.String (Pattern(..), contains, joinWith, null, trim)
+import Data.String (Pattern(..), Replacement(..), contains, joinWith, null, replace, trim)
+import Data.String.Utils (words)
 import Data.Tuple (Tuple(..))
 import DOM (DOM)
 import DOM.HTML (window)
@@ -15,30 +16,41 @@ import DOM.HTML.Window (open)
 prompt :: String -> String
 prompt input
   | null (trim input) = buildPromptString urlsByKey
-  | otherwise = (prompt' <<< matchWebsites <<< trim) input
+  | otherwise = case uncons (tokenize input) of
+                  Just { head: h, tail: t } -> prompt' (matchWebsites h) t
+                  Nothing -> "Something went really wrong..."
 
-prompt' :: StrMap String -> String
-prompt' matched
+prompt' :: StrMap String -> Array String -> String
+prompt' matched params
   | size matched == 1 =
       case head (values matched) of
         Nothing  -> "Something went really wrong..."
-        Just url ->  "Press <Enter> to search " <> url
+        Just url -> if contains (Pattern "${q}") url
+                      then url <> " selected.  Input the search parameter after a space then press <Enter>."
+                      else url <> " selected.  Press <Enter> to visit."
   | otherwise = buildPromptString matched
 
 search :: forall e. String
                  -> (String -> Eff (dom :: DOM, window :: WINDOW | e) Unit)
                  -> Eff (dom :: DOM, window :: WINDOW | e) String
-search input _ =
-  let trimmedInput = trim input
-      matched = matchWebsites trimmedInput
-  in search' matched
+search input _
+  | null (trim input) = pure (buildPromptString urlsByKey)
+  | otherwise = case uncons (tokenize input) of
+                  Just { head: h, tail: t } -> search' (matchWebsites h) t
+                  Nothing -> pure "Something went really wrong..."
 
-search' :: forall e. StrMap String -> Eff (dom :: DOM, window :: WINDOW | e) String
-search' matched
+search' :: forall e. StrMap String
+                  -> Array String
+                  -> Eff (dom :: DOM, window :: WINDOW | e) String
+search' matched params
   | size matched == 1 =
       case head (values matched) of
         Nothing  -> pure "Something went really wrong..."
-        Just url -> openWebsite url
+        Just url -> if contains (Pattern "${q}") url
+                      then case uncons params of
+                            Just { head: h, tail: t } -> openWebsite (replace (Pattern "${q}") (Replacement h) url)
+                            Nothing -> pure (url <> " selected.  Input the search parameter after a space then press <Enter>.")
+                      else openWebsite url
   | otherwise = pure (buildPromptString matched)
 
 openWebsite :: forall e. String -> Eff (dom :: DOM, window :: WINDOW | e) String
@@ -63,5 +75,9 @@ urlsByKey = fromFoldable
 buildPromptString :: StrMap String -> String
 buildPromptString map = joinWith "\n" ("Keep typing until one is left:" : (keys map))
 
+tokenize :: String -> Array String
+tokenize = filter (not <<< null) <<< words
+
 -- TODO put urls in a config file
--- TODO query using template
+-- TODO query using a template library?
+-- TODO only one query parameter is allowed now
