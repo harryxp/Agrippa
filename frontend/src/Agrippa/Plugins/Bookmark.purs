@@ -1,6 +1,6 @@
 module Agrippa.Plugins.Bookmark (goto, prompt) where
 
-import Prelude (Unit, otherwise, pure, (>>=), (*>), (<>))
+import Prelude (Unit, bind, otherwise, pure, (<>))
 import Control.Monad.Eff (Eff)
 import Data.Array (filter, head, (:))
 import Data.Maybe (Maybe(..))
@@ -17,7 +17,7 @@ prompt input
   | null (trim input) = ""
   | otherwise = joinWith " "
       ( "Matching websites (press <Enter> to goto the first one):"
-      : matchingWebsites (trim input)
+      : matchWebsites (trim input)
       )
 
 goto :: forall e. String
@@ -25,7 +25,7 @@ goto :: forall e. String
                -> Eff (dom :: DOM, window :: WINDOW | e) String
 goto input _ =
   let trimmedInput = trim input
-      websites = matchingWebsites trimmedInput
+      websites = matchWebsites trimmedInput
   in case (head websites) of
     Just w  -> openWebsite w
     Nothing -> pure ("No match found for: " <> trimmedInput <> ".")
@@ -33,16 +33,21 @@ goto input _ =
 openWebsite :: forall e. String -> Eff (dom :: DOM, window :: WINDOW | e) String
 openWebsite key =
   case lookup key urlsByKey of
-    Just url -> (window >>= open url "_blank" "") *> pure "Opening a new window..."
-    Nothing -> pure "Something went really wrong..."
+    Just url -> do
+      w <- window
+      maybeNewWindow <- open url "_blank" "" w
+      pure case maybeNewWindow of
+            Nothing -> "Something went really wrong..."
+            Just _  -> "Opening a new window..."
+    Nothing -> pure ("No match found for: " <> key <> ".")
 
-matchingWebsites :: String -> Array String
-matchingWebsites input = filter (contains (Pattern input)) (keys urlsByKey)
+matchWebsites :: String -> Array String
+matchWebsites input = filter (contains (Pattern input)) (keys urlsByKey)
 
 urlsByKey :: StrMap String
 urlsByKey = fromFoldable
   [ Tuple "spark api" "https://spark.apache.org/docs/latest/api/java/"
-  , Tuple "github" "https://github.com"
+  , Tuple "github"    "https://github.com"
   ]
 
 -- TODO newline in prompt

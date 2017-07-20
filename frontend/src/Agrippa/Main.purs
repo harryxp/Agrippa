@@ -52,7 +52,7 @@ dispatchToPlugin keyCode s =
       Just (Tuple (Plugin { name: n, onIncrementalChange: inc, onActivation: act }) input) -> do
         setText n indicatorElem
         case keyCode of
-          13 -> act input displayOnOutputDiv >>= displayOnOutputDiv
+          13  -> act input displayOnOutputDiv >>= displayOnOutputDiv
           otherwise -> displayOnOutputDiv (inc input)
       Nothing -> setText "No plugin selected." indicatorElem *> clearOutputDiv
 

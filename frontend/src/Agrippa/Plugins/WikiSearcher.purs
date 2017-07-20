@@ -2,6 +2,7 @@ module Agrippa.Plugins.WikiSearcher (prompt, search) where
 
 import Prelude (Unit, bind, pure, (<>))
 import Control.Monad.Eff (Eff)
+import Data.Maybe (Maybe(..))
 import DOM (DOM)
 import DOM.HTML (window)
 import DOM.HTML.Types (WINDOW)
@@ -15,6 +16,8 @@ search :: forall e. String
                  -> Eff (dom :: DOM, window :: WINDOW | e) String
 search input _ = do
   w <- window
-  _ <- open ("https://wikipedia.org/wiki/Special:Search/" <> input) "_blank" "" w
-  pure "Opening a new window..."
+  maybeNewWindow <- open ("https://wikipedia.org/wiki/Special:Search/" <> input) "_blank" "" w
+  pure case maybeNewWindow of
+        Nothing -> "Something went really wrong..."
+        Just _  -> "Opening a new window..."
 
