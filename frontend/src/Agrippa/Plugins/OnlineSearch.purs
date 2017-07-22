@@ -41,7 +41,7 @@ dispatch :: forall a. Applicative a => String
 dispatch input onSimpleUrl onUrlWithParam =
   case uncons (tokenize input) of
     -- no input
-    Nothing -> pure (buildFeedbackString urlsByKey)
+    Nothing -> pure (buildFeedbackString onlineSearchEntries)
     -- website key and params
     Just { head: key, tail: params } ->
       let matched = matchWebsites key in
@@ -69,15 +69,9 @@ openWebsite url = do
         Just _  -> "Opening a new window..."
 
 matchWebsites :: String -> StrMap String
-matchWebsites input = filterKeys (contains (Pattern input)) urlsByKey
+matchWebsites input = filterKeys (contains (Pattern input)) onlineSearchEntries
 
-urlsByKey :: StrMap String
-urlsByKey = fromFoldable
-  [ Tuple "spark api" "https://spark.apache.org/docs/latest/api/java/"
-  , Tuple "github"    "https://github.com"
-  , Tuple "pursuit"   "https://pursuit.purescript.org/search?q=${q}"
-  , Tuple "wiki"      "https://wikipedia.org/wiki/Special:Search/${q}"
-  ]
+foreign import onlineSearchEntries :: StrMap String
 
 buildFeedbackString :: StrMap String -> String
 buildFeedbackString map = joinWith "\n" ("Keep typing until one is left:" : (keys map))
