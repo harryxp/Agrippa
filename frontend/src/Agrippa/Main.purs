@@ -1,6 +1,6 @@
 module Agrippa.Main (main) where
 
-import Prelude (Unit, bind, discard, unit, (<$>), (*>), (>>=))
+import Prelude (Unit, bind, discard, unit, (<$>), (*>), (>>=), (<>))
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.JQuery (JQuery, JQueryEvent, append, create, getWhich, getValue, on, ready, select, setText, toggle)
 import Control.Monad.Except (runExcept)
@@ -16,6 +16,7 @@ import Data.Tuple (Tuple(..))
 import Network.HTTP.Affjax (AJAX)
 
 import Agrippa.Plugins.Registry (Plugin(..), plugins)
+import Agrippa.Plugins.Utils (openWebsite)
 
 main :: forall e. Eff (ajax :: AJAX, dom :: DOM, window :: WINDOW | e) Unit
 main = ready do
@@ -39,11 +40,11 @@ handleInput event inputElem = do
 dispatchToPlugin :: forall e. Int
                            -> String
                            -> Eff (ajax :: AJAX, dom :: DOM, window :: WINDOW | e) Unit
-dispatchToPlugin keyCode s =
+dispatchToPlugin keyCode wholeInput =
   let maybePlugin :: Maybe (Tuple Plugin String)
       maybePlugin = do
-        i                                 <- indexOf (Pattern " ") s
-        { before: keyword, after: input } <- splitAt i s
+        i                                 <- indexOf (Pattern " ") wholeInput
+        { before: keyword, after: input } <- splitAt i wholeInput
         plugin                            <- lookup keyword pluginsByKeyword
         Just (Tuple plugin input)
   in do
@@ -54,7 +55,10 @@ dispatchToPlugin keyCode s =
         case keyCode of
           13 -> act input displayOnOutputDiv >>= displayOnOutputDiv -- activation
           otherwise -> displayOnOutputDiv (inc input)               -- incremental
-      Nothing -> setText "No plugin selected." indicatorElem *> clearOutputDiv
+      Nothing ->
+        case keyCode of
+          13 -> openWebsite ("https://www.google.com/search?q=" <> wholeInput) >>= displayOnOutputDiv
+          otherwise -> setText "No plugin selected.  Press <Enter> to search on Google." indicatorElem *> clearOutputDiv
 
 displayOnOutputDiv :: forall e. String -> Eff (dom :: DOM | e) Unit
 displayOnOutputDiv r = select "#agrippa-output" >>= setText r
