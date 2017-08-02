@@ -6,9 +6,10 @@ import Control.Monad.Eff (Eff)
 import Data.Array (filter, head, uncons, (:))
 import Data.Identity (Identity(..))
 import Data.Maybe (Maybe(..))
-import Data.StrMap (StrMap, filterKeys, keys, size, values)
+import Data.StrMap (StrMap, filterKeys, fromFoldable, keys, size, values)
 import Data.String (Pattern(..), Replacement(..), contains, joinWith, null, replace)
 import Data.String.Utils (words)
+import Data.Tuple (Tuple(..))
 import DOM (DOM)
 import DOM.HTML.Types (WINDOW)
 
@@ -40,7 +41,7 @@ dispatch :: forall a. Applicative a => String
 dispatch input onSimpleUrl onUrlWithParam =
   case uncons (tokenize input) of
     -- no input
-    Nothing -> pure (buildFeedbackString urlsByKey)
+    Nothing -> pure (buildFeedbackString onlineSearchEntries)
     -- website key and params
     Just { head: key, tail: params } ->
       let matched = matchWebsites key in
@@ -59,10 +60,10 @@ dispatch input onSimpleUrl onUrlWithParam =
         else pure (buildFeedbackString matched) -- zero or many matching websites found
 
 matchWebsites :: String -> StrMap String
-matchWebsites input = filterKeys (contains (Pattern input)) urlsByKey
+matchWebsites input = filterKeys (contains (Pattern input)) onlineSearchEntries
 
-urlsByKey :: StrMap String
-urlsByKey = fromFoldable
+onlineSearchEntries :: StrMap String
+onlineSearchEntries = fromFoldable
   [ Tuple "spark api" "https://spark.apache.org/docs/latest/api/java/"
   , Tuple "github"    "https://github.com"
   , Tuple "pursuit"   "https://pursuit.purescript.org/search?q=${q}"
