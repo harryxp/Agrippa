@@ -22,6 +22,6 @@ search input displayResult =
 
 -- TODO limit size of output
 -- TODO highlight keyword
--- TODO error handler
+-- TODO error handler for runAff
 -- TODO check status code?
 -- TODO 500 internal error when locate fails

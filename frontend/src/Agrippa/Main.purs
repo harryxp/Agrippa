@@ -1,11 +1,13 @@
 module Agrippa.Main (main) where
 
-import Prelude (Unit, bind, discard, unit, (<$>), (*>), (>>=), (<>))
+import Prelude (Unit, bind, discard, unit, void, ($), (<$>), (*>), (>>=), (<>))
+import Control.Monad.Aff (runAff)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.JQuery (JQuery, JQueryEvent, append, create, getWhich, getValue, on, ready, select, setText, toggle)
 import Control.Monad.Except (runExcept)
 import DOM (DOM)
 import DOM.HTML.Types (WINDOW)
+import Data.Argonaut.Core (JObject, Json, toObject)
 import Data.Array (foldM)
 import Data.Foldable (for_)
 import Data.Foreign (readString)
@@ -13,35 +15,47 @@ import Data.Maybe (Maybe(..))
 import Data.StrMap (StrMap, fromFoldable, lookup)
 import Data.String (Pattern(..), indexOf, splitAt)
 import Data.Tuple (Tuple(..))
-import Network.HTTP.Affjax (AJAX)
+import Network.HTTP.Affjax (AJAX, get)
 
 import Agrippa.Plugins.Registry (Plugin(..), plugins)
 import Agrippa.Plugins.Utils (openWebsite)
 
 main :: forall e. Eff (ajax :: AJAX, dom :: DOM, window :: WINDOW | e) Unit
 main = ready do
-  input <- select "#agrippa-input"
-  on "keyup" handleInput input
+  loadConfig installInputHandler
+  buildHelp
 
-  helpLink <- select "#agrippa-help-link"
-  helpContent <- select "#agrippa-help-content"
-  buildHelpTextForPlugins helpContent
-  on "click" (handleHelpLink helpContent) helpLink
+loadConfig :: forall e. (Json -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
+                     -> Eff (ajax :: AJAX, dom :: DOM | e) Unit
+loadConfig onConfigSucc = void $
+  runAff
+    (\_ -> displayOutput "Failed to retrieve config from server.  Can't proceed.")
+    (\{ response: r } -> onConfigSucc r)
+    (get "/agrippa/config/")
 
--- input
+installInputHandler :: forall e. Json
+                              -> Eff (ajax :: AJAX, dom :: DOM, window :: WINDOW | e) Unit
+installInputHandler config =
+  case toObject config of
+    Nothing -> displayOutput "Config must be a JSON object.  Can't proceed."
+    Just conf -> select "#agrippa-input" >>= on "keyup" (handleInput conf)
 
-handleInput :: forall e. JQueryEvent
+-- input and output
+
+handleInput :: forall e. JObject
+                      -> JQueryEvent
                       -> JQuery
                       -> Eff (ajax :: AJAX, dom :: DOM, window :: WINDOW | e) Unit
-handleInput event inputField = do
+handleInput config event inputField = do
   keyCode <- getWhich event
   wholeInput <- getValue inputField
-  for_ (runExcept (readString wholeInput)) (dispatchToPlugin keyCode)
+  for_ (runExcept (readString wholeInput)) (dispatchToPlugin config keyCode)
 
-dispatchToPlugin :: forall e. Int
+dispatchToPlugin :: forall e. JObject
+                           -> Int
                            -> String
                            -> Eff (ajax :: AJAX, dom :: DOM, window :: WINDOW | e) Unit
-dispatchToPlugin keyCode wholeInput =
+dispatchToPlugin config keyCode wholeInput =
   let maybePlugin :: Maybe (Tuple Plugin String)
       maybePlugin = do
         i                                       <- indexOf (Pattern " ") wholeInput
@@ -72,6 +86,13 @@ pluginsByKeyword = fromFoldable ((\p@(Plugin { keyword: k }) -> Tuple k p) <$> p
 
 -- help
 
+buildHelp :: forall e. Eff (dom :: DOM | e) Unit
+buildHelp = do
+  helpLink <- select "#agrippa-help-link"
+  helpContent <- select "#agrippa-help-content"
+  buildHelpTextForPlugins helpContent
+  on "click" (handleHelpLink helpContent) helpLink
+
 buildHelpTextForPlugins :: forall e. JQuery -> Eff (dom :: DOM | e) Unit
 buildHelpTextForPlugins helpContent = foldM buildHelpTextForPlugin unit plugins
 
@@ -87,3 +108,4 @@ buildHelpTextForPlugin _ (Plugin { name: n, keyword: key }) = do
 handleHelpLink :: forall e. JQuery -> JQueryEvent -> JQuery -> Eff (dom :: DOM | e) Unit
 handleHelpLink helpContent _ _ = toggle helpContent
 
+-- TODO check status code?

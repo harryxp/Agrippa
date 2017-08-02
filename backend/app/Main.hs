@@ -7,8 +7,11 @@ import Web.Scotty (ActionM, file, get, liftAndCatchIO, param, scotty, text)
 
 main :: IO ()
 main = scotty 3000 $ do
-  get "/agrippa/index.html" $ do
+  get "/agrippa/" $ do
     file "web/index.html"
+
+  get "/agrippa/config" $ do
+    file "agrippa-config.json"
 
   get "/agrippa/js/scripts.js" $ do
     file "web/js/scripts.js"

@@ -1,0 +1,8 @@
+{
+    "global-config": {
+        "google-url": "https://www.google.com/search?q="
+    },
+
+    "plugins-config": {
+    }
+}

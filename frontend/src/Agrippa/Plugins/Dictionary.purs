@@ -8,7 +8,7 @@ import DOM.HTML.Types (WINDOW)
 import Agrippa.Plugins.Utils (openWebsite)
 
 prompt :: String -> String
-prompt _ = "Keep typing.  Press <Enter> to lookup."
+prompt _ = "Keep typing.  Press <Enter> to look it up."
 
 lookup :: forall e. String
                  -> (String -> Eff (dom :: DOM, window :: WINDOW | e) Unit)
