@@ -8,14 +8,16 @@ import DOM (DOM)
 import DOM.HTML.Types (WINDOW)
 import Network.HTTP.Affjax (AJAX)
 
+import Agrippa.Config (Config)
 import Agrippa.Plugins.Calculator   as C
 import Agrippa.Plugins.FileSearch   as F
 import Agrippa.Plugins.OnlineSearch as O
 
 newtype Plugin =
   Plugin { name                :: String
-         , onIncrementalChange :: String -> String
-         , onActivation        :: forall e. String
+         , onIncrementalChange :: Config -> String -> String
+         , onActivation        :: forall e. Config
+                                         -> String
                                          -> (String -> Eff (ajax :: AJAX, dom :: DOM, window :: WINDOW | e) Unit)
                                          -> Eff (ajax :: AJAX, dom :: DOM, window :: WINDOW | e) String
          }

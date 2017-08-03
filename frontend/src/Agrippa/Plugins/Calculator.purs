@@ -13,11 +13,16 @@ import Text.Parsing.StringParser.Combinators (between, fix, many1)
 import Text.Parsing.StringParser.Expr (Assoc(..), Operator(..), OperatorTable, buildExprParser)
 import Text.Parsing.StringParser.String (anyDigit, char, string)
 
-calculate :: String -> String
-calculate = evalExpr <<< parseExpr <<< (replaceAll (Pattern " ") (Replacement ""))
+import Agrippa.Config (Config)
 
-calculateOnActivation :: forall e. String -> (String -> Eff e Unit) -> Eff e String
-calculateOnActivation input _ = pure (calculate input)
+calculate :: Config -> String -> String
+calculate _ = evalExpr <<< parseExpr <<< (replaceAll (Pattern " ") (Replacement ""))
+
+calculateOnActivation :: forall e. Config
+                                -> String
+                                -> (String -> Eff e Unit)
+                                -> Eff e String
+calculateOnActivation config input _ = pure (calculate config input)
 
 data Expr = ExprAdd Expr Expr
           | ExprSub Expr Expr

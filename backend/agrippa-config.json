@@ -7,6 +7,9 @@
         "d":   { "plugin": "OnlineSearch"
                , "url": "https://www.merriam-webster.com/dictionary/${q}"
                },
+        "a":   { "plugin": "OnlineSearch"
+               , "url": "https://www.amazon.com/s?field-keywords=${q}"
+               },
         "pur": { "plugin": "OnlineSearch"
                , "url": "https://pursuit.purescript.org/search?q=${q}"
                },
@@ -16,8 +19,5 @@
         "yt":  { "plugin": "OnlineSearch"
                , "url": "http://www.youtube.com/results?search_query=${q}"
                }
-    },
-
-    "plugins-config": {
     }
 }

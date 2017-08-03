@@ -7,38 +7,39 @@ import Control.Monad.Eff.JQuery (JQuery, JQueryEvent, append, create, getWhich, 
 import Control.Monad.Except (runExcept)
 import DOM (DOM)
 import DOM.HTML.Types (WINDOW)
-import Data.Argonaut.Core (Json, toObject, toString)
+import Data.Argonaut.Core (toObject, toString)
 import Data.Either (Either(..))
 import Data.Foldable (for_)
 import Data.Foreign (readString)
-import Data.Maybe (Maybe(..))
 import Data.StrMap (StrMap, foldM, lookup)
 import Data.String (Pattern(..), indexOf, splitAt)
-import Data.Tuple (Tuple(..))
+import Data.Tuple.Nested (Tuple3, tuple3, uncurry3)
 import Network.HTTP.Affjax (AJAX, get)
 
+import Agrippa.Config (Config)
 import Agrippa.Plugins.Registry (Plugin(..), pluginsByName)
 import Agrippa.Plugins.Utils (openWebsite)
+import Agrippa.Utils (mToE)
 
 main :: forall e. Eff (ajax :: AJAX, dom :: DOM, window :: WINDOW | e) Unit
 main = ready $
   loadConfig (\config -> buildHelp config *> installInputHandler config)
 
-loadConfig :: forall e. (Json -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
+loadConfig :: forall e. (Config -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
                      -> Eff (ajax :: AJAX, dom :: DOM | e) Unit
-loadConfig onConfigSucc = void $
+loadConfig onSuccess = void $
   runAff
     (\_ -> displayStatus "Failed to retrieve config from server.")
-    (\{ response: r } -> onConfigSucc r)
+    (\{ response: r } -> onSuccess r)
     (get "/agrippa/config/")
 
-installInputHandler :: forall e. Json
+installInputHandler :: forall e. Config
                               -> Eff (ajax :: AJAX, dom :: DOM, window :: WINDOW | e) Unit
 installInputHandler config = select "#agrippa-input" >>= on "keyup" (handleInput config)
 
 -- input and output
 
-handleInput :: forall e. Json
+handleInput :: forall e. Config
                       -> JQueryEvent
                       -> JQuery
                       -> Eff (ajax :: AJAX, dom :: DOM, window :: WINDOW | e) Unit
@@ -47,7 +48,7 @@ handleInput config event inputField = do
   wholeInput <- getValue inputField
   for_ (runExcept (readString wholeInput)) (dispatchToPlugin config keyCode)
 
-dispatchToPlugin :: forall e. Json
+dispatchToPlugin :: forall e. Config
                            -> Int
                            -> String
                            -> Eff (ajax :: AJAX, dom :: DOM, window :: WINDOW | e) Unit
@@ -56,12 +57,12 @@ dispatchToPlugin config keyCode wholeInput =
     Left err -> case keyCode of
                   13 -> openWebsite ("https://www.google.com/search?q=" <> wholeInput) >>= displayOutput
                   otherwise -> displayStatus (err <> "  Press <Enter> to search on Google.") *> clearOutput
-    Right (Tuple plugin pluginInput) -> invokePlugin plugin keyCode pluginInput
+    Right t3 -> (uncurry3 invokePlugin t3) keyCode
 
-findPlugin :: Json -> Int -> String -> Either String (Tuple Plugin String)
+findPlugin :: Config -> Int -> String -> Either String (Tuple3 Plugin Config String)
 findPlugin config keyCode wholeInput = do
   i                                       <- mToE "No keyword found in input."                                                  (indexOf (Pattern " ") wholeInput)
-  { before: keyword, after: pluginInput } <- mToE "Failed to parse input."                                                      (splitAt i wholeInput)
+  { before: keyword, after: pluginInput } <- mToE "Failed to parse input.  This is impossible!"                                 (splitAt i wholeInput)
   configMap                               <- mToE "Config Error: must be a JSON object."                                        (toObject config)
   pluginInfoByKeywordJson                 <- mToE "Config Error: must have key mappings."                                       (lookup "key-mappings" configMap)
   pluginInfoByKeywordMap                  <- mToE "Config Error: key mappings must be a JSON object."                           (toObject pluginInfoByKeywordJson)
@@ -70,21 +71,18 @@ findPlugin config keyCode wholeInput = do
   pluginNameJson                          <- mToE "Config Error: each key must map to a JSON object with a 'plugin' attribute." (lookup "plugin" pluginInfoMap)
   pluginName                              <- mToE "Config Error: value of 'plugin' attribute must be a string."                 (toString pluginNameJson)
   plugin                                  <- mToE ("Can't find plugin with name '" <> pluginName <> "'.")                       (lookup pluginName pluginsByName)
-  pure (Tuple plugin pluginInput)
-
-mToE :: forall a e. e -> Maybe a -> Either e a
-mToE err Nothing = Left err
-mToE _ (Just x) = Right x
+  pure (tuple3 plugin pluginInfoJson pluginInput)
 
 invokePlugin :: forall e. Plugin
-                       -> Int
+                       -> Config
                        -> String
+                       -> Int
                        -> Eff (ajax :: AJAX, dom :: DOM, window :: WINDOW | e) Unit
-invokePlugin (Plugin { name: n , onIncrementalChange: inc , onActivation: act }) keyCode pluginInput = do
+invokePlugin (Plugin { name: n , onIncrementalChange: inc , onActivation: act }) config pluginInput keyCode = do
   displayStatus n
   case keyCode of
-    13 -> act pluginInput displayOutput >>= displayOutput -- activation
-    otherwise -> displayOutput (inc pluginInput)          -- incremental
+    13 -> act config pluginInput displayOutput >>= displayOutput -- activation
+    otherwise -> displayOutput (inc config pluginInput)          -- incremental
 
 displayStatus :: forall e. String -> Eff (dom :: DOM | e) Unit
 displayStatus r = select "#agrippa-status" >>= setText r
@@ -97,14 +95,14 @@ clearOutput = select "#agrippa-output" >>= setText ""
 
 -- help
 
-buildHelp :: forall e. Json -> Eff (dom :: DOM | e) Unit
+buildHelp :: forall e. Config -> Eff (dom :: DOM | e) Unit
 buildHelp config = do
   helpLink <- select "#agrippa-help-link"
   helpContent <- select "#agrippa-help-content"
   buildHelpTextForPlugins config helpContent
   on "click" (handleHelpLink helpContent) helpLink
 
-buildHelpTextForPlugins :: forall e. Json -> JQuery -> Eff (dom :: DOM | e) Unit
+buildHelpTextForPlugins :: forall e. Config -> JQuery -> Eff (dom :: DOM | e) Unit
 buildHelpTextForPlugins config helpContent =
   let pluginHelpByKeyword :: Either String (StrMap String)
       pluginHelpByKeyword = do
@@ -131,3 +129,5 @@ handleHelpLink helpContent _ _ = toggle helpContent
 -- TODO check status code?
 -- TODO put google url into config
 -- TODO Do not look up config repeatedly
+-- TODO Refactor many "plugin"s to "function"s
+-- TODO formatted string instead of <>

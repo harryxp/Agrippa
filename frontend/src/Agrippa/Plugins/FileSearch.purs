@@ -7,17 +7,20 @@ import Data.String (trim)
 import DOM (DOM)
 import Network.HTTP.Affjax (AJAX, get)
 
-prompt :: String -> String
-prompt _ = "Press <Enter> to search files."
+import Agrippa.Config (Config)
 
-search :: forall e. String
+prompt :: Config -> String -> String
+prompt _ _ = "Press <Enter> to search files."
+
+search :: forall e. Config
+                 -> String
                  -> (String -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
                  -> Eff (ajax :: AJAX, dom :: DOM | e) String
-search input displayResult =
+search _ input displayOutput =
   "Searching..." <$
   runAff
     (const (pure unit))
-    (\{ response: r } -> displayResult r)
+    (\{ response: r } -> displayOutput r)
     (get ("/agrippa/file-search/" <> (trim input)))
 
 -- TODO limit size of output
