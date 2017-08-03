@@ -11,7 +11,7 @@ import DOM.HTML.Window (open)
 openWebsite :: forall e. String -> Eff (dom :: DOM, window :: WINDOW | e) String
 openWebsite url = do
   w <- window
-  maybeNewWindow <- open url "_blank" "" w
+  maybeNewWindow <- open url "_self" "" w
   pure case maybeNewWindow of
         Nothing -> "Something went really wrong..."
-        Just _  -> "Opening a new window..."
+        Just _  -> "Opening..."

@@ -1,7 +1,9 @@
-module Agrippa.Plugins.Registry (Plugin(..), plugins) where
+module Agrippa.Plugins.Registry (Plugin(..), pluginsByName) where
 
-import Prelude (Unit)
+import Prelude (Unit, (<$>))
 import Control.Monad.Eff (Eff)
+import Data.StrMap (StrMap, fromFoldable)
+import Data.Tuple (Tuple(..))
 import DOM (DOM)
 import DOM.HTML.Types (WINDOW)
 import Network.HTTP.Affjax (AJAX)
@@ -13,7 +15,6 @@ import Agrippa.Plugins.OnlineSearch as O
 
 newtype Plugin =
   Plugin { name                :: String
-         , keyword             :: String
          , onIncrementalChange :: String -> String
          , onActivation        :: forall e. String
                                          -> (String -> Eff (ajax :: AJAX, dom :: DOM, window :: WINDOW | e) Unit)
@@ -22,25 +23,22 @@ newtype Plugin =
 
 plugins :: Array Plugin
 plugins = [ Plugin { name: "Calculator"
-                   , keyword: "="
                    , onIncrementalChange: C.calculate
                    , onActivation: C.calculateOnActivation
                    }
           , Plugin { name: "FileSearch"
-                   , keyword: "f"
                    , onIncrementalChange: F.prompt
                    , onActivation: F.search
                    }
           , Plugin { name: "OnlineSearch"
-                   , keyword: "o"
                    , onIncrementalChange: O.prompt
                    , onActivation: O.search
                    }
           , Plugin { name: "Dictionary"
-                   , keyword: "d"
                    , onIncrementalChange: D.prompt
                    , onActivation: D.lookup
                    }
           ]
 
--- TODO load plugins dynamically
+pluginsByName :: StrMap Plugin
+pluginsByName = fromFoldable ((\p@(Plugin { name: n }) -> Tuple n p) <$> plugins)

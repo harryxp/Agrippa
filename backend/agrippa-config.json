@@ -1,6 +1,16 @@
 {
-    "global-config": {
-        "google-url": "https://www.google.com/search?q="
+    "key-mappings": {
+        "=":   { "plugin": "Calculator" },
+        "'":   { "plugin": "FileSearch",
+                 "paths": ["/Users/hpan/Documents/", "/Users/hpan/Downloads/"]
+               },
+        "d":   { "plugin": "Dictionary" },
+        "wk":  { "plugin": "OnlineSearch"
+               , "url": "https://wikipedia.org/wiki/Special:Search/${q}"
+               },
+        "pur": { "plugin": "OnlineSearch"
+               , "url": "https://pursuit.purescript.org/search?q=${q}"
+               }
     },
 
     "plugins-config": {
