@@ -4,12 +4,17 @@
         "'":   { "plugin": "FileSearch",
                  "paths": ["/Users/hpan/Documents/", "/Users/hpan/Downloads/"]
                },
-        "d":   { "plugin": "Dictionary" },
-        "wk":  { "plugin": "OnlineSearch"
-               , "url": "https://wikipedia.org/wiki/Special:Search/${q}"
+        "d":   { "plugin": "OnlineSearch"
+               , "url": "https://www.merriam-webster.com/dictionary/${q}"
                },
         "pur": { "plugin": "OnlineSearch"
                , "url": "https://pursuit.purescript.org/search?q=${q}"
+               },
+        "wk":  { "plugin": "OnlineSearch"
+               , "url": "https://wikipedia.org/wiki/Special:Search/${q}"
+               },
+        "yt":  { "plugin": "OnlineSearch"
+               , "url": "http://www.youtube.com/results?search_query=${q}"
                }
     },
 

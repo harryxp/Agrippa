@@ -9,7 +9,6 @@ import DOM.HTML.Types (WINDOW)
 import Network.HTTP.Affjax (AJAX)
 
 import Agrippa.Plugins.Calculator   as C
-import Agrippa.Plugins.Dictionary   as D
 import Agrippa.Plugins.FileSearch   as F
 import Agrippa.Plugins.OnlineSearch as O
 
@@ -33,10 +32,6 @@ plugins = [ Plugin { name: "Calculator"
           , Plugin { name: "OnlineSearch"
                    , onIncrementalChange: O.prompt
                    , onActivation: O.search
-                   }
-          , Plugin { name: "Dictionary"
-                   , onIncrementalChange: D.prompt
-                   , onActivation: D.lookup
                    }
           ]
 
