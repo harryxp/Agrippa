@@ -50,27 +50,27 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
   <script src="js/scripts.js"></script>
   <input id="agrippa-input" autofocus/></input>
-  <div id="agrippa-status">No plugin selected.  Press &lt;Enter&gt; to search on Google.</div>
+  <div id="agrippa-status">No keyword found in input.  Press &lt;Enter&gt; to search on Google.</div>
 
   <div id="agrippa-output"></div>
   <br>
   <a href="#" id="agrippa-help-link">Help</a>
-  <div id="agrippa-help-content" hidden>
+  <div id="agrippa-help-content">
     <hr>
     <strong>Agrippa is a keyboard-driven web application that helps the user perform various tasks.</strong>
     <br>
     <br>
     How to use:
     <ol>
-      <li>Please choose a function by typing a keyword, followed by a space.</li>
+      <li>Please choose a task by typing a keyword, followed by a space.</li>
       <li>As you type, follow the instructions and feedback.</li>
-      <li>Press &lt;Enter&gt; to activate the function.  Not all functions need this.</li>
+      <li>Press &lt;Enter&gt; to activate the task.  Not all tasks need this.</li>
     </ol>
-    Currently available functions:
+    Tasks are configured in agrippa-config.json and implemented by software components called plugins.  Currently configured tasks:
     <br>
     <br>
     <table id="agrippa-help-table">
-      <th>Function Info</th><th>Keyword</th>
+      <th>Keyword</th><th>Function</th>
     </table>
   </div>
 </body>

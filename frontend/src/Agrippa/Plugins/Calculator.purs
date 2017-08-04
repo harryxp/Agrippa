@@ -58,7 +58,6 @@ exprNumParser = do
     Nothing  -> fail ("Can't parse " <> strNum <> " to number.")
     Just num -> pure (ExprNum num)
 
--- TODO support power.  See purescript-math's Math.pow
 table :: OperatorTable Expr
 table = [ [Prefix (string "-" $> ExprNeg), Prefix (string "+" $> id)]
         , [Infix (string "*" $> ExprMul) AssocLeft, Infix (string "/" $> ExprDiv) AssocLeft]

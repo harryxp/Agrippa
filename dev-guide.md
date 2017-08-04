@@ -97,3 +97,32 @@ Then make sure everything works:
 
 4. To see more useful commands try `stack`.
 
+# TODOs
+
+## General
+
+- Top level suggestion
+- Check runAff response status code
+- Refactor config retrieval
+- Do not look up config repeatedly
+- Put Google URL into config
+- Formatted string instead of <> (Text.Formatting?)
+- Better help text
+- Learn Except
+
+## Calculator plugin
+
+- Support power.  See purescript-math's Math.pow
+
+## File Search plugin
+
+- limit size of output
+- highlight keyword
+- error handler for runAff
+- check status code?
+- 500 internal error when locate fails
+
+## Online Search plugin
+
+- query using a template library?  Text.Formatting?
+- only one query parameter is allowed now

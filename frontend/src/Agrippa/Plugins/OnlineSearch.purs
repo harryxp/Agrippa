@@ -17,7 +17,7 @@ prompt :: Config -> String -> String
 prompt config input =
   case getUrl config of
     Left err -> err
-    Right url -> "Keep typing.  Press <Enter> to visit " <> (completeUrl url input) <> "."
+    Right url -> "Keep typing the query.  Press <Enter> to visit " <> (completeUrl url input) <> "."
 
 search :: forall e. Config
                  -> String
@@ -38,5 +38,3 @@ getUrl config = do
 completeUrl :: String -> String -> String
 completeUrl url input = replace (Pattern "${q}") (Replacement (trim input)) url
 
--- TODO query using a template library?
--- TODO only one query parameter is allowed now

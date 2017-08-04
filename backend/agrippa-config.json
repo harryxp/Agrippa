@@ -10,7 +10,10 @@
         "a":   { "plugin": "OnlineSearch"
                , "url": "https://www.amazon.com/s?field-keywords=${q}"
                },
-        "pur": { "plugin": "OnlineSearch"
+        "h":   { "plugin": "OnlineSearch"
+               , "url": "http://peachful.space"
+               },
+        "p":   { "plugin": "OnlineSearch"
                , "url": "https://pursuit.purescript.org/search?q=${q}"
                },
         "wk":  { "plugin": "OnlineSearch"

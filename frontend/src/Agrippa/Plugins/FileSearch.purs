@@ -23,8 +23,3 @@ search _ input displayOutput =
     (\{ response: r } -> displayOutput r)
     (get ("/agrippa/file-search/" <> (trim input)))
 
--- TODO limit size of output
--- TODO highlight keyword
--- TODO error handler for runAff
--- TODO check status code?
--- TODO 500 internal error when locate fails

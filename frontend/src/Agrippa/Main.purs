@@ -1,6 +1,6 @@
 module Agrippa.Main (main) where
 
-import Prelude (Unit, bind, discard, pure, show, unit, void, ($), (<$>), (*>), (>>=), (<>))
+import Prelude (Unit, bind, discard, pure, show, void, ($), (<$>), (*>), (>>=), (<>))
 import Control.Monad.Aff (runAff)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.JQuery (JQuery, JQueryEvent, append, create, getWhich, getValue, on, ready, select, setText, toggle)
@@ -9,10 +9,10 @@ import DOM (DOM)
 import DOM.HTML.Types (WINDOW)
 import Data.Argonaut.Core (toObject, toString)
 import Data.Either (Either(..))
-import Data.Foldable (for_)
 import Data.Foreign (readString)
-import Data.StrMap (StrMap, foldM, lookup)
+import Data.StrMap (StrMap, lookup)
 import Data.String (Pattern(..), indexOf, splitAt)
+import Data.FoldableWithIndex (traverseWithIndex_)
 import Data.Tuple.Nested (Tuple3, tuple3, uncurry3)
 import Network.HTTP.Affjax (AJAX, get)
 
@@ -23,7 +23,7 @@ import Agrippa.Utils (mToE)
 
 main :: forall e. Eff (ajax :: AJAX, dom :: DOM, window :: WINDOW | e) Unit
 main = ready $
-  loadConfig (\config -> buildHelp config *> installInputHandler config)
+  loadConfig (\config -> buildHelp config *> installInputListener config)
 
 loadConfig :: forall e. (Config -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
                      -> Eff (ajax :: AJAX, dom :: DOM | e) Unit
@@ -33,56 +33,58 @@ loadConfig onSuccess = void $
     (\{ response: r } -> onSuccess r)
     (get "/agrippa/config/")
 
-installInputHandler :: forall e. Config
-                              -> Eff (ajax :: AJAX, dom :: DOM, window :: WINDOW | e) Unit
-installInputHandler config = select "#agrippa-input" >>= on "keyup" (handleInput config)
+installInputListener :: forall e. Config
+                               -> Eff (ajax :: AJAX, dom :: DOM, window :: WINDOW | e) Unit
+installInputListener config = select "#agrippa-input" >>= on "keyup" (inputListener config)
 
 -- input and output
 
-handleInput :: forall e. Config
-                      -> JQueryEvent
-                      -> JQuery
-                      -> Eff (ajax :: AJAX, dom :: DOM, window :: WINDOW | e) Unit
-handleInput config event inputField = do
+inputListener :: forall e. Config
+                        -> JQueryEvent
+                        -> JQuery
+                        -> Eff (ajax :: AJAX, dom :: DOM, window :: WINDOW | e) Unit
+inputListener config event inputField = do
   keyCode <- getWhich event
-  wholeInput <- getValue inputField
-  for_ (runExcept (readString wholeInput)) (dispatchToPlugin config keyCode)
+  foreignInput <- getValue inputField
+  case runExcept (readString foreignInput) of
+    Left err -> displayStatus (show err)
+    Right wholeInput -> dispatchToTask config keyCode wholeInput
 
-dispatchToPlugin :: forall e. Config
-                           -> Int
-                           -> String
-                           -> Eff (ajax :: AJAX, dom :: DOM, window :: WINDOW | e) Unit
-dispatchToPlugin config keyCode wholeInput =
-  case findPlugin config keyCode wholeInput of
+dispatchToTask :: forall e. Config
+                         -> Int
+                         -> String
+                         -> Eff (ajax :: AJAX, dom :: DOM, window :: WINDOW | e) Unit
+dispatchToTask config keyCode wholeInput =
+  case findTask config keyCode wholeInput of
     Left err -> case keyCode of
                   13 -> openWebsite ("https://www.google.com/search?q=" <> wholeInput) >>= displayOutput
                   otherwise -> displayStatus (err <> "  Press <Enter> to search on Google.") *> clearOutput
-    Right t3 -> (uncurry3 invokePlugin t3) keyCode
+    Right t3 -> (uncurry3 execTask t3) keyCode
 
-findPlugin :: Config -> Int -> String -> Either String (Tuple3 Plugin Config String)
-findPlugin config keyCode wholeInput = do
-  i                                       <- mToE "No keyword found in input."                                                  (indexOf (Pattern " ") wholeInput)
-  { before: keyword, after: pluginInput } <- mToE "Failed to parse input.  This is impossible!"                                 (splitAt i wholeInput)
-  configMap                               <- mToE "Config Error: must be a JSON object."                                        (toObject config)
-  pluginInfoByKeywordJson                 <- mToE "Config Error: must have key mappings."                                       (lookup "key-mappings" configMap)
-  pluginInfoByKeywordMap                  <- mToE "Config Error: key mappings must be a JSON object."                           (toObject pluginInfoByKeywordJson)
-  pluginInfoJson                          <- mToE ("Keyword '" <> keyword <> "' not found in config.")                          (lookup keyword pluginInfoByKeywordMap)
-  pluginInfoMap                           <- mToE "Config Error: each key must map to a JSON object."                           (toObject pluginInfoJson)
-  pluginNameJson                          <- mToE "Config Error: each key must map to a JSON object with a 'plugin' attribute." (lookup "plugin" pluginInfoMap)
-  pluginName                              <- mToE "Config Error: value of 'plugin' attribute must be a string."                 (toString pluginNameJson)
-  plugin                                  <- mToE ("Can't find plugin with name '" <> pluginName <> "'.")                       (lookup pluginName pluginsByName)
-  pure (tuple3 plugin pluginInfoJson pluginInput)
+findTask :: Config -> Int -> String -> Either String (Tuple3 Plugin Config String)
+findTask config keyCode wholeInput = do
+  i                                     <- mToE "No keyword found in input."                                                  (indexOf (Pattern " ") wholeInput)
+  { before: keyword, after: taskInput } <- mToE "Failed to parse input.  This is impossible!"                                 (splitAt i wholeInput)
+  configMap                             <- mToE "Config Error: must be a JSON object."                                        (toObject config)
+  taskInfoByKeywordJson                 <- mToE "Config Error: must have key mappings."                                       (lookup "key-mappings" configMap)
+  taskInfoByKeywordMap                  <- mToE "Config Error: key mappings must be a JSON object."                           (toObject taskInfoByKeywordJson)
+  taskInfoJson                          <- mToE ("Keyword '" <> keyword <> "' not found in config.")                          (lookup keyword taskInfoByKeywordMap)
+  taskInfoMap                           <- mToE "Config Error: each key must map to a JSON object."                           (toObject taskInfoJson)
+  pluginNameJson                        <- mToE "Config Error: each key must map to a JSON object with a 'plugin' attribute." (lookup "plugin" taskInfoMap)
+  pluginName                            <- mToE "Config Error: value of 'plugin' attribute must be a string."                 (toString pluginNameJson)
+  plugin                                <- mToE ("Can't find plugin with name '" <> pluginName <> "'.")                       (lookup pluginName pluginsByName)
+  pure (tuple3 plugin taskInfoJson taskInput)
 
-invokePlugin :: forall e. Plugin
-                       -> Config
-                       -> String
-                       -> Int
-                       -> Eff (ajax :: AJAX, dom :: DOM, window :: WINDOW | e) Unit
-invokePlugin (Plugin { name: n , onIncrementalChange: inc , onActivation: act }) config pluginInput keyCode = do
+execTask :: forall e. Plugin
+                   -> Config
+                   -> String
+                   -> Int
+                   -> Eff (ajax :: AJAX, dom :: DOM, window :: WINDOW | e) Unit
+execTask (Plugin { name: n , onIncrementalChange: inc , onActivation: act }) config taskInput keyCode = do
   displayStatus n
   case keyCode of
-    13 -> act config pluginInput displayOutput >>= displayOutput -- activation
-    otherwise -> displayOutput (inc config pluginInput)          -- incremental
+    13 -> act config taskInput displayOutput >>= displayOutput -- activation
+    otherwise -> displayOutput (inc config taskInput)          -- incremental
 
 displayStatus :: forall e. String -> Eff (dom :: DOM | e) Unit
 displayStatus r = select "#agrippa-status" >>= setText r
@@ -99,35 +101,30 @@ buildHelp :: forall e. Config -> Eff (dom :: DOM | e) Unit
 buildHelp config = do
   helpLink <- select "#agrippa-help-link"
   helpContent <- select "#agrippa-help-content"
-  buildHelpTextForPlugins config helpContent
-  on "click" (handleHelpLink helpContent) helpLink
+  buildHelpTextForTasks config helpContent
+  on "click" (helpLinkListener helpContent) helpLink
 
-buildHelpTextForPlugins :: forall e. Config -> JQuery -> Eff (dom :: DOM | e) Unit
-buildHelpTextForPlugins config helpContent =
-  let pluginHelpByKeyword :: Either String (StrMap String)
-      pluginHelpByKeyword = do
-        configMap               <- mToE "Config Error: must be a JSON object."              (toObject config)
-        pluginInfoByKeywordJson <- mToE "Config Error: must have key mappings."             (lookup "key-mappings" configMap)
-        pluginInfoByKeywordMap  <- mToE "Config Error: key mappings must be a JSON object." (toObject pluginInfoByKeywordJson)
-        pure (show <$> pluginInfoByKeywordMap)
-  in case pluginHelpByKeyword of
+buildHelpTextForTasks :: forall e. Config -> JQuery -> Eff (dom :: DOM | e) Unit
+buildHelpTextForTasks config helpContent =
+  let taskHelpByKeyword :: Either String (StrMap String)
+      taskHelpByKeyword = do
+        configMap             <- mToE "Config Error: must be a JSON object."              (toObject config)
+        taskInfoByKeywordJson <- mToE "Config Error: must have key mappings."             (lookup "key-mappings" configMap)
+        taskInfoByKeywordMap  <- mToE "Config Error: key mappings must be a JSON object." (toObject taskInfoByKeywordJson)
+        pure (show <$> taskInfoByKeywordMap)
+  in case taskHelpByKeyword of
       Left err -> displayStatus err
-      Right m -> foldM buildHelpTextForPlugin unit m
+      Right m -> traverseWithIndex_ buildHelpTextForTask m
 
-buildHelpTextForPlugin :: forall e. Unit -> String -> String -> Eff (dom :: DOM | e) Unit
-buildHelpTextForPlugin _ keyword pluginDesc = do
+buildHelpTextForTask :: forall e. String -> String -> Eff (dom :: DOM | e) Unit
+buildHelpTextForTask keyword taskDesc = do
   helpTable <- select "#agrippa-help-table"
   tr <- create "<tr>"
-  createTd pluginDesc tr *> createTd keyword tr *> append tr helpTable
+  createTd keyword tr *> createTd taskDesc tr *> append tr helpTable
   where
     createTd :: String -> JQuery -> Eff (dom :: DOM | e) Unit
     createTd txt tr = create "<td>" >>= \td -> setText txt td *> append td tr
 
-handleHelpLink :: forall e. JQuery -> JQueryEvent -> JQuery -> Eff (dom :: DOM | e) Unit
-handleHelpLink helpContent _ _ = toggle helpContent
+helpLinkListener :: forall e. JQuery -> JQueryEvent -> JQuery -> Eff (dom :: DOM | e) Unit
+helpLinkListener helpContent _ _ = toggle helpContent
 
--- TODO check status code?
--- TODO put google url into config
--- TODO Do not look up config repeatedly
--- TODO Refactor many "plugin"s to "function"s
--- TODO formatted string instead of <>
