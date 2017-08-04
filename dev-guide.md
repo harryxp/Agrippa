@@ -101,6 +101,8 @@ Then make sure everything works:
 
 ## General
 
+- Snippets
+- TODO list
 - Top level suggestion
 - Check runAff response status code
 - Refactor config retrieval

@@ -21,5 +21,13 @@ main = scotty 3000 $ do
     result <- (liftAndCatchIO . locate) keyword
     text result
 
+  get "/agrippa/app-launcher/:word" $ do
+    app <- param "word" :: ActionM Text
+    result <- (liftAndCatchIO . launch) app
+    text result
+
 locate :: Text -> IO Text
 locate keyword = pack <$> readProcess "locate" [unpack keyword] ""
+
+launch :: Text -> IO Text
+launch app = pack <$> readProcess (unpack app) [] ""

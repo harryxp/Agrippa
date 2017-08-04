@@ -9,6 +9,7 @@ import DOM.HTML.Types (WINDOW)
 import Network.HTTP.Affjax (AJAX)
 
 import Agrippa.Config (Config)
+import Agrippa.Plugins.AppLauncher  as A
 import Agrippa.Plugins.Calculator   as C
 import Agrippa.Plugins.FileSearch   as F
 import Agrippa.Plugins.OnlineSearch as O
@@ -23,7 +24,11 @@ newtype Plugin =
          }
 
 plugins :: Array Plugin
-plugins = [ Plugin { name: "Calculator"
+plugins = [ Plugin { name: "AppLauncher"
+                   , onIncrementalChange: A.prompt
+                   , onActivation: A.launch
+                   }
+          , Plugin { name: "Calculator"
                    , onIncrementalChange: C.calculate
                    , onActivation: C.calculateOnActivation
                    }

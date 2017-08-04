@@ -1,13 +1,19 @@
 {
     "key-mappings": {
         "=":   { "plugin": "Calculator" },
+
         "'":   { "plugin": "FileSearch",
                  "paths": ["/Users/hpan/Documents/", "/Users/hpan/Downloads/"]
                },
+
+        "a":   { "plugin": "AppLauncher",
+                 "paths": ["/Applications/", "/Users/hpan/Applications/"]
+               },
+
         "d":   { "plugin": "OnlineSearch"
                , "url": "https://www.merriam-webster.com/dictionary/${q}"
                },
-        "a":   { "plugin": "OnlineSearch"
+        "z":   { "plugin": "OnlineSearch"
                , "url": "https://www.amazon.com/s?field-keywords=${q}"
                },
         "h":   { "plugin": "OnlineSearch"
@@ -16,10 +22,10 @@
         "p":   { "plugin": "OnlineSearch"
                , "url": "https://pursuit.purescript.org/search?q=${q}"
                },
-        "wk":  { "plugin": "OnlineSearch"
+        "w":   { "plugin": "OnlineSearch"
                , "url": "https://wikipedia.org/wiki/Special:Search/${q}"
                },
-        "yt":  { "plugin": "OnlineSearch"
+        "y":   { "plugin": "OnlineSearch"
                , "url": "http://www.youtube.com/results?search_query=${q}"
                }
     }
