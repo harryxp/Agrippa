@@ -66,8 +66,8 @@ findTask config keyCode wholeInput = do
   i                                     <- mToE "No keyword found in input."                                                  (indexOf (Pattern " ") wholeInput)
   { before: keyword, after: taskInput } <- mToE "Failed to parse input.  This is impossible!"                                 (splitAt i wholeInput)
   configMap                             <- mToE "Config Error: must be a JSON object."                                        (toObject config)
-  taskInfoByKeywordJson                 <- mToE "Config Error: must have key mappings."                                       (lookup "key-mappings" configMap)
-  taskInfoByKeywordMap                  <- mToE "Config Error: key mappings must be a JSON object."                           (toObject taskInfoByKeywordJson)
+  taskInfoByKeywordJson                 <- mToE "Config Error: must have a 'tasks' attribute."                                (lookup "tasks" configMap)
+  taskInfoByKeywordMap                  <- mToE "Config Error: value of 'tasks' attribute must be a JSON object."             (toObject taskInfoByKeywordJson)
   taskInfoJson                          <- mToE ("Keyword '" <> keyword <> "' not found in config.")                          (lookup keyword taskInfoByKeywordMap)
   taskInfoMap                           <- mToE "Config Error: each key must map to a JSON object."                           (toObject taskInfoJson)
   pluginNameJson                        <- mToE "Config Error: each key must map to a JSON object with a 'plugin' attribute." (lookup "plugin" taskInfoMap)
@@ -108,9 +108,9 @@ buildHelpTextForTasks :: forall e. Config -> JQuery -> Eff (dom :: DOM | e) Unit
 buildHelpTextForTasks config helpContent =
   let taskHelpByKeyword :: Either String (StrMap String)
       taskHelpByKeyword = do
-        configMap             <- mToE "Config Error: must be a JSON object."              (toObject config)
-        taskInfoByKeywordJson <- mToE "Config Error: must have key mappings."             (lookup "key-mappings" configMap)
-        taskInfoByKeywordMap  <- mToE "Config Error: key mappings must be a JSON object." (toObject taskInfoByKeywordJson)
+        configMap             <- mToE "Config Error: must be a JSON object."                            (toObject config)
+        taskInfoByKeywordJson <- mToE "Config Error: must have a 'tasks' attribute."                    (lookup "tasks" configMap)
+        taskInfoByKeywordMap  <- mToE "Config Error: value of 'tasks' attribute must be a JSON object." (toObject taskInfoByKeywordJson)
         pure (show <$> taskInfoByKeywordMap)
   in case taskHelpByKeyword of
       Left err -> displayStatus err

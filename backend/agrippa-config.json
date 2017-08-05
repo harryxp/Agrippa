@@ -1,31 +1,41 @@
 {
-    "key-mappings": {
-        "=":   { "plugin": "Calculator" },
-
-        "'":   { "plugin": "FileSearch",
-                 "paths": ["/Users/hpan/Documents/", "/Users/hpan/Downloads/"]
+    "tasks": {
+        "=":   { "task": "Calculator"
+               , "plugin": "Calculator"
                },
 
-        "a":   { "plugin": "AppLauncher",
-                 "paths": ["/Applications/", "/Users/hpan/Applications/"]
+        "'":   { "task": "Search for Files"
+               , "plugin": "FileSearch"
+               , "paths": ["/Users/hpan/Documents/", "/Users/hpan/Downloads/"]
                },
 
-        "d":   { "plugin": "OnlineSearch"
+        "a":   { "task": "Launch Apps"
+               , "plugin": "AppLauncher"
+               , "paths": ["/Applications/", "/Users/hpan/Applications/"]
+               },
+
+        "d":   { "task": "Dictionary"
+               , "plugin": "OnlineSearch"
                , "url": "https://www.merriam-webster.com/dictionary/${q}"
                },
-        "z":   { "plugin": "OnlineSearch"
+        "z":   { "task": "Amazon Search"
+               , "plugin": "OnlineSearch"
                , "url": "https://www.amazon.com/s?field-keywords=${q}"
                },
-        "h":   { "plugin": "OnlineSearch"
+        "h":   { "task": "Home"
+               , "plugin": "OnlineSearch"
                , "url": "http://peachful.space"
                },
-        "p":   { "plugin": "OnlineSearch"
+        "p":   { "task": "Pursuit Search"
+               , "plugin": "OnlineSearch"
                , "url": "https://pursuit.purescript.org/search?q=${q}"
                },
-        "w":   { "plugin": "OnlineSearch"
+        "w":   { "task": "Wikipedia Search"
+               , "plugin": "OnlineSearch"
                , "url": "https://wikipedia.org/wiki/Special:Search/${q}"
                },
-        "y":   { "plugin": "OnlineSearch"
+        "y":   { "task": "YouTube Search"
+               , "plugin": "OnlineSearch"
                , "url": "http://www.youtube.com/results?search_query=${q}"
                }
     }
