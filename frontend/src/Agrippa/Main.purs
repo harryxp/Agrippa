@@ -18,8 +18,7 @@ import Network.HTTP.Affjax (AJAX, get)
 
 import Agrippa.Config (Config)
 import Agrippa.Plugins.Registry (Plugin(..), pluginsByName)
-import Agrippa.Plugins.Utils (openWebsite)
-import Agrippa.Utils (mToE)
+import Agrippa.Utils (mToE, openUrl)
 
 main :: forall e. Eff (ajax :: AJAX, dom :: DOM, window :: WINDOW | e) Unit
 main = ready $
@@ -57,7 +56,7 @@ dispatchToTask :: forall e. Config
 dispatchToTask config keyCode wholeInput =
   case findTask config keyCode wholeInput of
     Left err -> case keyCode of
-                  13 -> openWebsite ("https://www.google.com/search?q=" <> wholeInput) >>= displayOutput
+                  13 -> openUrl ("https://www.google.com/search?q=" <> wholeInput) >>= displayOutput
                   otherwise -> displayStatus (err <> "  Press <Enter> to search on Google.") *> clearOutput
     Right t3 -> (uncurry3 execTask t3) keyCode
 

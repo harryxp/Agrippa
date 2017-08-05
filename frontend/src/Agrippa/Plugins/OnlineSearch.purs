@@ -10,8 +10,7 @@ import DOM (DOM)
 import DOM.HTML.Types (WINDOW)
 
 import Agrippa.Config (Config)
-import Agrippa.Plugins.Utils (openWebsite)
-import Agrippa.Utils (mToE)
+import Agrippa.Utils (mToE, openUrl)
 
 prompt :: Config -> String -> String
 prompt config input =
@@ -26,7 +25,7 @@ search :: forall e. Config
 search config input _ =
   case getUrl config of
     Left err -> pure err
-    Right url -> openWebsite (completeUrl url input)
+    Right url -> openUrl (completeUrl url input)
 
 getUrl :: Config -> Either String String
 getUrl config = do
