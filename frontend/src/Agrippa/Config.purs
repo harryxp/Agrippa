@@ -1,28 +1,30 @@
-module Agrippa.Config (Config, getTaskAttr, getTasksByKeyword, getTaskNamesByKeyword) where
+module Agrippa.Config (Config, getBooleanVal, getStrMapVal, getStringVal, getConfigVal) where
 
 import Prelude (bind, (<>))
-import Data.Argonaut.Core (Json, toObject, toString)
+import Data.Argonaut.Core (Json, toBoolean, toObject, toString)
 import Data.Either (Either)
+import Data.Maybe (Maybe)
 import Data.StrMap (StrMap, lookup)
-import Data.Traversable (traverse)
 
 import Agrippa.Utils (mToE)
 
 type Config = Json
 
-getTasksByKeyword :: Config -> Either String (StrMap Json)
-getTasksByKeyword config = do
-  configMap          <- mToE "Config Error: must be a JSON object."                            (toObject config)
-  tasksByKeywordJson <- mToE "Config Error: must have a 'tasks' attribute."                    (lookup "tasks" configMap)
-  mToE                       "Config Error: value of 'tasks' attribute must be a JSON object." (toObject tasksByKeywordJson)
+getBooleanVal :: String -> Config -> Either String Boolean
+getBooleanVal key config = getConvertedVal key config toBoolean
 
-getTaskNamesByKeyword :: Config -> Either String (StrMap String)
-getTaskNamesByKeyword config = do
-  tasksByKeyword <- getTasksByKeyword config
-  traverse (getTaskAttr "task") tasksByKeyword
+getStrMapVal :: String -> Config -> Either String (StrMap Config)
+getStrMapVal key config = getConvertedVal key config toObject
 
-getTaskAttr :: String -> Json -> Either String String
-getTaskAttr attr taskJson = do
-  taskConfig      <- mToE "Config Error: each keyword must map to a JSON object."                                        (toObject taskJson)
-  taskAttrValJson <- mToE ("Config Error: each keyword must map to a JSON object with a(n) '" <> attr <> "' attribute.") (lookup attr taskConfig)
-  mToE                    ("Config Error: value of '" <> attr <> "' attribute must be a string.")                        (toString taskAttrValJson)
+getStringVal :: String -> Config -> Either String String
+getStringVal key config = getConvertedVal key config toString
+
+getConvertedVal :: forall a. String -> Config -> (Config -> Maybe a) -> Either String a
+getConvertedVal key config convert = do
+  valJson <- getConfigVal key config
+  mToE    ("Config Error: expect value of '" <> key <> "' to be a different type.") (convert valJson)
+
+getConfigVal :: String -> Config -> Either String Config
+getConfigVal key config = do
+  jObject <- mToE  "Config Error: expect JSON object."                                (toObject config)
+  mToE            ("Config Error: expect JSON object with a(n) '" <> key <> "' key.") (lookup key jObject)
