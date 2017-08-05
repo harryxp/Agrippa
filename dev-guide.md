@@ -105,11 +105,9 @@ Then make sure everything works:
 - TODO list
 - Top level suggestion
 - Check runAff response status code
-- Refactor config retrieval
 - Do not look up config repeatedly
 - Put Google URL into config
 - Formatted string instead of <> (Text.Formatting?)
-- Better help text
 - Learn Except
 
 ## Calculator plugin
