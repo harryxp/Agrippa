@@ -28,7 +28,7 @@ loadConfig :: forall e. (Config -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
                      -> Eff (ajax :: AJAX, dom :: DOM | e) Unit
 loadConfig onSuccess = void $
   runAff
-    (\_ -> displayStatus "Failed to retrieve config from server.")
+    (\_ -> displayOutput "Failed to retrieve config from server.")
     (\{ response: r } -> onSuccess r)
     (get "/agrippa/config/")
 
@@ -46,7 +46,7 @@ inputListener config event inputField = do
   keyCode <- getWhich event
   foreignInput <- getValue inputField
   case runExcept (readString foreignInput) of
-    Left err -> displayStatus (show err)
+    Left err -> displayOutput (show err)
     Right wholeInput -> dispatchToTask config keyCode wholeInput
 
 dispatchToTask :: forall e. Config
@@ -55,9 +55,9 @@ dispatchToTask :: forall e. Config
                          -> Eff (ajax :: AJAX, dom :: DOM, window :: WINDOW | e) Unit
 dispatchToTask config keyCode wholeInput =
   case findTask config wholeInput of
-    Left err -> case keyCode of
+    Left err -> case keyCode of -- no task found
                   13 -> openUrl ("https://www.google.com/search?q=" <> wholeInput) >>= displayOutput
-                  otherwise -> displayStatus (err <> "  Press <Enter> to search on Google.") *> clearOutput
+                  otherwise -> displayOutput err *> displayTask "Google Search"
     Right t3 -> (uncurry3 execTask t3) keyCode
 
 findTask :: Config -> String -> Either String (Tuple3 Plugin Config String)
@@ -76,13 +76,13 @@ execTask :: forall e. Plugin
                    -> Int
                    -> Eff (ajax :: AJAX, dom :: DOM, window :: WINDOW | e) Unit
 execTask (Plugin { name: n , onIncrementalChange: inc , onActivation: act }) taskConfig taskInput keyCode = do
-  displayStatus n
+  displayTask n
   case keyCode of
     13 -> act taskConfig taskInput displayOutput >>= displayOutput -- activation
     otherwise -> displayOutput (inc taskConfig taskInput)          -- incremental
 
-displayStatus :: forall e. String -> Eff (dom :: DOM | e) Unit
-displayStatus t = select "#agrippa-status" >>= setText t
+displayTask :: forall e. String -> Eff (dom :: DOM | e) Unit
+displayTask t = select "#agrippa-task" >>= setText t
 
 displayOutput :: forall e. String -> Eff (dom :: DOM | e) Unit
 displayOutput t = select "#agrippa-output" >>= setText t
@@ -97,7 +97,7 @@ buildHelp config = do
   helpLink <- select "#agrippa-help-link"
   helpContent <- select "#agrippa-help-content"
   case getConfigVal "preferences" config >>= getBooleanVal "showHelpByDefault" of
-    Left err -> displayStatus err
+    Left err -> displayOutput err
     Right b -> if b
                then display helpContent
                else hide helpContent
@@ -107,7 +107,7 @@ buildHelp config = do
 buildHelpTextForTasks :: forall e. Config -> Eff (dom :: DOM | e) Unit
 buildHelpTextForTasks config =
   case getTaskNamesByKeyword config of
-    Left err -> displayStatus err
+    Left err -> displayOutput err
     Right m -> traverseWithIndex_ buildHelpTextForTask m
 
 getTaskNamesByKeyword :: Config -> Either String (StrMap String)
