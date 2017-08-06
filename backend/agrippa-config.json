@@ -2,45 +2,49 @@
     "preferences": {
         "showHelpByDefault": true,
         "host": "127.0.0.1",
-        "port": 3000
+        "port": 3000,
+        "defaultTask": { "name": "Google Search by Default"
+                       , "plugin": "OnlineSearch"
+                       , "url": "https://www.google.com/search?q=${q}"
+                       }
     },
 
     "tasks": {
-        "=":   { "task": "Calculator"
+        "=":   { "name": "Calculator"
                , "plugin": "Calculator"
                },
 
-        "'":   { "task": "Search for Files"
+        "'":   { "name": "Search for Files"
                , "plugin": "FileSearch"
                , "paths": ["/Users/hpan/Documents/", "/Users/hpan/Downloads/"]
                },
 
-        "a":   { "task": "Launch Apps"
+        "a":   { "name": "Launch Apps"
                , "plugin": "AppLauncher"
                , "paths": ["/Applications/", "/Users/hpan/Applications/"]
                },
 
-        "d":   { "task": "Dictionary"
+        "d":   { "name": "Dictionary"
                , "plugin": "OnlineSearch"
                , "url": "https://www.merriam-webster.com/dictionary/${q}"
                },
-        "z":   { "task": "Amazon Search"
+        "z":   { "name": "Amazon Search"
                , "plugin": "OnlineSearch"
                , "url": "https://www.amazon.com/s?field-keywords=${q}"
                },
-        "h":   { "task": "Home"
+        "h":   { "name": "Home"
                , "plugin": "OnlineSearch"
                , "url": "http://peachful.space"
                },
-        "p":   { "task": "Pursuit Search"
+        "p":   { "name": "Pursuit Search"
                , "plugin": "OnlineSearch"
                , "url": "https://pursuit.purescript.org/search?q=${q}"
                },
-        "w":   { "task": "Wikipedia Search"
+        "w":   { "name": "Wikipedia Search"
                , "plugin": "OnlineSearch"
                , "url": "https://wikipedia.org/wiki/Special:Search/${q}"
                },
-        "y":   { "task": "YouTube Search"
+        "y":   { "name": "YouTube Search"
                , "plugin": "OnlineSearch"
                , "url": "http://www.youtube.com/results?search_query=${q}"
                }

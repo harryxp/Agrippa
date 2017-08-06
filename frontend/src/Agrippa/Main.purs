@@ -1,6 +1,7 @@
 module Agrippa.Main (main) where
 
 import Prelude (Unit, bind, discard, pure, show, void, ($), (*>), (>>=), (<>))
+import Control.Alt ((<|>))
 import Control.Monad.Aff (runAff)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.JQuery (JQuery, JQueryEvent, append, create, display, getWhich, getValue, hide, on, ready, select, setText, toggle)
@@ -13,12 +14,11 @@ import Data.Foreign (readString)
 import Data.StrMap (StrMap, lookup)
 import Data.String (Pattern(..), indexOf, splitAt)
 import Data.Traversable (traverse)
-import Data.Tuple.Nested (Tuple3, tuple3, uncurry3)
 import Network.HTTP.Affjax (AJAX, get)
 
 import Agrippa.Config (Config, getBooleanVal, getStrMapVal, getStringVal, getConfigVal)
 import Agrippa.Plugins.Registry (Plugin(..), pluginsByName)
-import Agrippa.Utils (mToE, openUrl)
+import Agrippa.Utils (mToE)
 
 main :: forall e. Eff (ajax :: AJAX, dom :: DOM, window :: WINDOW | e) Unit
 main = ready $
@@ -46,37 +46,54 @@ inputListener config event inputField = do
   keyCode <- getWhich event
   foreignInput <- getValue inputField
   case runExcept (readString foreignInput) of
-    Left err -> displayOutput (show err)
+    Left err         -> displayOutput (show err)
     Right wholeInput -> dispatchToTask config keyCode wholeInput
+
+data Task = Task { name   :: String
+                 , plugin :: Plugin
+                 , input  :: String
+                 , config :: Config
+                 }
 
 dispatchToTask :: forall e. Config
                          -> Int
                          -> String
                          -> Eff (ajax :: AJAX, dom :: DOM, window :: WINDOW | e) Unit
 dispatchToTask config keyCode wholeInput =
-  case findTask config wholeInput of
-    Left err -> case keyCode of -- no task found
-                  13 -> openUrl ("https://www.google.com/search?q=" <> wholeInput) >>= displayOutput
-                  otherwise -> displayOutput err *> displayTask "Google Search"
-    Right t3 -> (uncurry3 execTask t3) keyCode
+  case findTask config wholeInput <|> findDefaultTask config wholeInput of
+    Left err   -> displayOutput err
+    Right task -> execTask task keyCode
 
-findTask :: Config -> String -> Either String (Tuple3 Plugin Config String)
+findTask :: Config -> String -> Either String Task
 findTask config wholeInput = do
   index                                 <- mToE "No keyword found in input."                            (indexOf (Pattern " ") wholeInput)
   { before: keyword, after: taskInput } <- mToE "Failed to parse input.  This is impossible!"           (splitAt index wholeInput)
   taskConfigsByKeyword                  <- getStrMapVal "tasks" config
   taskConfig                            <- mToE ("Keyword '" <> keyword <> "' not found in config.")    (lookup keyword taskConfigsByKeyword)
+  taskName                              <- getStringVal "name" taskConfig
   pluginName                            <- getStringVal "plugin" taskConfig
   plugin                                <- mToE ("Can't find plugin with name '" <> pluginName <> "'.") (lookup pluginName pluginsByName)
-  pure (tuple3 plugin taskConfig taskInput)
+  pure (Task {name: taskName, plugin: plugin, input: taskInput, config: taskConfig})
 
-execTask :: forall e. Plugin
-                   -> Config
-                   -> String
+findDefaultTask :: Config -> String -> Either String Task
+findDefaultTask config wholeInput = do
+  prefs             <- getConfigVal "preferences" config
+  defaultTaskConfig <- getConfigVal "defaultTask" prefs
+  taskName          <- getStringVal "name" defaultTaskConfig
+  pluginName        <- getStringVal "plugin" defaultTaskConfig
+  plugin            <- mToE ("Can't find plugin with name '" <> pluginName <> "'.") (lookup pluginName pluginsByName)
+  pure (Task {name: taskName, plugin: plugin, input: wholeInput, config: defaultTaskConfig})
+
+execTask :: forall e. Task
                    -> Int
                    -> Eff (ajax :: AJAX, dom :: DOM, window :: WINDOW | e) Unit
-execTask (Plugin { name: n , onIncrementalChange: inc , onActivation: act }) taskConfig taskInput keyCode = do
-  displayTask n
+execTask (Task { name: name
+               , plugin: (Plugin { onIncrementalChange: inc, onActivation: act })
+               , input: taskInput
+               , config: taskConfig
+               })
+         keyCode = do
+  displayTask name
   case keyCode of
     13 -> act taskConfig taskInput displayOutput >>= displayOutput -- activation
     otherwise -> displayOutput (inc taskConfig taskInput)          -- incremental
@@ -98,9 +115,9 @@ buildHelp config = do
   helpContent <- select "#agrippa-help-content"
   case getConfigVal "preferences" config >>= getBooleanVal "showHelpByDefault" of
     Left err -> displayOutput err
-    Right b -> if b
-               then display helpContent
-               else hide helpContent
+    Right b  -> if b
+                then display helpContent
+                else hide helpContent
   buildHelpTextForTasks config
   on "click" (helpLinkListener helpContent) helpLink
 
@@ -108,12 +125,12 @@ buildHelpTextForTasks :: forall e. Config -> Eff (dom :: DOM | e) Unit
 buildHelpTextForTasks config =
   case getTaskNamesByKeyword config of
     Left err -> displayOutput err
-    Right m -> traverseWithIndex_ buildHelpTextForTask m
+    Right m  -> traverseWithIndex_ buildHelpTextForTask m
 
 getTaskNamesByKeyword :: Config -> Either String (StrMap String)
 getTaskNamesByKeyword config = do
   taskConfigsByKeyword <- getStrMapVal "tasks" config
-  traverse (getStringVal "task") taskConfigsByKeyword
+  traverse (getStringVal "name") taskConfigsByKeyword
 
 buildHelpTextForTask :: forall e. String -> String -> Eff (dom :: DOM | e) Unit
 buildHelpTextForTask keyword taskDesc = do
