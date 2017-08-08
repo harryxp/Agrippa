@@ -101,6 +101,9 @@ Then make sure everything works:
 
 ## General
 
+- Backend: content type?  header?
+- Backend: readFile catch exception
+- Encode text sent to frontend
 - Snippets
 - TODO list
 - Top level suggestion

@@ -73,7 +73,7 @@ findTask config wholeInput = do
   taskName                              <- getStringVal "name" taskConfig
   pluginName                            <- getStringVal "plugin" taskConfig
   plugin                                <- mToE ("Can't find plugin with name '" <> pluginName <> "'.") (lookup pluginName pluginsByName)
-  pure (Task {name: taskName, plugin: plugin, input: taskInput, config: taskConfig})
+  pure (Task { name: taskName, plugin: plugin, input: taskInput, config: taskConfig })
 
 findDefaultTask :: Config -> String -> Either String Task
 findDefaultTask config wholeInput = do
@@ -82,7 +82,7 @@ findDefaultTask config wholeInput = do
   taskName          <- getStringVal "name" defaultTaskConfig
   pluginName        <- getStringVal "plugin" defaultTaskConfig
   plugin            <- mToE ("Can't find plugin with name '" <> pluginName <> "'.") (lookup pluginName pluginsByName)
-  pure (Task {name: taskName, plugin: plugin, input: wholeInput, config: defaultTaskConfig})
+  pure (Task { name: taskName, plugin: plugin, input: wholeInput, config: defaultTaskConfig })
 
 execTask :: forall e. Task
                    -> Int
