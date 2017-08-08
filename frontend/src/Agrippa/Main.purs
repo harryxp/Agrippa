@@ -36,7 +36,7 @@ installInputListener :: forall e. Config
                                -> Eff (ajax :: AJAX, dom :: DOM, window :: WINDOW | e) Unit
 installInputListener config = select "#agrippa-input" >>= on "keyup" (inputListener config)
 
--- input and output
+-- tasks, input and output
 
 inputListener :: forall e. Config
                         -> JQueryEvent

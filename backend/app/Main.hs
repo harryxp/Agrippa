@@ -4,7 +4,7 @@ module Main where
 import Data.Text.Lazy (Text, pack, unpack)
 import Network.Wai.Handler.Warp (defaultSettings, setHost)
 import System.Process (readProcess)
-import Web.Scotty (ActionM, Options(..), file, get, liftAndCatchIO, param, scottyOpts, text)
+import Web.Scotty (ActionM, Options(..), file, get, liftAndCatchIO, param, post, scottyOpts, text)
 
 main :: IO ()
 main = scottyOpts opts $ do
@@ -17,14 +17,15 @@ main = scottyOpts opts $ do
   get "/agrippa/js/scripts.js" $ do
     file "web/js/scripts.js"
 
-  get "/agrippa/file-search/:word" $ do
-    keyword <- param "word" :: ActionM Text
+  get "/agrippa/file-search/:key" $ do
+    keyword <- param "key" :: ActionM Text
     result <- (liftAndCatchIO . locate) keyword
     text result
 
-  get "/agrippa/app-launcher/:word" $ do
-    app <- param "word" :: ActionM Text
-    result <- (liftAndCatchIO . launch) app
+  post "/agrippa/app-launcher/" $ do
+    cmd <- param "cmd" :: ActionM Text
+    app <- param "app" :: ActionM Text
+    result <- (liftAndCatchIO . launch cmd) app
     text result
 
 opts :: Options
@@ -35,5 +36,5 @@ opts = Options { verbose = 1
 locate :: Text -> IO Text
 locate keyword = pack <$> readProcess "locate" [unpack keyword] ""
 
-launch :: Text -> IO Text
-launch app = pack <$> readProcess (unpack app) [] ""
+launch :: Text -> Text -> IO Text
+launch cmd app = pack <$> readProcess (unpack cmd) [unpack app] ""
