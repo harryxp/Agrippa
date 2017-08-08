@@ -13,8 +13,11 @@ import Network.HTTP.Affjax (AJAX, post)
 
 import Agrippa.Config (Config, getStringVal)
 
-prompt :: Config -> String -> String
-prompt _ input = "Open application '" <> (trim input) <> "'."
+prompt :: forall e. Config
+                 -> String
+                 -> (String -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
+                 -> Eff (ajax :: AJAX, dom :: DOM | e) String
+prompt _ input _ = pure ("Open application '" <> (trim input) <> "'.")
 
 launch :: forall e. Config
                  -> String

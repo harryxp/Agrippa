@@ -15,14 +15,17 @@ import Text.Parsing.StringParser.String (anyDigit, char, string)
 
 import Agrippa.Config (Config)
 
-calculate :: Config -> String -> String
-calculate _ = evalExpr <<< parseExpr <<< (replaceAll (Pattern " ") (Replacement ""))
+calculate :: forall e. Config
+                    -> String
+                    -> (String -> Eff e Unit)
+                    -> Eff e String
+calculate _ input _ = (pure <<< evalExpr <<< parseExpr <<< (replaceAll (Pattern " ") (Replacement ""))) input
 
 calculateOnActivation :: forall e. Config
                                 -> String
                                 -> (String -> Eff e Unit)
                                 -> Eff e String
-calculateOnActivation config input _ = pure (calculate config input)
+calculateOnActivation = calculate
 
 data Expr = ExprAdd Expr Expr
           | ExprSub Expr Expr

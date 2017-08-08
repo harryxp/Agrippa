@@ -88,15 +88,15 @@ execTask :: forall e. Task
                    -> Int
                    -> Eff (ajax :: AJAX, dom :: DOM, window :: WINDOW | e) Unit
 execTask (Task { name: name
-               , plugin: (Plugin { onIncrementalChange: inc, onActivation: act })
+               , plugin: (Plugin { onInputChange: prompt, onActivation: activate })
                , input: taskInput
                , config: taskConfig
                })
          keyCode = do
   displayTask name
   case keyCode of
-    13 -> act taskConfig taskInput displayOutput >>= displayOutput -- activation
-    otherwise -> displayOutput (inc taskConfig taskInput)          -- incremental
+    13        -> activate taskConfig taskInput displayOutput >>= displayOutput
+    otherwise -> prompt   taskConfig taskInput displayOutput >>= displayOutput
 
 displayTask :: forall e. String -> Eff (dom :: DOM | e) Unit
 displayTask t = select "#agrippa-task" >>= setText t

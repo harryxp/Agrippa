@@ -9,8 +9,11 @@ import Network.HTTP.Affjax (AJAX, get)
 
 import Agrippa.Config (Config)
 
-prompt :: Config -> String -> String
-prompt _ _ = "Press <Enter> to search files."
+prompt :: forall e. Config
+                 -> String
+                 -> (String -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
+                 -> Eff (ajax :: AJAX, dom :: DOM | e) String
+prompt _ _ _ = pure "Press <Enter> to search files."
 
 search :: forall e. Config
                  -> String

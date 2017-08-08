@@ -10,8 +10,11 @@ import DOM.HTML.Types (WINDOW)
 import Agrippa.Config (Config, getStringVal)
 import Agrippa.Utils (openUrl)
 
-prompt :: Config -> String -> String
-prompt config input =
+prompt :: forall e. Config
+                 -> String
+                 -> (String -> Eff (dom :: DOM, window :: WINDOW | e) Unit)
+                 -> Eff (dom :: DOM, window :: WINDOW | e) String
+prompt config input _ = pure
   case getStringVal "url" config of
     Left err  -> err
     Right url -> "Keep typing the query.  Press <Enter> to visit " <> (completeUrl url input) <> "."

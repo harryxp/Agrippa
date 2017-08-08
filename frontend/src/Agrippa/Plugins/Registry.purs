@@ -15,29 +15,32 @@ import Agrippa.Plugins.FileSearch   as F
 import Agrippa.Plugins.OnlineSearch as O
 
 newtype Plugin =
-  Plugin { name                :: String
-         , onIncrementalChange :: Config -> String -> String
-         , onActivation        :: forall e. Config
-                                         -> String
-                                         -> (String -> Eff (ajax :: AJAX, dom :: DOM, window :: WINDOW | e) Unit)
-                                         -> Eff (ajax :: AJAX, dom :: DOM, window :: WINDOW | e) String
+  Plugin { name          :: String
+         , onInputChange :: forall e. Config
+                                   -> String
+                                   -> (String -> Eff (ajax :: AJAX, dom :: DOM, window :: WINDOW | e) Unit)
+                                   -> Eff (ajax :: AJAX, dom :: DOM, window :: WINDOW | e) String
+         , onActivation  :: forall e. Config
+                                   -> String
+                                   -> (String -> Eff (ajax :: AJAX, dom :: DOM, window :: WINDOW | e) Unit)
+                                   -> Eff (ajax :: AJAX, dom :: DOM, window :: WINDOW | e) String
          }
 
 plugins :: Array Plugin
 plugins = [ Plugin { name: "AppLauncher"
-                   , onIncrementalChange: A.prompt
+                   , onInputChange: A.prompt
                    , onActivation: A.launch
                    }
           , Plugin { name: "Calculator"
-                   , onIncrementalChange: C.calculate
+                   , onInputChange: C.calculate
                    , onActivation: C.calculateOnActivation
                    }
           , Plugin { name: "FileSearch"
-                   , onIncrementalChange: F.prompt
+                   , onInputChange: F.prompt
                    , onActivation: F.search
                    }
           , Plugin { name: "OnlineSearch"
-                   , onIncrementalChange: O.prompt
+                   , onInputChange: O.prompt
                    , onActivation: O.search
                    }
           ]
