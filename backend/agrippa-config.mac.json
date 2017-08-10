@@ -22,6 +22,12 @@
         "a":   { "name": "Launch Apps"
                , "plugin": "AppLauncher"
                , "cmd": "open"
+               , "cmd-opts": ["-a"]
+               },
+        "c":   { "name": "Launch Shell Commands"
+               , "plugin": "AppLauncher"
+               , "cmd": "sh"
+               , "cmd-opts": ["-c"]
                },
 
         "d":   { "name": "Dictionary"

@@ -1,9 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Main where
 
-import Data.Aeson (FromJSON, Object, Result(..), Value, decode, fromJSON)
+import Data.Aeson (FromJSON, Object, Result(..), decode, fromJSON)
+import Data.List.Split (splitOn)
 import Data.String (fromString)
-import Data.Text.Lazy (Text, pack, unpack)
+import Data.Text.Lazy (Text, pack)
 import Network.Wai.Handler.Warp (defaultSettings, setHost, setPort)
 import System.Directory (getHomeDirectory)
 import System.Exit (exitFailure)
@@ -70,18 +71,19 @@ startScotty opts agrippaConfigStr =
       file "web/js/scripts.js"
 
     get "/agrippa/file-search/:key" $ do
-      keyword <- param "key" :: ActionM Text
-      result <- (liftAndCatchIO . locate) keyword
-      text result
+      keyword <- param "key" :: ActionM String
+      result <- liftAndCatchIO (locate keyword)
+      text (pack result)
 
     post "/agrippa/app-launcher/" $ do
-      cmd <- param "cmd" :: ActionM Text
-      app <- param "app" :: ActionM Text
-      result <- (liftAndCatchIO . launch cmd) app
-      text result
+      cmd  <- param "cmd"  :: ActionM String
+      opts <- param "opts" :: ActionM String
+      app  <- param "app"  :: ActionM String
+      result <- liftAndCatchIO (launch cmd (splitOn " " opts ++ [app]))
+      text (pack result)
 
-locate :: Text -> IO Text
-locate keyword = pack <$> readProcess "locate" [unpack keyword] ""
+locate :: String -> IO String
+locate keyword = readProcess "locate" [keyword] []
 
-launch :: Text -> Text -> IO Text
-launch cmd app = pack <$> readProcess (unpack cmd) [unpack app] ""
+launch :: String -> [String] -> IO String
+launch cmd args = readProcess cmd args []
