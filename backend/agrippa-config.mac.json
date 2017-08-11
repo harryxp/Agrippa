@@ -23,6 +23,8 @@
                , "plugin": "Launcher"
                , "cmd": "open"
                , "cmd-opts": ["-a"]
+               , "paths": ["/Applications/"]
+               , "ext": ".app"
                },
         "c":   { "name": "Launch Shell Commands"
                , "plugin": "Launcher"

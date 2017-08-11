@@ -2,11 +2,12 @@
 module Main where
 
 import Data.Aeson (FromJSON, Object, Result(..), decode, fromJSON)
+import Data.List (intercalate, isInfixOf, isSuffixOf)
 import Data.List.Split (splitOn)
 import Data.String (fromString)
 import Data.Text.Lazy (Text, pack)
 import Network.Wai.Handler.Warp (defaultSettings, setHost, setPort)
-import System.Directory (getHomeDirectory)
+import System.Directory (getHomeDirectory, listDirectory)
 import System.Exit (exitFailure)
 import System.FilePath.Posix ((</>))
 import System.IO (hPutStrLn, stderr)
@@ -72,18 +73,33 @@ startScotty opts agrippaConfigStr =
 
     get "/agrippa/file-search/:key" $ do
       keyword <- param "key" :: ActionM String
-      result <- liftAndCatchIO (locate keyword)
+      result  <- liftAndCatchIO (locate keyword)
       text (pack result)
 
-    post "/agrippa/launcher/" $ do
-      cmd  <- param "cmd"  :: ActionM String
-      opts <- param "opts" :: ActionM String
-      app  <- param "app"  :: ActionM String
+    post "/agrippa/launch/" $ do
+      cmd    <- param "cmd"  :: ActionM String
+      opts   <- param "opts" :: ActionM String
+      app    <- param "app"  :: ActionM String
       result <- liftAndCatchIO (launch cmd (splitOn " " opts ++ [app]))
       text (pack result)
+
+    get "/agrippa/launch-suggestion/" $ do
+      app         <- param "app"   :: ActionM String
+      rootPaths   <- param "paths" :: ActionM String
+      ext         <- param "ext"   :: ActionM String
+      launchables <- (liftAndCatchIO . findLaunchables ext . splitOn " ") rootPaths
+      (text . pack . intercalate "\n" . filter (isInfixOf app)) launchables
 
 locate :: String -> IO String
 locate keyword = readProcess "locate" [keyword] []
 
 launch :: String -> [String] -> IO String
 launch cmd args = readProcess cmd args []
+
+findLaunchables :: String -> [FilePath] -> IO [FilePath]
+findLaunchables ext rootPaths = do
+  items <- mapM toAbsolute rootPaths :: IO [[FilePath]]
+  undefined
+
+toAbsolute :: String -> IO [FilePath]
+toAbsolute = undefined

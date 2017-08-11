@@ -36,7 +36,7 @@ launch config input displayOutput =
         runAff
           (const (pure unit))
           (\{ response: r } -> displayOutput r)
-          (post "/agrippa/launcher/" (buildPayload cmd opts (trim input)))
+          (post "/agrippa/launch/" (buildPayload cmd opts (trim input)))
 
 buildPayload :: String -> Array String -> String -> FormData
 buildPayload cmd opts app = toFormData [ Tuple "cmd"  (FormDataString cmd)
