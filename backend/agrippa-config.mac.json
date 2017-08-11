@@ -20,12 +20,12 @@
                },
 
         "a":   { "name": "Launch Apps"
-               , "plugin": "AppLauncher"
+               , "plugin": "Launcher"
                , "cmd": "open"
                , "cmd-opts": ["-a"]
                },
         "c":   { "name": "Launch Shell Commands"
-               , "plugin": "AppLauncher"
+               , "plugin": "Launcher"
                , "cmd": "sh"
                , "cmd-opts": ["-c"]
                },

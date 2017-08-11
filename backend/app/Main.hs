@@ -75,7 +75,7 @@ startScotty opts agrippaConfigStr =
       result <- liftAndCatchIO (locate keyword)
       text (pack result)
 
-    post "/agrippa/app-launcher/" $ do
+    post "/agrippa/launcher/" $ do
       cmd  <- param "cmd"  :: ActionM String
       opts <- param "opts" :: ActionM String
       app  <- param "app"  :: ActionM String

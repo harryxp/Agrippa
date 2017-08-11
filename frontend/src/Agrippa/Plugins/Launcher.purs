@@ -1,4 +1,4 @@
-module Agrippa.Plugins.AppLauncher (launch, prompt) where
+module Agrippa.Plugins.Launcher (launch, prompt) where
 
 import Prelude (Unit, bind, const, pure, unit, (<$), (<>))
 import Control.Monad.Aff (runAff)
@@ -17,7 +17,7 @@ prompt :: forall e. Config
                  -> String
                  -> (String -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
                  -> Eff (ajax :: AJAX, dom :: DOM | e) String
-prompt _ input _ = pure ("Open application '" <> (trim input) <> "'.")
+prompt _ input _ = pure ("Launch '" <> (trim input) <> "'.")
 
 launch :: forall e. Config
                  -> String
@@ -36,7 +36,7 @@ launch config input displayOutput =
         runAff
           (const (pure unit))
           (\{ response: r } -> displayOutput r)
-          (post "/agrippa/app-launcher/" (buildPayload cmd opts (trim input)))
+          (post "/agrippa/launcher/" (buildPayload cmd opts (trim input)))
 
 buildPayload :: String -> Array String -> String -> FormData
 buildPayload cmd opts app = toFormData [ Tuple "cmd"  (FormDataString cmd)
