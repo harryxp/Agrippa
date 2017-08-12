@@ -17,7 +17,26 @@ prompt :: forall e. Config
                  -> String
                  -> (String -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
                  -> Eff (ajax :: AJAX, dom :: DOM | e) String
-prompt _ input _ = pure ("Launch '" <> (trim input) <> "'.")
+prompt config input displayOutput =
+  let extAndPaths :: Either String (Tuple String (Array String))
+      extAndPaths = do
+        ext   <- getStringVal   "ext"   config
+        paths <- getStrArrayVal "paths" config
+        pure (Tuple ext paths)
+  in case extAndPaths of
+      Left err  -> pure err
+      Right (Tuple ext paths) ->
+        "Searching..." <$
+        runAff
+          (const (pure unit))
+          (\{ response: r } -> displayOutput r)
+          (post "/agrippa/launch-suggestion" (buildPromptPayload (trim input) ext paths))
+
+buildPromptPayload :: String -> String -> Array String -> FormData
+buildPromptPayload app ext paths = toFormData [ Tuple "app"   (FormDataString app)
+                                              , Tuple "ext"   (FormDataString ext)
+                                              , Tuple "paths" (FormDataString (joinWith " " paths))
+                                              ]
 
 launch :: forall e. Config
                  -> String
@@ -32,14 +51,14 @@ launch config input displayOutput =
   in case cmdAndOpts of
       Left err  -> pure err
       Right (Tuple cmd opts) ->
-        "Opening '" <> (trim input) <> "'..." <$
+        "Launching '" <> (trim input) <> "'..." <$
         runAff
           (const (pure unit))
           (\{ response: r } -> displayOutput r)
-          (post "/agrippa/launch/" (buildPayload cmd opts (trim input)))
+          (post "/agrippa/launch/" (buildLaunchPayload cmd opts (trim input)))
 
-buildPayload :: String -> Array String -> String -> FormData
-buildPayload cmd opts app = toFormData [ Tuple "cmd"  (FormDataString cmd)
-                                       , Tuple "opts" (FormDataString (joinWith " " opts))
-                                       , Tuple "app"  (FormDataString app)
-                                       ]
+buildLaunchPayload :: String -> Array String -> String -> FormData
+buildLaunchPayload cmd opts app = toFormData [ Tuple "cmd"  (FormDataString cmd)
+                                             , Tuple "opts" (FormDataString (joinWith " " opts))
+                                             , Tuple "app"  (FormDataString app)
+                                             ]

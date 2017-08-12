@@ -129,3 +129,9 @@ Then make sure everything works:
 
 - query using a template library?  Text.Formatting?
 - only one query parameter is allowed now
+
+## Launcher Plugin
+
+- Pref panes (multiple extensions)
+- Quick successive inputs should be merged
+- Using " " as a separator could be problematic

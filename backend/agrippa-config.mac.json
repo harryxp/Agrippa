@@ -23,13 +23,15 @@
                , "plugin": "Launcher"
                , "cmd": "open"
                , "cmd-opts": ["-a"]
-               , "paths": ["/Applications/"]
+               , "paths": ["/Applications/", "/Users/hpan/Applications/"]
                , "ext": ".app"
                },
         "c":   { "name": "Launch Shell Commands"
                , "plugin": "Launcher"
                , "cmd": "sh"
                , "cmd-opts": ["-c"]
+               , "paths": ["/bin/", "/usr/bin/"]
+               , "ext": ""
                },
 
         "d":   { "name": "Dictionary"
@@ -40,9 +42,9 @@
                , "plugin": "OnlineSearch"
                , "url": "https://www.amazon.com/s?field-keywords=${q}"
                },
-        "h":   { "name": "Home"
+        "h":   { "name": "Haskell Search"
                , "plugin": "OnlineSearch"
-               , "url": "http://peachful.space"
+               , "url": "https://www.google.com/search?q=haskell+${q}"
                },
         "p":   { "name": "Pursuit Search"
                , "plugin": "OnlineSearch"

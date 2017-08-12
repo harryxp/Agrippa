@@ -2,13 +2,15 @@
 module Main where
 
 import Data.Aeson (FromJSON, Object, Result(..), decode, fromJSON)
-import Data.List (intercalate, isInfixOf, isSuffixOf)
+import Data.Char (toLower)
+import Data.List (intercalate, isInfixOf)
 import Data.List.Split (splitOn)
 import Data.String (fromString)
 import Data.Text.Lazy (Text, pack)
 import Network.Wai.Handler.Warp (defaultSettings, setHost, setPort)
-import System.Directory (getHomeDirectory, listDirectory)
+import System.Directory (getHomeDirectory)
 import System.Exit (exitFailure)
+import System.FilePath.Find (always, extension, fileName, find, (==?), (/=?), (&&?))
 import System.FilePath.Posix ((</>))
 import System.IO (hPutStrLn, stderr)
 import System.Process (readProcess)
@@ -83,12 +85,12 @@ startScotty opts agrippaConfigStr =
       result <- liftAndCatchIO (launch cmd (splitOn " " opts ++ [app]))
       text (pack result)
 
-    get "/agrippa/launch-suggestion/" $ do
+    post "/agrippa/launch-suggestion/" $ do
       app         <- param "app"   :: ActionM String
-      rootPaths   <- param "paths" :: ActionM String
       ext         <- param "ext"   :: ActionM String
-      launchables <- (liftAndCatchIO . findLaunchables ext . splitOn " ") rootPaths
-      (text . pack . intercalate "\n" . filter (isInfixOf app)) launchables
+      rootPaths   <- param "paths" :: ActionM String
+      launchables <- (liftAndCatchIO . suggestLaunchables app ext . splitOn " ") rootPaths
+      (text . pack . intercalate "\n") launchables
 
 locate :: String -> IO String
 locate keyword = readProcess "locate" [keyword] []
@@ -96,10 +98,13 @@ locate keyword = readProcess "locate" [keyword] []
 launch :: String -> [String] -> IO String
 launch cmd args = readProcess cmd args []
 
-findLaunchables :: String -> [FilePath] -> IO [FilePath]
-findLaunchables ext rootPaths = do
-  items <- mapM toAbsolute rootPaths :: IO [[FilePath]]
-  undefined
+suggestLaunchables :: String -> String -> [FilePath] -> IO [FilePath]
+suggestLaunchables app ext rootPaths =
+  let recursionPred = if null ext then always else extension /=? ext
+      filterPred    = if null ext
+                      then  (isInfixOf (toLowerStr app) . toLowerStr) <$> fileName
+                      else ((isInfixOf (toLowerStr app) . toLowerStr) <$> fileName) &&? extension ==? ext
+  in concat <$> mapM (find recursionPred filterPred) rootPaths
 
-toAbsolute :: String -> IO [FilePath]
-toAbsolute = undefined
+toLowerStr :: String -> String
+toLowerStr = fmap toLower
