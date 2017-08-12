@@ -9,10 +9,11 @@ import DOM.HTML.Types (WINDOW)
 import Network.HTTP.Affjax (AJAX)
 
 import Agrippa.Config (Config)
-import Agrippa.Plugins.Calculator   as C
-import Agrippa.Plugins.FileSearch   as F
-import Agrippa.Plugins.Launcher     as L
-import Agrippa.Plugins.OnlineSearch as O
+import Agrippa.Plugins.ExecutableLauncher as E
+import Agrippa.Plugins.MacAppLauncher     as M
+import Agrippa.Plugins.Calculator         as C
+import Agrippa.Plugins.FileSearch         as F
+import Agrippa.Plugins.OnlineSearch       as O
 
 newtype Plugin =
   Plugin { name          :: String
@@ -27,9 +28,13 @@ newtype Plugin =
          }
 
 plugins :: Array Plugin
-plugins = [ Plugin { name: "Launcher"
-                   , onInputChange: L.prompt
-                   , onActivation: L.launch
+plugins = [ Plugin { name: "ExecutableLauncher"
+                   , onInputChange: E.suggest
+                   , onActivation: E.launch
+                   }
+          , Plugin { name: "MacAppLauncher"
+                   , onInputChange: M.suggest
+                   , onActivation: M.launch
                    }
           , Plugin { name: "Calculator"
                    , onInputChange: C.calculate

@@ -16,16 +16,12 @@
 
         "'":   { "name": "Search for Files"
                , "plugin": "FileSearch"
-               , "paths": ["/Users/hpan/Documents/", "/Users/hpan/Downloads/"]
+               , "paths": []
                },
 
-        "a":   { "name": "Launch Mac Apps"
-               , "plugin": "MacAppLauncher"
-               , "paths": ["/Applications/", "/Users/hpan/Applications/"]
-               },
         "e":   { "name": "Launch Executables"
                , "plugin": "ExecutableLauncher"
-               , "paths": ["/bin/", "/usr/bin/"]
+               , "paths": ["/bin/", "/usr/bin/", "/usr/local/bin/", "/opt/plan9/bin/"]
                },
 
         "d":   { "name": "Dictionary"
@@ -54,3 +50,4 @@
                }
     }
 }
+

@@ -78,33 +78,48 @@ startScotty opts agrippaConfigStr =
       result  <- liftAndCatchIO (locate keyword)
       text (pack result)
 
-    post "/agrippa/launch/" $ do
-      cmd    <- param "cmd"  :: ActionM String
-      opts   <- param "opts" :: ActionM String
+    post "/agrippa/launch-exec-suggestion/" $ do
+      term      <- param "term"  :: ActionM String
+      rootPaths <- param "paths" :: ActionM String
+      execs     <- (liftAndCatchIO . suggestExecs term . splitOn " ") rootPaths
+      (text . pack . intercalate "\n") execs
+
+    post "/agrippa/launch-exec" $ do
       app    <- param "app"  :: ActionM String
-      result <- liftAndCatchIO (launch cmd (splitOn " " opts ++ [app]))
+      result <- liftAndCatchIO (launchExec app)
       text (pack result)
 
-    post "/agrippa/launch-suggestion/" $ do
-      app         <- param "app"   :: ActionM String
-      ext         <- param "ext"   :: ActionM String
-      rootPaths   <- param "paths" :: ActionM String
-      launchables <- (liftAndCatchIO . suggestLaunchables app ext . splitOn " ") rootPaths
-      (text . pack . intercalate "\n") launchables
+    post "/agrippa/launch-mac-suggestion/" $ do
+      term      <- param "term"  :: ActionM String
+      rootPaths <- param "paths" :: ActionM String
+      apps      <- (liftAndCatchIO . suggestMacApps term . splitOn " ") rootPaths
+      (text . pack . intercalate "\n") apps
+
+    post "/agrippa/launch-mac" $ do
+      app    <- param "app"  :: ActionM String
+      result <- liftAndCatchIO (launchMacApp app)
+      text (pack result)
 
 locate :: String -> IO String
 locate keyword = readProcess "locate" [keyword] []
 
-launch :: String -> [String] -> IO String
-launch cmd args = readProcess cmd args []
-
-suggestLaunchables :: String -> String -> [FilePath] -> IO [FilePath]
-suggestLaunchables app ext rootPaths =
-  let recursionPred = if null ext then always else extension /=? ext
-      filterPred    = if null ext
-                      then  (isInfixOf (toLowerStr app) . toLowerStr) <$> fileName
-                      else ((isInfixOf (toLowerStr app) . toLowerStr) <$> fileName) &&? extension ==? ext
+suggestExecs :: String -> [FilePath] -> IO [FilePath]
+suggestExecs term rootPaths =
+  let recursionPred = always
+      filterPred    = (isInfixOf (toLowerStr term) . toLowerStr) <$> fileName
   in concat <$> mapM (find recursionPred filterPred) rootPaths
+
+launchExec :: String -> IO String
+launchExec app = readProcess app [] []
+
+suggestMacApps :: String -> [FilePath] -> IO [FilePath]
+suggestMacApps term rootPaths =
+  let recursionPred = extension /=? ".app"
+      filterPred    = ((isInfixOf (toLowerStr term) . toLowerStr) <$> fileName) &&? extension ==? ".app"
+  in concat <$> mapM (find recursionPred filterPred) rootPaths
+
+launchMacApp :: String -> IO String
+launchMacApp app = readProcess "open" ["-a", app] []
 
 toLowerStr :: String -> String
 toLowerStr = fmap toLower
