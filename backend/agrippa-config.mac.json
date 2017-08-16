@@ -40,6 +40,10 @@
                , "plugin": "OnlineSearch"
                , "url": "https://www.google.com/search?q=haskell+${q}"
                },
+        "ho":  { "name": "Home"
+               , "plugin": "OnlineSearch"
+               , "url": "http://peachful.space"
+               },
         "p":   { "name": "Pursuit Search"
                , "plugin": "OnlineSearch"
                , "url": "https://pursuit.purescript.org/search?q=${q}"
