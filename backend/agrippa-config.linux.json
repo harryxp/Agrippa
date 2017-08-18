@@ -28,10 +28,6 @@
                , "plugin": "OnlineSearch"
                , "url": "https://www.merriam-webster.com/dictionary/${q}"
                },
-        "z":   { "name": "Amazon Search"
-               , "plugin": "OnlineSearch"
-               , "url": "https://www.amazon.com/s?field-keywords=${q}"
-               },
         "h":   { "name": "Haskell Search"
                , "plugin": "OnlineSearch"
                , "url": "https://www.google.com/search?q=haskell+${q}"
@@ -44,6 +40,10 @@
                , "plugin": "OnlineSearch"
                , "url": "https://pursuit.purescript.org/search?q=${q}"
                },
+        "u":   { "name": "USPS Tracking"
+               , "plugin": "OnlineSearch"
+               , "url": "https://tools.usps.com/go/TrackConfirmAction?tLabels=${q}"
+               },
         "w":   { "name": "Wikipedia Search"
                , "plugin": "OnlineSearch"
                , "url": "https://wikipedia.org/wiki/Special:Search/${q}"
@@ -51,6 +51,10 @@
         "y":   { "name": "YouTube Search"
                , "plugin": "OnlineSearch"
                , "url": "http://www.youtube.com/results?search_query=${q}"
+               },
+        "z":   { "name": "Amazon Search"
+               , "plugin": "OnlineSearch"
+               , "url": "https://www.amazon.com/s?field-keywords=${q}"
                }
     }
 }
