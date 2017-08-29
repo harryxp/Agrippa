@@ -2,6 +2,7 @@ module Agrippa.Plugins.ExecutableLauncher (launch, suggest) where
 
 import Prelude (Unit)
 import Control.Monad.Eff (Eff)
+import Control.Monad.Eff.JQuery (JQuery)
 import DOM (DOM)
 import Network.HTTP.Affjax (AJAX)
 
@@ -10,12 +11,12 @@ import Agrippa.Plugins.LauncherUtils as U
 
 suggest :: forall e. Config
                   -> String
-                  -> (String -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
+                  -> (Array JQuery -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
                   -> Eff (ajax :: AJAX, dom :: DOM | e) String
-suggest = U.suggest "/agrippa/launch-exec-suggestion"
+suggest = U.suggest "/agrippa/launch-exec-suggestion" "/agrippa/launch-exec"
 
 launch :: forall e. Config
                  -> String
-                 -> (String -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
+                 -> (Array JQuery -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
                  -> Eff (ajax :: AJAX, dom :: DOM | e) String
 launch = U.launch "/agrippa/launch-exec"

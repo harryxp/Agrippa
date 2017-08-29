@@ -101,15 +101,15 @@ Then make sure everything works:
 
 ## General
 
+- keyup events are too sensitive now
+- remove launcher listener properly
 - Backend: content type?  header?
 - Backend: readFile catch exception
-- Encode text sent to frontend
 - Snippets
 - TODO list
 - Top level suggestion
 - Check runAff response status code
 - Do not look up config repeatedly
-- Put Google URL into config
 - Formatted string instead of <> (Text.Formatting?)
 - Learn Except
 
@@ -133,5 +133,5 @@ Then make sure everything works:
 ## Launcher Plugin
 
 - Pref panes (multiple extensions)
-- Quick successive inputs should be merged
+- Quick successive inputs should be merged (maybe use a timer)
 - Using " " as a separator could be problematic

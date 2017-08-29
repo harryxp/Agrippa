@@ -1,10 +1,10 @@
 module Agrippa.Main (main) where
 
-import Prelude (Unit, bind, discard, pure, show, void, ($), (*>), (>>=), (<>))
+import Prelude (Unit, bind, discard, flip, pure, show, void, ($), (*>), (>>=), (<>), (<$>))
 import Control.Alt ((<|>))
 import Control.Monad.Aff (runAff)
 import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.JQuery (JQuery, JQueryEvent, append, create, display, getWhich, getValue, hide, on, ready, select, setText, toggle)
+import Control.Monad.Eff.JQuery (JQuery, JQueryEvent, append, clear, create, display, getWhich, getValue, hide, on, ready, select, setText, toggle)
 import Control.Monad.Except (runExcept)
 import DOM (DOM)
 import DOM.HTML.Types (WINDOW)
@@ -13,7 +13,7 @@ import Data.FoldableWithIndex (traverseWithIndex_)
 import Data.Foreign (readString)
 import Data.StrMap (StrMap, lookup)
 import Data.String (Pattern(..), indexOf, splitAt)
-import Data.Traversable (traverse)
+import Data.Traversable (sequence_, traverse)
 import Network.HTTP.Affjax (AJAX, get)
 
 import Agrippa.Config (Config, getBooleanVal, getStrMapVal, getStringVal, getConfigVal)
@@ -28,7 +28,7 @@ loadConfig :: forall e. (Config -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
                      -> Eff (ajax :: AJAX, dom :: DOM | e) Unit
 loadConfig onSuccess = void $
   runAff
-    (\_ -> displayOutput "Failed to retrieve config from server.")
+    (\_ -> displayOutputText "Failed to retrieve config from server.")
     (\{ response: r } -> onSuccess r)
     (get "/agrippa/config/")
 
@@ -46,7 +46,7 @@ inputListener config event inputField = do
   keyCode <- getWhich event
   foreignInput <- getValue inputField
   case runExcept (readString foreignInput) of
-    Left err         -> displayOutput (show err)
+    Left err         -> displayOutputText (show err)
     Right wholeInput -> dispatchToTask config keyCode wholeInput
 
 data Task = Task { name   :: String
@@ -61,7 +61,7 @@ dispatchToTask :: forall e. Config
                          -> Eff (ajax :: AJAX, dom :: DOM, window :: WINDOW | e) Unit
 dispatchToTask config keyCode wholeInput =
   case findTask config wholeInput <|> findDefaultTask config wholeInput of
-    Left err   -> displayOutput err
+    Left err   -> displayOutputText err
     Right task -> execTask task keyCode
 
 findTask :: Config -> String -> Either String Task
@@ -95,17 +95,23 @@ execTask (Task { name: name
          keyCode = do
   displayTask name
   case keyCode of
-    13        -> activate taskConfig taskInput displayOutput >>= displayOutput
-    otherwise -> prompt   taskConfig taskInput displayOutput >>= displayOutput
+    13        -> activate taskConfig taskInput displayOutput >>= displayOutputText
+    otherwise -> prompt   taskConfig taskInput displayOutput >>= displayOutputText
 
 displayTask :: forall e. String -> Eff (dom :: DOM | e) Unit
 displayTask t = select "#agrippa-task" >>= setText t
 
-displayOutput :: forall e. String -> Eff (dom :: DOM | e) Unit
-displayOutput t = select "#agrippa-output" >>= setText t
+displayOutputText :: forall e. String -> Eff (dom :: DOM | e) Unit
+displayOutputText t = select "#agrippa-output" >>= setText t
+
+displayOutput :: forall e. Array JQuery -> Eff (dom :: DOM | e) Unit
+displayOutput nodes = do
+  clearOutput
+  d <- select "#agrippa-output"
+  sequence_ (flip append d <$> nodes)
 
 clearOutput :: forall e. Eff (dom :: DOM | e) Unit
-clearOutput = select "#agrippa-output" >>= setText ""
+clearOutput = select "#agrippa-output" >>= clear
 
 -- help
 
@@ -114,7 +120,7 @@ buildHelp config = do
   helpLink <- select "#agrippa-help-link"
   helpContent <- select "#agrippa-help-content"
   case getConfigVal "preferences" config >>= getBooleanVal "showHelpByDefault" of
-    Left err -> displayOutput err
+    Left err -> displayOutputText err
     Right b  -> if b
                 then display helpContent
                 else hide helpContent
@@ -124,7 +130,7 @@ buildHelp config = do
 buildHelpTextForTasks :: forall e. Config -> Eff (dom :: DOM | e) Unit
 buildHelpTextForTasks config =
   case getTaskNamesByKeyword config of
-    Left err -> displayOutput err
+    Left err -> displayOutputText err
     Right m  -> traverseWithIndex_ buildHelpTextForTask m
 
 getTaskNamesByKeyword :: Config -> Either String (StrMap String)
@@ -139,7 +145,7 @@ buildHelpTextForTask keyword taskDesc = do
   createTd keyword tr *> createTd taskDesc tr *> append tr helpTable
   where
     createTd :: String -> JQuery -> Eff (dom :: DOM | e) Unit
-    createTd txt tr = create "<td>" >>= \td -> setText txt td *> append td tr
+    createTd contents tr = create "<td>" >>= \td -> setText contents td *> append td tr
 
 helpLinkListener :: forall e. JQuery
                            -> JQueryEvent

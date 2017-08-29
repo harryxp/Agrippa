@@ -2,6 +2,7 @@ module Agrippa.Plugins.Registry (Plugin(..), pluginsByName) where
 
 import Prelude (Unit, (<$>))
 import Control.Monad.Eff (Eff)
+import Control.Monad.Eff.JQuery (JQuery)
 import Data.StrMap (StrMap, fromFoldable)
 import Data.Tuple (Tuple(..))
 import DOM (DOM)
@@ -19,24 +20,16 @@ newtype Plugin =
   Plugin { name          :: String
          , onInputChange :: forall e. Config
                                    -> String
-                                   -> (String -> Eff (ajax :: AJAX, dom :: DOM, window :: WINDOW | e) Unit)
+                                   -> (Array JQuery -> Eff (ajax :: AJAX, dom :: DOM, window :: WINDOW | e) Unit)
                                    -> Eff (ajax :: AJAX, dom :: DOM, window :: WINDOW | e) String
          , onActivation  :: forall e. Config
                                    -> String
-                                   -> (String -> Eff (ajax :: AJAX, dom :: DOM, window :: WINDOW | e) Unit)
+                                   -> (Array JQuery -> Eff (ajax :: AJAX, dom :: DOM, window :: WINDOW | e) Unit)
                                    -> Eff (ajax :: AJAX, dom :: DOM, window :: WINDOW | e) String
          }
 
 plugins :: Array Plugin
-plugins = [ Plugin { name: "ExecutableLauncher"
-                   , onInputChange: E.suggest
-                   , onActivation: E.launch
-                   }
-          , Plugin { name: "MacAppLauncher"
-                   , onInputChange: M.suggest
-                   , onActivation: M.launch
-                   }
-          , Plugin { name: "Calculator"
+plugins = [ Plugin { name: "Calculator"
                    , onInputChange: C.calculate
                    , onActivation: C.calculateOnActivation
                    }
@@ -47,6 +40,14 @@ plugins = [ Plugin { name: "ExecutableLauncher"
           , Plugin { name: "OnlineSearch"
                    , onInputChange: O.prompt
                    , onActivation: O.search
+                   }
+          , Plugin { name: "MacAppLauncher"
+                   , onInputChange: M.suggest
+                   , onActivation: M.launch
+                   }
+          , Plugin { name: "ExecutableLauncher"
+                   , onInputChange: E.suggest
+                   , onActivation: E.launch
                    }
           ]
 

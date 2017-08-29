@@ -3,6 +3,7 @@ module Agrippa.Plugins.Calculator (calculate, calculateOnActivation) where
 import Prelude (class Show, Unit, bind, id, negate, pure, show, ($>), (*), (+), (-), (/), (<<<), (<>))
 import Control.Alt ((<|>))
 import Control.Monad.Eff (Eff)
+import Control.Monad.Eff.JQuery (JQuery)
 import Data.Either (Either(..))
 import Data.List (toUnfoldable)
 import Data.Maybe (Maybe(..))
@@ -17,13 +18,13 @@ import Agrippa.Config (Config)
 
 calculate :: forall e. Config
                     -> String
-                    -> (String -> Eff e Unit)
+                    -> (Array JQuery -> Eff e Unit)
                     -> Eff e String
 calculate _ input _ = (pure <<< evalExpr <<< parseExpr <<< (replaceAll (Pattern " ") (Replacement ""))) input
 
 calculateOnActivation :: forall e. Config
                                 -> String
-                                -> (String -> Eff e Unit)
+                                -> (Array JQuery -> Eff e Unit)
                                 -> Eff e String
 calculateOnActivation = calculate
 
