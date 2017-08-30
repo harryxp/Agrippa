@@ -10,7 +10,7 @@ import Data.Text.Lazy (Text, pack)
 import Network.Wai.Handler.Warp (defaultSettings, setHost, setPort)
 import System.Directory (getHomeDirectory)
 import System.Exit (exitFailure)
-import System.FilePath.Find (always, extension, fileName, find, (==?), (/=?), (&&?))
+import System.FilePath.Find (FindClause, always, extension, fileName, find, (==?), (/=?), (&&?))
 import System.FilePath.Posix ((</>))
 import System.IO (hPutStrLn, stderr)
 import System.Process (readProcess)
@@ -106,7 +106,7 @@ locate keyword = readProcess "locate" [keyword] []
 suggestExecs :: String -> [FilePath] -> IO [FilePath]
 suggestExecs term rootPaths =
   let recursionPred = always
-      filterPred    = (isInfixOf (toLowerStr term) . toLowerStr) <$> fileName
+      filterPred    = fileNameContains term
   in concat <$> mapM (find recursionPred filterPred) rootPaths
 
 launchExec :: String -> IO String
@@ -115,8 +115,11 @@ launchExec app = readProcess app [] []
 suggestMacApps :: String -> [FilePath] -> IO [FilePath]
 suggestMacApps term rootPaths =
   let recursionPred = extension /=? ".app"
-      filterPred    = ((isInfixOf (toLowerStr term) . toLowerStr) <$> fileName) &&? extension ==? ".app"
+      filterPred    = fileNameContains term &&? extension ==? ".app"
   in concat <$> mapM (find recursionPred filterPred) rootPaths
+
+fileNameContains :: String -> FindClause Bool
+fileNameContains term = (isInfixOf (toLowerStr term) . toLowerStr) <$> fileName
 
 launchMacApp :: String -> IO String
 launchMacApp app = readProcess "open" ["-a", app] []
