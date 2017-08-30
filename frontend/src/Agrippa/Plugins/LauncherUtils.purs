@@ -6,7 +6,7 @@ import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.JQuery (JQuery, addClass, append, create, setText)
 import Data.Array (drop, take, zipWith, (..))
 import Data.Either (Either(..))
-import Data.String (joinWith, trim)
+import Data.String (joinWith, null, trim)
 import Data.String.Utils (lines)
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..))
@@ -43,7 +43,7 @@ buildNodes :: forall e. String
                      -> Eff (ajax :: AJAX, dom :: DOM | e) (Array JQuery)
 buildNodes launchUrl contents = do
   let appNames :: Array String
-      appNames = lines contents
+      appNames = if null contents then [] else lines contents
       firstNine = buildNodesWithShortcuts launchUrl (take 9 appNames)
       theRest = sequence ((\record -> do
         div <- create "<div>"
