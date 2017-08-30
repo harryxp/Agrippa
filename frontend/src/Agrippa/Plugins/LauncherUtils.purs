@@ -62,7 +62,7 @@ buildNodesWithShortcuts launchUrl appNames = do
         setText record div
         span <- create "<span>"
         addClass "shortcut-prompt" span
-        setText ("ctrl-" <> show index <> " to open") span
+        setText ("ctrl-" <> show index) span
         append span div
         pure div)
      (1..9)

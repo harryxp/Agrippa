@@ -106,12 +106,9 @@ displayOutputText t = select "#agrippa-output" >>= setText t
 
 displayOutput :: forall e. Array JQuery -> Eff (dom :: DOM | e) Unit
 displayOutput nodes = do
-  clearOutput
-  d <- select "#agrippa-output"
-  sequence_ (flip append d <$> nodes)
-
-clearOutput :: forall e. Eff (dom :: DOM | e) Unit
-clearOutput = select "#agrippa-output" >>= clear
+  output <- select "#agrippa-output"
+  clear output
+  sequence_ (flip append output <$> nodes)
 
 -- help
 

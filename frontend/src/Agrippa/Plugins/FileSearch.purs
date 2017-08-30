@@ -29,6 +29,6 @@ search _ input displayOutput =
 
 buildNodes :: forall e. String -> Eff (dom :: DOM | e) (Array JQuery)
 buildNodes contents = do
-  p <- create "<p>"
-  setText contents p
-  pure [p]
+  div <- create "<div>"
+  setText contents div
+  pure [div]
