@@ -1,10 +1,11 @@
 module Agrippa.Main (main) where
 
-import Prelude (Unit, bind, discard, flip, pure, show, void, ($), (*>), (>>=), (<>), (<$>))
+import Prelude (Unit, bind, discard, flip, pure, show, unit, void, (==), ($), (*>), (>>=), (<>), (<$>))
 import Control.Alt ((<|>))
 import Control.Monad.Aff (runAff)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.JQuery (JQuery, JQueryEvent, append, clear, create, display, getWhich, getValue, hide, on, ready, select, setText, toggle)
+import Control.Monad.Eff.Ref (REF, Ref, newRef, readRef, writeRef)
 import Control.Monad.Except (runExcept)
 import DOM (DOM)
 import DOM.HTML.Types (WINDOW)
@@ -20,7 +21,7 @@ import Agrippa.Config (Config, getBooleanVal, getStrMapVal, getStringVal, getCon
 import Agrippa.Plugins.Registry (Plugin(..), pluginsByName)
 import Agrippa.Utils (mToE)
 
-main :: forall e. Eff (ajax :: AJAX, dom :: DOM, window :: WINDOW | e) Unit
+main :: forall e. Eff (ajax :: AJAX, dom :: DOM, ref :: REF, window :: WINDOW | e) Unit
 main = ready $
   loadConfig (\config -> buildHelp config *> installInputListener config)
 
@@ -33,21 +34,30 @@ loadConfig onSuccess = void $
     (get "/agrippa/config/")
 
 installInputListener :: forall e. Config
-                               -> Eff (ajax :: AJAX, dom :: DOM, window :: WINDOW | e) Unit
-installInputListener config = select "#agrippa-input" >>= on "keyup" (inputListener config)
+                               -> Eff (ajax :: AJAX, dom :: DOM, ref :: REF, window :: WINDOW | e) Unit
+installInputListener config = do
+  inputField <- select "#agrippa-input"
+  prevInputRef  <- newRef ""
+  on "keyup" (inputListener config prevInputRef) inputField
 
 -- tasks, input and output
 
 inputListener :: forall e. Config
+                        -> Ref String
                         -> JQueryEvent
                         -> JQuery
-                        -> Eff (ajax :: AJAX, dom :: DOM, window :: WINDOW | e) Unit
-inputListener config event inputField = do
+                        -> Eff (ajax :: AJAX, dom :: DOM, ref :: REF, window :: WINDOW | e) Unit
+inputListener config prevInputRef event inputField = do
   keyCode <- getWhich event
   foreignInput <- getValue inputField
   case runExcept (readString foreignInput) of
     Left err         -> displayOutputText (show err)
-    Right wholeInput -> dispatchToTask config keyCode wholeInput
+    Right wholeInput -> do
+      prevInput <- readRef prevInputRef
+      writeRef prevInputRef wholeInput
+      if prevInput == wholeInput
+        then pure unit
+        else dispatchToTask config keyCode wholeInput
 
 data Task = Task { name   :: String
                  , plugin :: Plugin
