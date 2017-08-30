@@ -3,7 +3,6 @@
 exports.reinstallShortcuts = function (launchUrl) {
     return function (appNames) {
         return function () {
-            $(document.body).off("keyup");
             $(document.body).on("keyup", function (evt) {
                 if (evt.ctrlKey === true &&
                     evt.which >= 49 &&

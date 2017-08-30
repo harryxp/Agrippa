@@ -101,8 +101,6 @@ Then make sure everything works:
 
 ## General
 
-- keyup events are too sensitive now
-- remove launcher listener properly
 - Backend: content type?  header?
 - Backend: readFile catch exception
 - Snippets

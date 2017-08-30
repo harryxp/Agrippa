@@ -1,10 +1,10 @@
 module Agrippa.Main (main) where
 
-import Prelude (Unit, bind, discard, flip, pure, show, unit, void, (==), ($), (*>), (>>=), (<>), (<$>))
+import Prelude (Unit, bind, discard, flip, pure, show, unit, void, (==), (/=), ($), (*>), (>>=), (<>), (<$>), (&&))
 import Control.Alt ((<|>))
 import Control.Monad.Aff (runAff)
 import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.JQuery (JQuery, JQueryEvent, append, clear, create, display, getWhich, getValue, hide, on, ready, select, setText, toggle)
+import Control.Monad.Eff.JQuery (JQuery, JQueryEvent, append, body, clear, create, display, getWhich, getValue, hide, off, on, ready, select, setText, toggle)
 import Control.Monad.Eff.Ref (REF, Ref, newRef, readRef, writeRef)
 import Control.Monad.Except (runExcept)
 import DOM (DOM)
@@ -23,7 +23,7 @@ import Agrippa.Utils (mToE)
 
 main :: forall e. Eff (ajax :: AJAX, dom :: DOM, ref :: REF, window :: WINDOW | e) Unit
 main = ready $
-  loadConfig (\config -> buildHelp config *> installInputListener config)
+  loadConfig (\config -> buildHelp config *> installInputHandler config)
 
 loadConfig :: forall e. (Config -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
                      -> Eff (ajax :: AJAX, dom :: DOM | e) Unit
@@ -33,21 +33,21 @@ loadConfig onSuccess = void $
     (\{ response: r } -> onSuccess r)
     (get "/agrippa/config/")
 
-installInputListener :: forall e. Config
+installInputHandler :: forall e. Config
                                -> Eff (ajax :: AJAX, dom :: DOM, ref :: REF, window :: WINDOW | e) Unit
-installInputListener config = do
+installInputHandler config = do
   inputField <- select "#agrippa-input"
   prevInputRef  <- newRef ""
-  on "keyup" (inputListener config prevInputRef) inputField
+  on "keyup" (inputHandler config prevInputRef) inputField
 
 -- tasks, input and output
 
-inputListener :: forall e. Config
+inputHandler :: forall e. Config
                         -> Ref String
                         -> JQueryEvent
                         -> JQuery
                         -> Eff (ajax :: AJAX, dom :: DOM, ref :: REF, window :: WINDOW | e) Unit
-inputListener config prevInputRef event inputField = do
+inputHandler config prevInputRef event inputField = do
   keyCode <- getWhich event
   foreignInput <- getValue inputField
   case runExcept (readString foreignInput) of
@@ -55,7 +55,7 @@ inputListener config prevInputRef event inputField = do
     Right wholeInput -> do
       prevInput <- readRef prevInputRef
       writeRef prevInputRef wholeInput
-      if prevInput == wholeInput
+      if prevInput == wholeInput && keyCode /= 13
         then pure unit
         else dispatchToTask config keyCode wholeInput
 
@@ -72,7 +72,7 @@ dispatchToTask :: forall e. Config
 dispatchToTask config keyCode wholeInput =
   case findTask config wholeInput <|> findDefaultTask config wholeInput of
     Left err   -> displayOutputText err
-    Right task -> execTask task keyCode
+    Right task -> (body >>= off "keyup") *> execTask task keyCode
 
 findTask :: Config -> String -> Either String Task
 findTask config wholeInput = do
@@ -132,7 +132,7 @@ buildHelp config = do
                 then display helpContent
                 else hide helpContent
   buildHelpTextForTasks config
-  on "click" (helpLinkListener helpContent) helpLink
+  on "click" (helpLinkHandler helpContent) helpLink
 
 buildHelpTextForTasks :: forall e. Config -> Eff (dom :: DOM | e) Unit
 buildHelpTextForTasks config =
@@ -154,9 +154,9 @@ buildHelpTextForTask keyword taskDesc = do
     createTd :: String -> JQuery -> Eff (dom :: DOM | e) Unit
     createTd contents tr = create "<td>" >>= \td -> setText contents td *> append td tr
 
-helpLinkListener :: forall e. JQuery
+helpLinkHandler :: forall e. JQuery
                            -> JQueryEvent
                            -> JQuery
                            -> Eff (dom :: DOM | e) Unit
-helpLinkListener helpContent _ _ = toggle helpContent
+helpLinkHandler helpContent _ _ = toggle helpContent
 
