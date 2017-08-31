@@ -10,11 +10,11 @@ import DOM.HTML.Types (WINDOW)
 import Network.HTTP.Affjax (AJAX)
 
 import Agrippa.Config (Config)
-import Agrippa.Plugins.ExecutableLauncher as E
-import Agrippa.Plugins.MacAppLauncher     as M
-import Agrippa.Plugins.Calculator         as C
-import Agrippa.Plugins.FileSearch         as F
-import Agrippa.Plugins.OnlineSearch       as O
+import Agrippa.Plugins.Launcher.ExecutableLauncher as E
+import Agrippa.Plugins.Launcher.MacAppLauncher     as M
+import Agrippa.Plugins.Calculator                  as C
+import Agrippa.Plugins.FileSearch                  as F
+import Agrippa.Plugins.OnlineSearch                as O
 
 newtype Plugin =
   Plugin { name          :: String
