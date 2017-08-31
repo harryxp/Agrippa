@@ -1,5 +1,5 @@
 {
-  "name": "frontend",
+  "name": "agrippa-client",
   "ignore": [
     "**/.*",
     "node_modules",
