@@ -14,53 +14,53 @@ import System.FilePath.Find (FileType(Directory, RegularFile, SymbolicLink), Fin
 import System.FilePath.Posix ((</>))
 import System.IO (hPutStrLn, stderr)
 import System.Process (callCommand, callProcess, readProcess)
-import Web.Scotty (ActionM, Options(..), file, get, json, jsonData, liftAndCatchIO, param, post, raw, scottyOpts, text)
+import Web.Scotty (ActionM, Options(..), file, get, json, jsonData, liftAndCatchIO, param, post, scottyOpts, text)
 
 import qualified Data.ByteString.Lazy as B (ByteString, readFile)
 import qualified Data.HashMap.Lazy    as M (lookup)
 import qualified Data.Text            as T (Text)
 
-data Config = Config { host :: String
-                     , port :: Int
-                     }
-                     deriving Show
+data ScottyConfig = ScottyConfig { host :: String
+                                 , port :: Int
+                                 }
+                                 deriving Show
 
 main :: IO ()
 main = do
   agrippaConfigStr <- readAgrippaConfigFile
   case parseAgrippaConfig agrippaConfigStr of
-    Nothing -> hPutStrLn stderr "Failed to parse Agrippa config." >>
-               hPutStrLn stderr "Please check .agrippa under your home directory." >>
-               exitFailure
-    Just c  -> startScotty (buildScottyOpts c) agrippaConfigStr
+    Nothing       -> hPutStrLn stderr "Failed to parse Agrippa config." >>
+                     hPutStrLn stderr "Please check .agrippa under your home directory." >>
+                     exitFailure
+    Just (sc,ac)  -> startScotty (buildScottyOpts sc) ac
 
 readAgrippaConfigFile :: IO B.ByteString
 readAgrippaConfigFile = do
   homeDir <- getHomeDirectory
   B.readFile (homeDir </> ".agrippa")
 
-parseAgrippaConfig :: B.ByteString -> Maybe Config
+parseAgrippaConfig :: B.ByteString -> Maybe (ScottyConfig, Object)
 parseAgrippaConfig configStr = do
-  config <- decode configStr                :: Maybe Object
-  prefs  <- lookupJSON "preferences" config :: Maybe Object
-  host   <- lookupJSON "host" prefs         :: Maybe String
-  port   <- lookupJSON "port" prefs         :: Maybe Int
-  Just (Config {host = host, port = port})
+  agrippaConfig <- decode configStr                       :: Maybe Object
+  prefs         <- lookupJSON "preferences" agrippaConfig :: Maybe Object
+  host          <- lookupJSON "host" prefs                :: Maybe String
+  port          <- lookupJSON "port" prefs                :: Maybe Int
+  Just (ScottyConfig {host = host, port = port}, agrippaConfig)
 
-buildScottyOpts :: Config -> Options
-buildScottyOpts (Config { host = h, port = p }) =
+buildScottyOpts :: ScottyConfig -> Options
+buildScottyOpts (ScottyConfig { host = h, port = p }) =
   Options { verbose = 1
           , settings = setPort p (setHost (fromString h) defaultSettings)
           }
 
-startScotty :: Options -> B.ByteString -> IO ()
-startScotty opts agrippaConfigStr =
+startScotty :: Options -> Object -> IO ()
+startScotty opts agrippaConfig =
   scottyOpts opts $ do
     get "/agrippa/" $ do
       file "web/index.html"
 
     get "/agrippa/config" $ do
-      raw agrippaConfigStr
+      json agrippaConfig
 
     get "/agrippa/js/scripts.js" $ do
       file "web/js/scripts.js"
@@ -106,6 +106,7 @@ startScotty opts agrippaConfigStr =
 locate :: String -> IO String
 locate keyword = readProcess "locate" [keyword] []
 
+-- ExecutableLauncher plugin
 suggestExecs :: String -> [FilePath] -> IO [FilePath]
 suggestExecs term rootPaths =
   let recursionPred = always
@@ -116,6 +117,7 @@ suggestExecs term rootPaths =
 launchExec :: String -> IO ()
 launchExec app = callCommand app
 
+-- MacAppLauncher plugin
 suggestMacApps :: String -> [FilePath] -> IO [FilePath]
 suggestMacApps term rootPaths =
   let recursionPred = extension /=? ".app"
@@ -127,6 +129,7 @@ suggestMacApps term rootPaths =
 launchMacApp :: String -> IO ()
 launchMacApp app = callProcess "open" ["-a", app]
 
+-- helper functions
 fileNameContains :: String -> FindClause Bool
 fileNameContains term = (isInfixOf (toLowerStr term) . toLowerStr) <$> fileName
 

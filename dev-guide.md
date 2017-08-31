@@ -101,6 +101,7 @@ Then make sure everything works:
 
 ## General
 
+- limit size of output (backend?)
 - Backend: content type?  header?
 - Backend: readFile catch exception
 - Snippets
@@ -117,7 +118,6 @@ Then make sure everything works:
 
 ## File Search plugin
 
-- limit size of output
 - highlight keyword
 - error handler for runAff
 - check status code?
