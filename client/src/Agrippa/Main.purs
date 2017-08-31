@@ -17,7 +17,7 @@ import Data.String (Pattern(..), indexOf, splitAt)
 import Data.Traversable (sequence_, traverse)
 import Network.HTTP.Affjax (AJAX, get)
 
-import Agrippa.Config (Config, getBooleanVal, getStrMapVal, getStringVal, getConfigVal)
+import Agrippa.Config (Config, getBooleanVal, getStrMapVal, getStringVal, lookupConfigVal)
 import Agrippa.Plugins.Registry (Plugin(..), pluginsByName)
 import Agrippa.Utils (mToE)
 
@@ -87,10 +87,10 @@ findTask config wholeInput = do
 
 findDefaultTask :: Config -> String -> Either String Task
 findDefaultTask config wholeInput = do
-  prefs             <- getConfigVal "preferences" config
-  defaultTaskConfig <- getConfigVal "defaultTask" prefs
-  taskName          <- getStringVal "name" defaultTaskConfig
-  pluginName        <- getStringVal "plugin" defaultTaskConfig
+  prefs             <- lookupConfigVal "preferences" config
+  defaultTaskConfig <- lookupConfigVal "defaultTask" prefs
+  taskName          <- getStringVal    "name"        defaultTaskConfig
+  pluginName        <- getStringVal    "plugin"      defaultTaskConfig
   plugin            <- mToE ("Can't find plugin with name '" <> pluginName <> "'.") (lookup pluginName pluginsByName)
   pure (Task { name: taskName, plugin: plugin, input: wholeInput, config: defaultTaskConfig })
 
@@ -126,7 +126,7 @@ buildHelp :: forall e. Config -> Eff (dom :: DOM | e) Unit
 buildHelp config = do
   helpLink <- select "#agrippa-help-link"
   helpContent <- select "#agrippa-help-content"
-  case getConfigVal "preferences" config >>= getBooleanVal "showHelpByDefault" of
+  case lookupConfigVal "preferences" config >>= getBooleanVal "showHelpByDefault" of
     Left err -> displayOutputText err
     Right b  -> if b
                 then display helpContent

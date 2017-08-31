@@ -3,7 +3,7 @@ module Main where
 
 import Data.Aeson (FromJSON, Object, Result(..), decode, fromJSON)
 import Data.Char (toLower)
-import Data.List (intercalate, isInfixOf)
+import Data.List (isInfixOf)
 import Data.List.Split (splitOn)
 import Data.String (fromString)
 import Data.Text.Lazy (Text, pack)
@@ -13,8 +13,8 @@ import System.Exit (exitFailure)
 import System.FilePath.Find (FileType(Directory, RegularFile, SymbolicLink), FindClause, always, extension, fileName, fileType, find, (==?), (/=?), (&&?), (||?))
 import System.FilePath.Posix ((</>))
 import System.IO (hPutStrLn, stderr)
-import System.Process (readProcess)
-import Web.Scotty (ActionM, Options(..), file, get, liftAndCatchIO, param, post, raw, scottyOpts, text)
+import System.Process (callCommand, callProcess, readProcess)
+import Web.Scotty (ActionM, Options(..), file, get, json, jsonData, liftAndCatchIO, param, post, raw, scottyOpts, text)
 
 import qualified Data.ByteString.Lazy as B (ByteString, readFile)
 import qualified Data.HashMap.Lazy    as M (lookup)
@@ -41,19 +41,11 @@ readAgrippaConfigFile = do
 
 parseAgrippaConfig :: B.ByteString -> Maybe Config
 parseAgrippaConfig configStr = do
-  config   <- decode configStr                :: Maybe Object
-  prefs    <- lookupJSON "preferences" config :: Maybe Object
-  host     <- lookupJSON "host" prefs         :: Maybe String
-  port     <- lookupJSON "port" prefs         :: Maybe Int
+  config <- decode configStr                :: Maybe Object
+  prefs  <- lookupJSON "preferences" config :: Maybe Object
+  host   <- lookupJSON "host" prefs         :: Maybe String
+  port   <- lookupJSON "port" prefs         :: Maybe Int
   Just (Config {host = host, port = port})
-  where
-  lookupJSON :: FromJSON a => T.Text -> Object -> Maybe a
-  lookupJSON key m = do
-    jValue <- M.lookup key m
-    result <- return (fromJSON jValue)
-    case result of
-      Error e   -> Nothing
-      Success v -> Just v
 
 buildScottyOpts :: Config -> Options
 buildScottyOpts (Config { host = h, port = p }) =
@@ -73,32 +65,43 @@ startScotty opts agrippaConfigStr =
     get "/agrippa/js/scripts.js" $ do
       file "web/js/scripts.js"
 
+    -- FileSearch plugin
     get "/agrippa/file-search/:key" $ do
       keyword <- param "key" :: ActionM String
       result  <- liftAndCatchIO (locate keyword)
       text (pack result)
 
+    -- ExecutableLauncher plugin
     post "/agrippa/launch-exec-suggestion/" $ do
-      term      <- param "term"  :: ActionM String
-      rootPaths <- param "paths" :: ActionM String
-      execs     <- (liftAndCatchIO . suggestExecs term . splitOn " ") rootPaths
-      (text . pack . intercalate "\n") execs
+      o <- jsonData :: ActionM Object
+      let maybeExes = do
+            term      <- lookupJSON "term"  o :: Maybe String
+            rootPaths <- lookupJSON "paths" o :: Maybe [String]
+            (Just . liftAndCatchIO . suggestExecs term) rootPaths
+      case maybeExes of
+        Just exes -> exes >>= json
+        Nothing   -> json ([] :: [String])
 
     post "/agrippa/launch-exec" $ do
-      app    <- param "app"  :: ActionM String
-      result <- liftAndCatchIO (launchExec app)
-      text (pack result)
+      app <- param "app" :: ActionM String
+      (liftAndCatchIO . launchExec) app
+      (text . pack) ("Launched " ++ app ++ ".")
 
+    -- MacAppLauncher plugin
     post "/agrippa/launch-mac-suggestion/" $ do
-      term      <- param "term"  :: ActionM String
-      rootPaths <- param "paths" :: ActionM String
-      apps      <- (liftAndCatchIO . suggestMacApps term . splitOn " ") rootPaths
-      (text . pack . intercalate "\n") apps
+      o <- jsonData :: ActionM Object
+      let maybeApps = do
+            term      <- lookupJSON "term"  o :: Maybe String
+            rootPaths <- lookupJSON "paths" o :: Maybe [String]
+            (Just . liftAndCatchIO . suggestMacApps term) rootPaths
+      case maybeApps of
+        Just apps -> apps >>= json
+        Nothing   -> json ([] :: [String])
 
     post "/agrippa/launch-mac" $ do
-      app    <- param "app"  :: ActionM String
-      result <- liftAndCatchIO (launchMacApp app)
-      text (pack result)
+      app <- param "app" :: ActionM String
+      (liftAndCatchIO . launchMacApp) app
+      (text . pack) ("Launched " ++ app ++ ".")
 
 locate :: String -> IO String
 locate keyword = readProcess "locate" [keyword] []
@@ -110,8 +113,8 @@ suggestExecs term rootPaths =
                       (fileType ==? RegularFile ||? fileType ==? SymbolicLink)
   in concat <$> mapM (find recursionPred filterPred) rootPaths
 
-launchExec :: String -> IO String
-launchExec app = readProcess app [] []
+launchExec :: String -> IO ()
+launchExec app = callCommand app
 
 suggestMacApps :: String -> [FilePath] -> IO [FilePath]
 suggestMacApps term rootPaths =
@@ -121,11 +124,19 @@ suggestMacApps term rootPaths =
                       extension ==? ".app"
   in concat <$> mapM (find recursionPred filterPred) rootPaths
 
+launchMacApp :: String -> IO ()
+launchMacApp app = callProcess "open" ["-a", app]
+
 fileNameContains :: String -> FindClause Bool
 fileNameContains term = (isInfixOf (toLowerStr term) . toLowerStr) <$> fileName
 
-launchMacApp :: String -> IO String
-launchMacApp app = readProcess "open" ["-a", app] []
-
 toLowerStr :: String -> String
 toLowerStr = fmap toLower
+
+lookupJSON :: FromJSON a => T.Text -> Object -> Maybe a
+lookupJSON key m = do
+  jValue <- M.lookup key m
+  result <- return (fromJSON jValue)
+  case result of
+    Error e   -> Nothing
+    Success v -> Just v

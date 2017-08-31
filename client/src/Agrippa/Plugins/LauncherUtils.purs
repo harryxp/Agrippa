@@ -1,18 +1,17 @@
 module Agrippa.Plugins.LauncherUtils (launch, suggest) where
 
-import Prelude (Unit, bind, const, discard, pure, show, unit, (<$), (<$>), (<*>), (<>), (>>=))
+import Prelude (Unit, bind, const, discard, pure, show, unit, (<$), (<$>), (<>), (>>=), (<=<), (<<<))
 import Control.Monad.Aff (runAff)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.JQuery (JQuery, addClass, append, create, setText)
+import Data.Argonaut.Core (JArray, JObject, Json, fromArray, fromObject, fromString, toArray, toString)
 import Data.Array (drop, take, zipWith, (..))
 import Data.Either (Either(..))
-import Data.String (joinWith, null, trim)
-import Data.String.Utils (lines)
-import Data.Traversable (sequence)
-import Data.Tuple (Tuple(..))
+import Data.Maybe (Maybe(..))
+import Data.String (trim)
+import Data.StrMap (empty, insert)
+import Data.Traversable (sequence, traverse)
 import DOM (DOM)
-import DOM.XHR.FormData (FormDataValue(FormDataString), toFormData)
-import DOM.XHR.Types (FormData)
 import Network.HTTP.Affjax (AJAX, post)
 
 import Agrippa.Config (Config, getStrArrayVal)
@@ -30,26 +29,34 @@ suggest suggestUrl launchUrl config input displayOutput =
       "Searching..." <$
       runAff
         (const (pure unit))
-        (\{ response: r } -> buildNodes launchUrl r >>= displayOutput)
-        (post suggestUrl (buildSuggestPayload (trim input) paths))
+        (\{ response: r } -> buildOutputNodes launchUrl r >>= displayOutput)
+        (post suggestUrl (buildSuggestReq (trim input) paths))
 
-buildSuggestPayload :: String -> Array String -> FormData
-buildSuggestPayload term paths = toFormData [ Tuple "term"  (FormDataString term)
-                                            , Tuple "paths" (FormDataString (joinWith " " paths))
-                                            ]
+buildSuggestReq :: String -> Array String -> Json
+buildSuggestReq term paths =
+  let jsonPaths :: JArray
+      jsonPaths = fromString <$> paths
+      m :: JObject
+      m = (insert "paths" (fromArray jsonPaths) <<<
+           insert "term"  (fromString term)) empty
+  in fromObject m
 
-buildNodes :: forall e. String
-                     -> String
+buildOutputNodes :: forall e. String
+                     -> Json
                      -> Eff (ajax :: AJAX, dom :: DOM | e) (Array JQuery)
-buildNodes launchUrl contents = do
-  let appNames :: Array String
-      appNames = if null contents then [] else lines contents
-      firstNine = buildNodesWithShortcuts launchUrl (take 9 appNames)
-      theRest = sequence ((\record -> do
+buildOutputNodes launchUrl contents =
+  case (traverse toString <=< toArray) contents of
+    Just appNames -> do
+      nodesWithShortcuts <- buildNodesWithShortcuts launchUrl (take 9 appNames)
+      otherNodes         <- sequence ((\record -> do
         div <- create "<div>"
         setText record div
         pure div) <$> drop 9 appNames)
-  (<>) <$> firstNine <*> theRest
+      pure (nodesWithShortcuts <> otherNodes)
+    Nothing       -> do
+      div <- create "<div>"
+      setText "Error: expect a JSON array of strings from server." div
+      pure [div]
 
 buildNodesWithShortcuts :: forall e. String
                                   -> Array String
