@@ -14,7 +14,7 @@ import Data.Traversable (sequence, traverse)
 import DOM (DOM)
 import Network.HTTP.Affjax (AJAX, post)
 
-import Agrippa.Config (Config, getStrArrayVal)
+import Agrippa.Config (Config, getBooleanVal, getStrArrayVal)
 
 suggest :: forall e. String
                   -> String
@@ -23,14 +23,17 @@ suggest :: forall e. String
                   -> (Array JQuery -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
                   -> Eff (ajax :: AJAX, dom :: DOM | e) String
 suggest suggestUrl launchUrl config input displayOutput =
-  case getStrArrayVal "paths" config of
-    Left  err   -> pure err
-    Right paths ->
-      "Searching..." <$
-      runAff
-        (const (pure unit))
-        (\{ response: r } -> buildOutputNodes launchUrl r >>= displayOutput)
-        (post suggestUrl (buildSuggestReq (trim input) paths))
+  let eitherEff = do
+        paths           <- getStrArrayVal "paths"           config
+        useFunctionKeys <- getBooleanVal  "useFunctionKeys" config
+        pure ("Searching..." <$
+              runAff
+                (const (pure unit))
+                (\{ response: r } -> buildOutputNodes useFunctionKeys launchUrl r >>= displayOutput)
+                (post suggestUrl (buildSuggestReq (trim input) paths)))
+  in case eitherEff of
+      Left  err -> pure err
+      Right eff -> eff
 
 buildSuggestReq :: String -> Array String -> Json
 buildSuggestReq term paths =
@@ -41,13 +44,14 @@ buildSuggestReq term paths =
            insert "term"  (fromString term)) empty
   in fromObject m
 
-buildOutputNodes :: forall e. String
-                     -> Json
-                     -> Eff (ajax :: AJAX, dom :: DOM | e) (Array JQuery)
-buildOutputNodes launchUrl contents =
+buildOutputNodes :: forall e. Boolean
+                           -> String
+                           -> Json
+                           -> Eff (ajax :: AJAX, dom :: DOM | e) (Array JQuery)
+buildOutputNodes useFunctionKeys launchUrl contents =
   case (traverse toString <=< toArray) contents of
     Just appNames -> do
-      nodesWithShortcuts <- buildNodesWithShortcuts launchUrl (take 9 appNames)
+      nodesWithShortcuts <- buildNodesWithShortcuts useFunctionKeys launchUrl (take 9 appNames)
       otherNodes         <- sequence ((\record -> do
         div <- create "<div>"
         setText record div
@@ -58,26 +62,28 @@ buildOutputNodes launchUrl contents =
       setText "Error: expect a JSON array of strings from server." div
       pure [div]
 
-buildNodesWithShortcuts :: forall e. String
+buildNodesWithShortcuts :: forall e. Boolean
+                                  -> String
                                   -> Array String
                                   -> Eff (ajax :: AJAX, dom :: DOM | e) (Array JQuery)
-buildNodesWithShortcuts launchUrl appNames = do
+buildNodesWithShortcuts useFunctionKeys launchUrl appNames = do
   nodes <- sequence
     (zipWith
       (\index record -> do
-        div <- create "<div>"
+        div  <- create "<div>"
         setText record div
         span <- create "<span>"
         addClass "shortcut-prompt" span
-        setText ("ctrl-" <> show index) span
+        setText ("ctrl-" <> (if useFunctionKeys then "f" else "") <> show index) span
         append span div
         pure div)
      (1..9)
      appNames)
-  reinstallShortcuts launchUrl appNames
+  reinstallShortcuts useFunctionKeys launchUrl appNames
   pure nodes
 
-foreign import reinstallShortcuts :: forall e. String
+foreign import reinstallShortcuts :: forall e. Boolean
+                                            -> String
                                             -> Array String
                                             -> Eff (ajax :: AJAX, dom :: DOM | e) Unit
 

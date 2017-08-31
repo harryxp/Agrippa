@@ -36,8 +36,8 @@ loadConfig onSuccess = void $
 installInputHandler :: forall e. Config
                                -> Eff (ajax :: AJAX, dom :: DOM, ref :: REF, window :: WINDOW | e) Unit
 installInputHandler config = do
-  inputField <- select "#agrippa-input"
-  prevInputRef  <- newRef ""
+  inputField   <- select "#agrippa-input"
+  prevInputRef <- newRef ""
   on "keyup" (inputHandler config prevInputRef) inputField
 
 -- tasks, input and output
@@ -48,7 +48,7 @@ inputHandler :: forall e. Config
                         -> JQuery
                         -> Eff (ajax :: AJAX, dom :: DOM, ref :: REF, window :: WINDOW | e) Unit
 inputHandler config prevInputRef event inputField = do
-  keyCode <- getWhich event
+  keyCode      <- getWhich event
   foreignInput <- getValue inputField
   case runExcept (readString foreignInput) of
     Left err         -> displayOutputText (show err)

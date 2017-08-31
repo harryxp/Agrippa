@@ -22,10 +22,12 @@
         "a":   { "name": "Launch Mac Apps"
                , "plugin": "MacAppLauncher"
                , "paths": ["/Applications/", "/Users/hpan/Applications/"]
+               , "useFunctionKeys": false
                },
         "e":   { "name": "Launch Executables"
                , "plugin": "ExecutableLauncher"
                , "paths": ["/bin/", "/usr/bin/"]
+               , "useFunctionKeys": false
                },
 
         "d":   { "name": "Dictionary"

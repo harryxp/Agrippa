@@ -1,17 +1,20 @@
 "use strict";
 
-exports.reinstallShortcuts = function (launchUrl) {
-    return function (appNames) {
-        return function () {
-            $(document.body).off("keyup");
-            $(document.body).on("keyup", function (evt) {
-                if (evt.ctrlKey === true &&
-                    evt.which >= 49 &&
-                    evt.which <= (48 + appNames.length)) {
-                    var appName = appNames[evt.which - 49];
-                    jQuery.post(launchUrl, {app: appName});
-                }
-            });
+exports.reinstallShortcuts = function (useFunctionKeys) {
+    return function (launchUrl) {
+        return function (appNames) {
+            return function () {
+                $(document.body).off("keyup");
+                $(document.body).on("keyup", function (evt) {
+                    var baseKeyCode = useFunctionKeys ? 111 : 48;
+                    if (evt.ctrlKey === true &&
+                        evt.which >= baseKeyCode + 1 &&
+                        evt.which <= (baseKeyCode + appNames.length)) {
+                        var appName = appNames[evt.which - baseKeyCode - 1];
+                        jQuery.post(launchUrl, {app: appName});
+                    }
+                });
+            };
         };
     };
 };

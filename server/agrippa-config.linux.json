@@ -22,6 +22,7 @@
         "e":   { "name": "Launch Executables"
                , "plugin": "ExecutableLauncher"
                , "paths": ["/bin/", "/usr/bin/", "/usr/local/bin/", "/opt/plan9/bin/"]
+               , "useFunctionKeys": true
                },
 
         "d":   { "name": "Dictionary"
