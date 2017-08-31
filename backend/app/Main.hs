@@ -10,7 +10,7 @@ import Data.Text.Lazy (Text, pack)
 import Network.Wai.Handler.Warp (defaultSettings, setHost, setPort)
 import System.Directory (getHomeDirectory)
 import System.Exit (exitFailure)
-import System.FilePath.Find (FindClause, always, extension, fileName, find, (==?), (/=?), (&&?))
+import System.FilePath.Find (FileType(Directory, RegularFile, SymbolicLink), FindClause, always, extension, fileName, fileType, find, (==?), (/=?), (&&?), (||?))
 import System.FilePath.Posix ((</>))
 import System.IO (hPutStrLn, stderr)
 import System.Process (readProcess)
@@ -106,7 +106,8 @@ locate keyword = readProcess "locate" [keyword] []
 suggestExecs :: String -> [FilePath] -> IO [FilePath]
 suggestExecs term rootPaths =
   let recursionPred = always
-      filterPred    = fileNameContains term
+      filterPred    = fileNameContains term &&?
+                      (fileType ==? RegularFile ||? fileType ==? SymbolicLink)
   in concat <$> mapM (find recursionPred filterPred) rootPaths
 
 launchExec :: String -> IO String
@@ -115,7 +116,9 @@ launchExec app = readProcess app [] []
 suggestMacApps :: String -> [FilePath] -> IO [FilePath]
 suggestMacApps term rootPaths =
   let recursionPred = extension /=? ".app"
-      filterPred    = fileNameContains term &&? extension ==? ".app"
+      filterPred    = fileNameContains term &&?
+                      fileType ==? Directory &&?
+                      extension ==? ".app"
   in concat <$> mapM (find recursionPred filterPred) rootPaths
 
 fileNameContains :: String -> FindClause Bool
