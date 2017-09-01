@@ -10,11 +10,12 @@ import Control.Monad.Except (runExcept)
 import DOM (DOM)
 import DOM.HTML.Types (WINDOW)
 import Data.Either (Either(..))
-import Data.FoldableWithIndex (traverseWithIndex_)
+import Data.Foldable (traverse_)
 import Data.Foreign (readString)
-import Data.StrMap (StrMap, lookup)
+import Data.StrMap (StrMap, lookup, toAscUnfoldable)
 import Data.String (Pattern(..), indexOf, splitAt)
 import Data.Traversable (sequence_, traverse)
+import Data.Tuple (Tuple(..))
 import Network.HTTP.Affjax (AJAX, get)
 
 import Agrippa.Config (Config, getBooleanVal, getStrMapVal, getStringVal, lookupConfigVal)
@@ -34,7 +35,7 @@ loadConfig onSuccess = void $
     (get "/agrippa/config/")
 
 installInputHandler :: forall e. Config
-                               -> Eff (ajax :: AJAX, dom :: DOM, ref :: REF, window :: WINDOW | e) Unit
+                              -> Eff (ajax :: AJAX, dom :: DOM, ref :: REF, window :: WINDOW | e) Unit
 installInputHandler config = do
   inputField   <- select "#agrippa-input"
   prevInputRef <- newRef ""
@@ -43,10 +44,10 @@ installInputHandler config = do
 -- tasks, input and output
 
 inputHandler :: forall e. Config
-                        -> Ref String
-                        -> JQueryEvent
-                        -> JQuery
-                        -> Eff (ajax :: AJAX, dom :: DOM, ref :: REF, window :: WINDOW | e) Unit
+                       -> Ref String
+                       -> JQueryEvent
+                       -> JQuery
+                       -> Eff (ajax :: AJAX, dom :: DOM, ref :: REF, window :: WINDOW | e) Unit
 inputHandler config prevInputRef event inputField = do
   keyCode      <- getWhich event
   foreignInput <- getValue inputField
@@ -138,15 +139,16 @@ buildHelpTextForTasks :: forall e. Config -> Eff (dom :: DOM | e) Unit
 buildHelpTextForTasks config =
   case getTaskNamesByKeyword config of
     Left err -> displayOutputText err
-    Right m  -> traverseWithIndex_ buildHelpTextForTask m
+    Right m  -> traverse_ buildHelpTextForTask
+                  (toAscUnfoldable m :: Array (Tuple String String))
 
 getTaskNamesByKeyword :: Config -> Either String (StrMap String)
 getTaskNamesByKeyword config = do
   taskConfigsByKeyword <- getStrMapVal "tasks" config
   traverse (getStringVal "name") taskConfigsByKeyword
 
-buildHelpTextForTask :: forall e. String -> String -> Eff (dom :: DOM | e) Unit
-buildHelpTextForTask keyword taskDesc = do
+buildHelpTextForTask :: forall e. Tuple String String -> Eff (dom :: DOM | e) Unit
+buildHelpTextForTask (Tuple keyword taskDesc) = do
   helpTable <- select "#agrippa-help-table"
   tr <- create "<tr>"
   createTd keyword tr *> createTd taskDesc tr *> append tr helpTable
@@ -155,8 +157,8 @@ buildHelpTextForTask keyword taskDesc = do
     createTd contents tr = create "<td>" >>= \td -> setText contents td *> append td tr
 
 helpLinkHandler :: forall e. JQuery
-                           -> JQueryEvent
-                           -> JQuery
-                           -> Eff (dom :: DOM | e) Unit
+                          -> JQueryEvent
+                          -> JQuery
+                          -> Eff (dom :: DOM | e) Unit
 helpLinkHandler helpContent _ _ = toggle helpContent
 
