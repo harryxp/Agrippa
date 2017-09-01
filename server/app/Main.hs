@@ -72,15 +72,7 @@ startScotty opts agrippaConfig =
       text (pack result)
 
     -- ExecutableLauncher plugin
-    post "/agrippa/launch-exec-suggestion/" $ do
-      o <- jsonData :: ActionM Object
-      let maybeExes = do
-            term      <- lookupJSON "term"  o :: Maybe String
-            rootPaths <- lookupJSON "paths" o :: Maybe [String]
-            (Just . liftAndCatchIO . suggestExecs term) rootPaths
-      case maybeExes of
-        Just exes -> exes >>= json
-        Nothing   -> json ([] :: [String])
+    post "/agrippa/launch-exec-suggestion/" (suggestUsingFileSystem findExecs)
 
     post "/agrippa/launch-exec" $ do
       app <- param "app" :: ActionM String
@@ -88,27 +80,30 @@ startScotty opts agrippaConfig =
       (text . pack) ("Launched " ++ app ++ ".")
 
     -- MacAppLauncher plugin
-    post "/agrippa/launch-mac-suggestion/" $ do
-      o <- jsonData :: ActionM Object
-      let maybeApps = do
-            term      <- lookupJSON "term"  o :: Maybe String
-            rootPaths <- lookupJSON "paths" o :: Maybe [String]
-            (Just . liftAndCatchIO . suggestMacApps term) rootPaths
-      case maybeApps of
-        Just apps -> apps >>= json
-        Nothing   -> json ([] :: [String])
+    post "/agrippa/launch-mac-suggestion/" (suggestUsingFileSystem findMacApps)
 
     post "/agrippa/launch-mac" $ do
       app <- param "app" :: ActionM String
       (liftAndCatchIO . launchMacApp) app
       (text . pack) ("Launched " ++ app ++ ".")
 
+suggestUsingFileSystem :: (String -> [FilePath] -> IO [FilePath]) -> ActionM ()
+suggestUsingFileSystem findItems = do
+  o <- jsonData :: ActionM Object
+  let maybeItems = do
+        term      <- lookupJSON "term"  o :: Maybe String
+        rootPaths <- lookupJSON "paths" o :: Maybe [String]
+        (Just . liftAndCatchIO . findItems term) rootPaths
+  case maybeItems of
+    Just items -> items >>= json
+    Nothing    -> json ([] :: [String])
+
 locate :: String -> IO String
 locate keyword = readProcess "locate" [keyword] []
 
 -- ExecutableLauncher plugin
-suggestExecs :: String -> [FilePath] -> IO [FilePath]
-suggestExecs term rootPaths =
+findExecs :: String -> [FilePath] -> IO [FilePath]
+findExecs term rootPaths =
   let recursionPred = always
       filterPred    = fileNameContains term &&?
                       (fileType ==? RegularFile ||? fileType ==? SymbolicLink)
@@ -118,8 +113,8 @@ launchExec :: String -> IO ()
 launchExec app = callCommand app
 
 -- MacAppLauncher plugin
-suggestMacApps :: String -> [FilePath] -> IO [FilePath]
-suggestMacApps term rootPaths =
+findMacApps :: String -> [FilePath] -> IO [FilePath]
+findMacApps term rootPaths =
   let recursionPred = extension /=? ".app"
       filterPred    = fileNameContains term &&?
                       fileType ==? Directory &&?
