@@ -1,4 +1,4 @@
-module Agrippa.Plugins.Launcher.LauncherUtils (launch, suggest) where
+module Agrippa.Plugins.FileSystem.Commons (launch, suggest) where
 
 import Prelude (Unit, bind, const, discard, pure, show, unit, (<$), (<$>), (<>), (>>=), (<=<), (<<<))
 import Control.Monad.Aff (runAff)

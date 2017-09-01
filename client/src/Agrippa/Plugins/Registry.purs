@@ -10,10 +10,10 @@ import DOM.HTML.Types (WINDOW)
 import Network.HTTP.Affjax (AJAX)
 
 import Agrippa.Config (Config)
-import Agrippa.Plugins.Launcher.ExecutableLauncher as E
-import Agrippa.Plugins.Launcher.MacAppLauncher     as M
 import Agrippa.Plugins.Calculator                  as C
-import Agrippa.Plugins.FileSearch                  as F
+import Agrippa.Plugins.FileSystem.ExecutableSearch as E
+import Agrippa.Plugins.FileSystem.FileSearch       as F
+import Agrippa.Plugins.FileSystem.MacAppSearch     as M
 import Agrippa.Plugins.OnlineSearch                as O
 
 newtype Plugin =
@@ -33,21 +33,21 @@ plugins = [ Plugin { name: "Calculator"
                    , onInputChange: C.calculate
                    , onActivation: C.calculateOnActivation
                    }
+          , Plugin { name: "ExecutableSearch"
+                   , onInputChange: E.suggest
+                   , onActivation: E.launch
+                   }
           , Plugin { name: "FileSearch"
-                   , onInputChange: F.prompt
-                   , onActivation: F.search
+                   , onInputChange: F.suggest
+                   , onActivation: F.open
+                   }
+          , Plugin { name: "MacAppSearch"
+                   , onInputChange: M.suggest
+                   , onActivation: M.launch
                    }
           , Plugin { name: "OnlineSearch"
                    , onInputChange: O.prompt
                    , onActivation: O.search
-                   }
-          , Plugin { name: "MacAppLauncher"
-                   , onInputChange: M.suggest
-                   , onActivation: M.launch
-                   }
-          , Plugin { name: "ExecutableLauncher"
-                   , onInputChange: E.suggest
-                   , onActivation: E.launch
                    }
           ]
 

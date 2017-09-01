@@ -1,4 +1,4 @@
-module Agrippa.Plugins.Launcher.MacAppLauncher (launch, suggest) where
+module Agrippa.Plugins.FileSystem.MacAppSearch (launch, suggest) where
 
 import Prelude (Unit)
 import Control.Monad.Eff (Eff)
@@ -7,17 +7,17 @@ import DOM (DOM)
 import Network.HTTP.Affjax (AJAX)
 
 import Agrippa.Config (Config)
-import Agrippa.Plugins.Launcher.LauncherUtils as U
+import Agrippa.Plugins.FileSystem.Commons as C
 
 suggest :: forall e. Config
                   -> String
                   -> (Array JQuery -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
                   -> Eff (ajax :: AJAX, dom :: DOM | e) String
-suggest = U.suggest "/agrippa/launch-mac-suggestion" "/agrippa/launch-mac"
+suggest = C.suggest "/agrippa/mac-app/suggest" "/agrippa/mac-app/launch"
 
 launch :: forall e. Config
                  -> String
                  -> (Array JQuery -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
                  -> Eff (ajax :: AJAX, dom :: DOM | e) String
-launch = U.launch "/agrippa/launch-mac"
+launch = C.launch "/agrippa/mac-app/launch"
 

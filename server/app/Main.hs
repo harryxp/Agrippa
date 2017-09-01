@@ -66,23 +66,25 @@ startScotty opts agrippaConfig =
       file "web/js/scripts.js"
 
     -- FileSearch plugin
-    get "/agrippa/file-search/:key" $ do
-      keyword <- param "key" :: ActionM String
-      result  <- liftAndCatchIO (locate keyword)
-      text (pack result)
+    post "/agrippa/file/suggest" (suggestUsingFileSystem findFiles)
 
-    -- ExecutableLauncher plugin
-    post "/agrippa/launch-exec-suggestion/" (suggestUsingFileSystem findExecs)
-
-    post "/agrippa/launch-exec" $ do
+    post "/agrippa/file/open" $ do
       app <- param "app" :: ActionM String
-      (liftAndCatchIO . launchExec) app
+      (liftAndCatchIO . openFile) app
+      (text . pack) ("Opened " ++ app ++ ".")
+
+    -- ExecutableSearch plugin
+    post "/agrippa/executable/suggest" (suggestUsingFileSystem findExecutables)
+
+    post "/agrippa/executable/launch" $ do
+      app <- param "app" :: ActionM String
+      (liftAndCatchIO . launchExecutable) app
       (text . pack) ("Launched " ++ app ++ ".")
 
-    -- MacAppLauncher plugin
-    post "/agrippa/launch-mac-suggestion/" (suggestUsingFileSystem findMacApps)
+    -- MacAppSearch plugin
+    post "/agrippa/mac-app/suggest" (suggestUsingFileSystem findMacApps)
 
-    post "/agrippa/launch-mac" $ do
+    post "/agrippa/mac-app/launch" $ do
       app <- param "app" :: ActionM String
       (liftAndCatchIO . launchMacApp) app
       (text . pack) ("Launched " ++ app ++ ".")
@@ -95,24 +97,31 @@ suggestUsingFileSystem findItems = do
         rootPaths <- lookupJSON "paths" o :: Maybe [String]
         (Just . liftAndCatchIO . findItems term) rootPaths
   case maybeItems of
-    Just items -> items >>= json
+    Just items -> items >>= json . take 40
     Nothing    -> json ([] :: [String])
 
-locate :: String -> IO String
-locate keyword = readProcess "locate" [keyword] []
+-- FileSearch plugin
+findFiles :: String -> [FilePath] -> IO [FilePath]
+findFiles term rootPaths =
+  let recursionPred = always
+      filterPred    = fileNameContains term
+  in concat <$> mapM (find recursionPred filterPred) rootPaths
 
--- ExecutableLauncher plugin
-findExecs :: String -> [FilePath] -> IO [FilePath]
-findExecs term rootPaths =
+openFile :: String -> IO ()
+openFile file = callProcess "open" [file]
+
+-- ExecutableSearch plugin
+findExecutables :: String -> [FilePath] -> IO [FilePath]
+findExecutables term rootPaths =
   let recursionPred = always
       filterPred    = fileNameContains term &&?
                       (fileType ==? RegularFile ||? fileType ==? SymbolicLink)
   in concat <$> mapM (find recursionPred filterPred) rootPaths
 
-launchExec :: String -> IO ()
-launchExec app = callCommand app
+launchExecutable :: String -> IO ()
+launchExecutable app = callCommand app
 
--- MacAppLauncher plugin
+-- MacAppSearch plugin
 findMacApps :: String -> [FilePath] -> IO [FilePath]
 findMacApps term rootPaths =
   let recursionPred = extension /=? ".app"
