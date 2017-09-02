@@ -20,6 +20,10 @@
                , "useFunctionKeys": true
                },
 
+        "c":   { "name": "Clock"
+               , "plugin": "Clock"
+               },
+
         "e":   { "name": "Launch Executables"
                , "plugin": "ExecutableSearch"
                , "paths": ["/bin/", "/usr/bin/", "/usr/local/bin/", "/opt/plan9/bin/"]

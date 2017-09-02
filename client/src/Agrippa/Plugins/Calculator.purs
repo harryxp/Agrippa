@@ -1,4 +1,4 @@
-module Agrippa.Plugins.Calculator (calculate, calculateOnActivation) where
+module Agrippa.Plugins.Calculator (calculate) where
 
 import Prelude (class Show, Unit, bind, id, negate, pure, show, ($>), (*), (+), (-), (/), (<<<), (<>))
 import Control.Alt ((<|>))
@@ -21,12 +21,6 @@ calculate :: forall e. Config
                     -> (Array JQuery -> Eff e Unit)
                     -> Eff e String
 calculate _ input _ = (pure <<< evalExpr <<< parseExpr <<< (replaceAll (Pattern " ") (Replacement ""))) input
-
-calculateOnActivation :: forall e. Config
-                                -> String
-                                -> (Array JQuery -> Eff e Unit)
-                                -> Eff e String
-calculateOnActivation = calculate
 
 data Expr = ExprAdd Expr Expr
           | ExprSub Expr Expr

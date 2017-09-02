@@ -5,6 +5,7 @@ import Control.Alt ((<|>))
 import Control.Monad.Aff (runAff)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.JQuery (JQuery, JQueryEvent, append, body, clear, create, display, getWhich, getValue, hide, off, on, ready, select, setText, toggle)
+import Control.Monad.Eff.Now (NOW)
 import Control.Monad.Eff.Ref (REF, Ref, newRef, readRef, writeRef)
 import Control.Monad.Except (runExcept)
 import DOM (DOM)
@@ -22,7 +23,7 @@ import Agrippa.Config (Config, getBooleanVal, getStrMapVal, getStringVal, lookup
 import Agrippa.Plugins.Registry (Plugin(..), pluginsByName)
 import Agrippa.Utils (mToE)
 
-main :: forall e. Eff (ajax :: AJAX, dom :: DOM, ref :: REF, window :: WINDOW | e) Unit
+main :: forall e. Eff (ajax :: AJAX, dom :: DOM, now :: NOW, ref :: REF, window :: WINDOW | e) Unit
 main = ready $
   loadConfig (\config -> buildHelp config *> installInputHandler config)
 
@@ -35,7 +36,7 @@ loadConfig onSuccess = void $
     (get "/agrippa/config/")
 
 installInputHandler :: forall e. Config
-                              -> Eff (ajax :: AJAX, dom :: DOM, ref :: REF, window :: WINDOW | e) Unit
+                              -> Eff (ajax :: AJAX, dom :: DOM, now :: NOW, ref :: REF, window :: WINDOW | e) Unit
 installInputHandler config = do
   inputField   <- select "#agrippa-input"
   prevInputRef <- newRef ""
@@ -47,7 +48,7 @@ inputHandler :: forall e. Config
                        -> Ref String
                        -> JQueryEvent
                        -> JQuery
-                       -> Eff (ajax :: AJAX, dom :: DOM, ref :: REF, window :: WINDOW | e) Unit
+                       -> Eff (ajax :: AJAX, dom :: DOM, now :: NOW, ref :: REF, window :: WINDOW | e) Unit
 inputHandler config prevInputRef event inputField = do
   keyCode      <- getWhich event
   foreignInput <- getValue inputField
@@ -69,7 +70,7 @@ data Task = Task { name   :: String
 dispatchToTask :: forall e. Config
                          -> Int
                          -> String
-                         -> Eff (ajax :: AJAX, dom :: DOM, window :: WINDOW | e) Unit
+                         -> Eff (ajax :: AJAX, dom :: DOM, now :: NOW, window :: WINDOW | e) Unit
 dispatchToTask config keyCode wholeInput =
   case findTask config wholeInput <|> findDefaultTask config wholeInput of
     Left err   -> displayOutputText err
@@ -97,7 +98,7 @@ findDefaultTask config wholeInput = do
 
 execTask :: forall e. Task
                    -> Int
-                   -> Eff (ajax :: AJAX, dom :: DOM, window :: WINDOW | e) Unit
+                   -> Eff (ajax :: AJAX, dom :: DOM, now :: NOW, window :: WINDOW | e) Unit
 execTask (Task { name: name
                , plugin: (Plugin { onInputChange: prompt, onActivation: activate })
                , input: taskInput
