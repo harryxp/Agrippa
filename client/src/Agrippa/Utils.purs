@@ -10,8 +10,8 @@ import DOM.HTML.Types (WINDOW)
 import DOM.HTML.Window (open)
 
 mToE :: forall a e. e -> Maybe a -> Either e a
-mToE err Nothing = Left err
-mToE _ (Just x) = Right x
+mToE err Nothing = Left  err
+mToE _ (Just x)  = Right x
 
 openUrl :: forall e. String -> Eff (dom :: DOM, window :: WINDOW | e) String
 openUrl url = do

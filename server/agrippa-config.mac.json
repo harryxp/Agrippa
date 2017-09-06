@@ -19,7 +19,6 @@
                , "paths": ["/Users/hpan/Documents/", "/Users/hpan/Downloads/"]
                , "useFunctionKeys": false
                },
-
         "a":   { "name": "Launch Mac Apps"
                , "plugin": "MacAppSearch"
                , "paths": ["/Applications/", "/Users/hpan/Applications/"]
@@ -43,7 +42,7 @@
                , "plugin": "OnlineSearch"
                , "url": "http://peachful.space"
                },
-        "p":   { "name": "Pursuit Search"
+        "pu":  { "name": "Pursuit Search"
                , "plugin": "OnlineSearch"
                , "url": "https://pursuit.purescript.org/search?q=${q}"
                },

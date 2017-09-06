@@ -19,15 +19,14 @@
                , "paths": []
                , "useFunctionKeys": true
                },
-
-        "c":   { "name": "Clock"
-               , "plugin": "Clock"
-               },
-
         "e":   { "name": "Launch Executables"
                , "plugin": "ExecutableSearch"
                , "paths": ["/bin/", "/usr/bin/", "/usr/local/bin/", "/opt/plan9/bin/"]
                , "useFunctionKeys": true
+               },
+
+        "c":   { "name": "Clock"
+               , "plugin": "Clock"
                },
 
         "d":   { "name": "Dictionary"
@@ -42,7 +41,7 @@
                , "plugin": "OnlineSearch"
                , "url": "http://peachful.space"
                },
-        "p":   { "name": "Pursuit Search"
+        "pu":  { "name": "Pursuit Search"
                , "plugin": "OnlineSearch"
                , "url": "https://pursuit.purescript.org/search?q=${q}"
                },

@@ -17,7 +17,7 @@ prompt :: forall e. Config
                  -> Eff (dom :: DOM, window :: WINDOW | e) String
 prompt config input _ = pure
   case getStringVal "url" config of
-    Left err  -> err
+    Left  err -> err
     Right url -> "Keep typing the query.  Press <Enter> to visit " <> (completeUrl url input) <> "."
 
 search :: forall e. Config
@@ -26,7 +26,7 @@ search :: forall e. Config
                  -> Eff (dom :: DOM, window :: WINDOW | e) String
 search config input _ =
   case getStringVal "url" config of
-    Left err  -> pure err
+    Left  err -> pure err
     Right url -> openUrl (completeUrl url input)
 
 completeUrl :: String -> String -> String

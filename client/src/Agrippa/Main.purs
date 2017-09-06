@@ -53,7 +53,7 @@ inputHandler config prevInputRef event inputField = do
   keyCode      <- getWhich event
   foreignInput <- getValue inputField
   case runExcept (readString foreignInput) of
-    Left err         -> displayOutputText (show err)
+    Left  err        -> displayOutputText (show err)
     Right wholeInput -> do
       prevInput <- readRef prevInputRef
       writeRef prevInputRef wholeInput
@@ -73,7 +73,7 @@ dispatchToTask :: forall e. Config
                          -> Eff (ajax :: AJAX, dom :: DOM, now :: NOW, window :: WINDOW | e) Unit
 dispatchToTask config keyCode wholeInput =
   case findTask config wholeInput <|> findDefaultTask config wholeInput of
-    Left err   -> displayOutputText err
+    Left  err  -> displayOutputText err
     Right task -> (body >>= off "keyup") *> execTask task keyCode
 
 findTask :: Config -> String -> Either String Task
@@ -129,8 +129,8 @@ buildHelp config = do
   helpLink <- select "#agrippa-help-link"
   helpContent <- select "#agrippa-help-content"
   case lookupConfigVal "preferences" config >>= getBooleanVal "showHelpByDefault" of
-    Left err -> displayOutputText err
-    Right b  -> if b
+    Left  err -> displayOutputText err
+    Right b   -> if b
                 then display helpContent
                 else hide helpContent
   buildHelpTextForTasks config
@@ -139,8 +139,8 @@ buildHelp config = do
 buildHelpTextForTasks :: forall e. Config -> Eff (dom :: DOM | e) Unit
 buildHelpTextForTasks config =
   case getTaskNamesByKeyword config of
-    Left err -> displayOutputText err
-    Right m  -> traverse_ buildHelpTextForTask
+    Left  err -> displayOutputText err
+    Right m   -> traverse_ buildHelpTextForTask
                   (toAscUnfoldable m :: Array (Tuple String String))
 
 getTaskNamesByKeyword :: Config -> Either String (StrMap String)

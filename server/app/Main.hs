@@ -36,8 +36,11 @@ main = do
 
 readAgrippaConfigFile :: IO B.ByteString
 readAgrippaConfigFile = do
-  homeDir <- getHomeDirectory
-  B.readFile (homeDir </> ".agrippa")
+  configDir <- getAgrippaConfigDir
+  B.readFile (configDir </> "config.json")
+
+getAgrippaConfigDir :: IO FilePath
+getAgrippaConfigDir = getHomeDirectory >>= return . (</> ".agrippa.d")
 
 parseAgrippaConfig :: B.ByteString -> Maybe (ScottyConfig, Object)
 parseAgrippaConfig configStr = do
