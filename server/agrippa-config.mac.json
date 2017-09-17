@@ -47,6 +47,10 @@
                , "plugin": "OnlineSearch"
                , "url": "https://pursuit.purescript.org/search?q=${q}"
                },
+        "py":  { "name": "Python Search"
+               , "plugin": "OnlineSearch"
+               , "url": "https://www.google.com/search?q=python+${q}"
+               },
         "u":   { "name": "USPS Tracking"
                , "plugin": "OnlineSearch"
                , "url": "https://tools.usps.com/go/TrackConfirmAction?tLabels=${q}"
