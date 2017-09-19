@@ -9,16 +9,16 @@
 
 1. Dependencies are in `bower.json`.
 
-    $ cd client/
-    $ bower update
+        $ cd client/
+        $ bower update
 
 2. Some useful commands during development (to see more try `pulp`):
 
-    $ pulp browserify -O --main Agrippa.Main --to web/js/scripts.js # generate
+        $ pulp browserify -O --main Agrippa.Main --to web/js/scripts.js # generate
 
-    $ pulp build            # type check
-    $ pulp psci             # or `pulp repl`
-    > import Agrippa.Main
+        $ pulp build            # type check
+        $ pulp psci             # or `pulp repl`
+        > import Agrippa.Main
 
 3. Haskell's `undefined` can be mimiced by `unsafeCoerce unit`.
 
@@ -30,9 +30,9 @@
 
 2. Some useful commands during development (to see more try `stack`):
 
-    $ stack build
-    $ stack ghci
-    $ stack exec agrippad   # run the server
+        $ stack build
+        $ stack ghci
+        $ stack exec agrippad   # run the server
 
 # TODOs
 
