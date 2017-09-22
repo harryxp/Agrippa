@@ -14,14 +14,14 @@
                , "plugin": "Calculator"
                },
 
-        "'":   { "name": "Search for Files"
-               , "plugin": "FileSearch"
-               , "paths": []
-               , "useFunctionKeys": true
-               },
         "e":   { "name": "Launch Executables"
                , "plugin": "ExecutableSearch"
                , "paths": ["/bin/", "/usr/bin/", "/usr/local/bin/", "/opt/plan9/bin/"]
+               , "useFunctionKeys": true
+               },
+        "f":   { "name": "Search for Files"
+               , "plugin": "FileSearch"
+               , "paths": ["/home/harry/Downloads", "/home/harry/Dropbox"]
                , "useFunctionKeys": true
                },
 

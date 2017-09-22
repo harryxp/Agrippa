@@ -16,6 +16,11 @@ cabal-version:       >=1.10
 library
   hs-source-dirs:      src
   exposed-modules:     Agrippa.Main
+                       Agrippa.Utils
+                       Agrippa.Plugins.FileSystem.Commons
+                       Agrippa.Plugins.FileSystem.ExecutableSearch
+                       Agrippa.Plugins.FileSystem.FileSearch
+                       Agrippa.Plugins.FileSystem.MacAppSearch
   build-depends:       base >= 4.7 && < 5
                      , aeson >= 1.0.2.1
                      , bytestring >= 0.10.8.1

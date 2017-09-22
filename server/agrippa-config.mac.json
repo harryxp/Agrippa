@@ -14,11 +14,6 @@
                , "plugin": "Calculator"
                },
 
-        "'":   { "name": "Search for Files"
-               , "plugin": "FileSearch"
-               , "paths": ["/Users/hpan/Documents/", "/Users/hpan/Downloads/"]
-               , "useFunctionKeys": false
-               },
         "a":   { "name": "Launch Mac Apps"
                , "plugin": "MacAppSearch"
                , "paths": ["/Applications/", "/Users/hpan/Applications/"]
@@ -27,6 +22,11 @@
         "e":   { "name": "Launch Executables"
                , "plugin": "ExecutableSearch"
                , "paths": ["/bin/", "/usr/bin/"]
+               , "useFunctionKeys": false
+               },
+        "f":   { "name": "Search for Files"
+               , "plugin": "FileSearch"
+               , "paths": ["/Users/hpan/Documents/", "/Users/hpan/Downloads/"]
                , "useFunctionKeys": false
                },
 

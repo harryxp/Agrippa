@@ -50,12 +50,12 @@ buildOutputNodes :: forall e. Boolean
                            -> Eff (ajax :: AJAX, dom :: DOM | e) (Array JQuery)
 buildOutputNodes useFunctionKeys launchUrl contents =
   case (traverse toString <=< toArray) contents of
-    Just appNames -> do
-      nodesWithShortcuts <- buildNodesWithShortcuts useFunctionKeys launchUrl (take 9 appNames)
+    Just items -> do
+      nodesWithShortcuts <- buildNodesWithShortcuts useFunctionKeys launchUrl (take 9 items)
       otherNodes         <- sequence ((\record -> do
         div <- create "<div>"
         setText record div
-        pure div) <$> drop 9 appNames)
+        pure div) <$> drop 9 items)
       pure (nodesWithShortcuts <> otherNodes)
     Nothing       -> do
       div <- create "<div>"
@@ -66,7 +66,7 @@ buildNodesWithShortcuts :: forall e. Boolean
                                   -> String
                                   -> Array String
                                   -> Eff (ajax :: AJAX, dom :: DOM | e) (Array JQuery)
-buildNodesWithShortcuts useFunctionKeys launchUrl appNames = do
+buildNodesWithShortcuts useFunctionKeys launchUrl items = do
   nodes <- sequence
     (zipWith
       (\index record -> do
@@ -78,8 +78,8 @@ buildNodesWithShortcuts useFunctionKeys launchUrl appNames = do
         append span div
         pure div)
      (1..9)
-     appNames)
-  reinstallShortcuts useFunctionKeys launchUrl appNames
+     items)
+  reinstallShortcuts useFunctionKeys launchUrl items
   pure nodes
 
 foreign import reinstallShortcuts :: forall e. Boolean
