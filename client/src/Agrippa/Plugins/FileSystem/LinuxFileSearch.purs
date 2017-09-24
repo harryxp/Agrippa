@@ -1,4 +1,4 @@
-module Agrippa.Plugins.FileSystem.FileSearch (open, suggest) where
+module Agrippa.Plugins.FileSystem.LinuxFileSearch (open, suggest) where
 
 import Prelude (Unit)
 import Control.Monad.Eff (Eff)
@@ -13,11 +13,10 @@ suggest :: forall e. Config
                   -> String
                   -> (Array JQuery -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
                   -> Eff (ajax :: AJAX, dom :: DOM | e) String
-suggest = C.suggest "/agrippa/file/suggest" "/agrippa/file/open"
+suggest = C.suggest "/agrippa/linux-file/suggest" "/agrippa/linux-file/open"
 
 open :: forall e. Config
                  -> String
                  -> (Array JQuery -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
                  -> Eff (ajax :: AJAX, dom :: DOM | e) String
-open = C.launch "/agrippa/file/open"
-
+open = C.launch "/agrippa/linux-file/open"

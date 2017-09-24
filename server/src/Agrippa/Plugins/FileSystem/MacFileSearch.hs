@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Agrippa.Plugins.FileSystem.FileSearch (registerHandlers) where
+module Agrippa.Plugins.FileSystem.MacFileSearch (registerHandlers) where
 
 import System.FilePath.Find (always)
 import System.Process (callProcess)

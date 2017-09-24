@@ -25,7 +25,7 @@
                , "useFunctionKeys": false
                },
         "f":   { "name": "Search for Files"
-               , "plugin": "FileSearch"
+               , "plugin": "MacFileSearch"
                , "paths": ["/Users/hpan/Documents/", "/Users/hpan/Downloads/"]
                , "useFunctionKeys": false
                },

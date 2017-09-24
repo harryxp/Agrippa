@@ -13,9 +13,10 @@ import Network.HTTP.Affjax (AJAX)
 import Agrippa.Config (Config)
 import Agrippa.Plugins.Calculator                  as C
 import Agrippa.Plugins.Clock                       as CLK
-import Agrippa.Plugins.FileSystem.ExecutableSearch as E
-import Agrippa.Plugins.FileSystem.FileSearch       as F
-import Agrippa.Plugins.FileSystem.MacAppSearch     as M
+import Agrippa.Plugins.FileSystem.ExecutableSearch as ES
+import Agrippa.Plugins.FileSystem.LinuxFileSearch  as LFS
+import Agrippa.Plugins.FileSystem.MacFileSearch    as MFS
+import Agrippa.Plugins.FileSystem.MacAppSearch     as MAS
 import Agrippa.Plugins.OnlineSearch                as O
 
 newtype Plugin =
@@ -30,6 +31,8 @@ newtype Plugin =
                                    -> Eff (ajax :: AJAX, dom :: DOM, now :: NOW, window :: WINDOW | e) String
          }
 
+-- All known plugins.  Not necessarily all loaded.
+-- Loaded ones are specified in the config file.
 plugins :: Array Plugin
 plugins = [ Plugin { name: "Calculator"
                    , onInputChange: C.calculate
@@ -40,16 +43,20 @@ plugins = [ Plugin { name: "Calculator"
                    , onActivation: CLK.showTime
                    }
           , Plugin { name: "ExecutableSearch"
-                   , onInputChange: E.suggest
-                   , onActivation: E.launch
+                   , onInputChange: ES.suggest
+                   , onActivation: ES.launch
                    }
-          , Plugin { name: "FileSearch"
-                   , onInputChange: F.suggest
-                   , onActivation: F.open
+          , Plugin { name: "LinuxFileSearch"
+                   , onInputChange: LFS.suggest
+                   , onActivation: LFS.open
+                   }
+          , Plugin { name: "MacFileSearch"
+                   , onInputChange: MFS.suggest
+                   , onActivation: MFS.open
                    }
           , Plugin { name: "MacAppSearch"
-                   , onInputChange: M.suggest
-                   , onActivation: M.launch
+                   , onInputChange: MAS.suggest
+                   , onActivation: MAS.launch
                    }
           , Plugin { name: "OnlineSearch"
                    , onInputChange: O.prompt

@@ -14,9 +14,10 @@ import qualified Data.ByteString.Lazy as B (ByteString, readFile)
 
 import Agrippa.Utils (lookupJSON)
 
-import qualified Agrippa.Plugins.FileSystem.FileSearch       as FS (registerHandlers)
-import qualified Agrippa.Plugins.FileSystem.ExecutableSearch as ES (registerHandlers)
-import qualified Agrippa.Plugins.FileSystem.MacAppSearch     as MS (registerHandlers)
+import qualified Agrippa.Plugins.FileSystem.ExecutableSearch as ES  (registerHandlers)
+import qualified Agrippa.Plugins.FileSystem.LinuxFileSearch  as LFS (registerHandlers)
+import qualified Agrippa.Plugins.FileSystem.MacAppSearch     as MAS (registerHandlers)
+import qualified Agrippa.Plugins.FileSystem.MacFileSearch    as MFS (registerHandlers)
 
 data ScottyConfig = ScottyConfig { host :: String
                                  , port :: Int
@@ -66,7 +67,8 @@ startScotty opts agrippaConfig =
     get "/agrippa/js/scripts.js" $ do
       file "web/js/scripts.js"
 
-    FS.registerHandlers "/agrippa/file/suggest"       "/agrippa/file/open"
-    ES.registerHandlers "/agrippa/executable/suggest" "/agrippa/executable/launch"
-    MS.registerHandlers "/agrippa/mac-app/suggest"    "/agrippa/mac-app/launch"
+    ES.registerHandlers  "/agrippa/executable/suggest" "/agrippa/executable/launch"
+    LFS.registerHandlers "/agrippa/linux-file/suggest" "/agrippa/linux-file/open"
+    MAS.registerHandlers "/agrippa/mac-app/suggest"    "/agrippa/mac-app/launch"
+    MFS.registerHandlers "/agrippa/mac-file/suggest"   "/agrippa/mac-file/open"
 

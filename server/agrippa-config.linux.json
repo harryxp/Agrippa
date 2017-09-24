@@ -20,7 +20,7 @@
                , "useFunctionKeys": true
                },
         "f":   { "name": "Search for Files"
-               , "plugin": "FileSearch"
+               , "plugin": "LinuxFileSearch"
                , "paths": ["/home/harry/Downloads", "/home/harry/Dropbox"]
                , "useFunctionKeys": true
                },
