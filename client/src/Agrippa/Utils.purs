@@ -1,13 +1,17 @@
-module Agrippa.Utils (mToE, openUrl) where
+module Agrippa.Utils (displayOutputText, mToE, openUrl) where
 
-import Prelude (bind, pure)
+import Prelude (Unit, bind, pure, (>>=))
 import Control.Monad.Eff (Eff)
+import Control.Monad.Eff.JQuery (select, setText)
 import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
 import DOM (DOM)
 import DOM.HTML (window)
 import DOM.HTML.Types (WINDOW)
 import DOM.HTML.Window (open)
+
+displayOutputText :: forall e. String -> Eff (dom :: DOM | e) Unit
+displayOutputText t = select "#agrippa-output" >>= setText t
 
 mToE :: forall a e. e -> Maybe a -> Either e a
 mToE err Nothing = Left  err

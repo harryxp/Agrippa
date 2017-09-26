@@ -14,7 +14,7 @@ import qualified Data.ByteString.Lazy as B (ByteString, readFile)
 
 import Agrippa.Utils (lookupJSON)
 
-import qualified Agrippa.Plugins.FileSystem.ExecutableSearch as ES  (registerHandlers)
+import qualified Agrippa.Plugins.FileSystem.ExecutableSearch as EXS (registerHandlers)
 import qualified Agrippa.Plugins.FileSystem.LinuxFileSearch  as LFS (registerHandlers)
 import qualified Agrippa.Plugins.FileSystem.MacAppSearch     as MAS (registerHandlers)
 import qualified Agrippa.Plugins.FileSystem.MacFileSearch    as MFS (registerHandlers)
@@ -35,18 +35,16 @@ main = do
 
 readAgrippaConfigFile :: IO B.ByteString
 readAgrippaConfigFile = do
-  configDir <- getAgrippaConfigDir
+  homeDir   <- getHomeDirectory
+  configDir <- return (homeDir </> ".agrippa.d")
   B.readFile (configDir </> "config.json")
-
-getAgrippaConfigDir :: IO FilePath
-getAgrippaConfigDir = getHomeDirectory >>= return . (</> ".agrippa.d")
 
 parseAgrippaConfig :: B.ByteString -> Maybe (ScottyConfig, Object)
 parseAgrippaConfig configStr = do
   agrippaConfig <- decode configStr                       :: Maybe Object
   prefs         <- lookupJSON "preferences" agrippaConfig :: Maybe Object
-  host          <- lookupJSON "host" prefs                :: Maybe String
-  port          <- lookupJSON "port" prefs                :: Maybe Int
+  host          <- lookupJSON "host"        prefs         :: Maybe String
+  port          <- lookupJSON "port"        prefs         :: Maybe Int
   Just (ScottyConfig {host = host, port = port}, agrippaConfig)
 
 buildScottyOpts :: ScottyConfig -> Options
@@ -61,13 +59,14 @@ startScotty opts agrippaConfig =
     get "/agrippa/" $ do
       file "web/index.html"
 
-    get "/agrippa/config" $ do
-      json agrippaConfig
-
     get "/agrippa/js/scripts.js" $ do
       file "web/js/scripts.js"
 
-    ES.registerHandlers  "/agrippa/executable/suggest" "/agrippa/executable/launch"
+    -- serve the config to frontend
+    get "/agrippa/config" $ do
+      json agrippaConfig
+
+    EXS.registerHandlers "/agrippa/executable/suggest" "/agrippa/executable/launch"
     LFS.registerHandlers "/agrippa/linux-file/suggest" "/agrippa/linux-file/open"
     MAS.registerHandlers "/agrippa/mac-app/suggest"    "/agrippa/mac-app/launch"
     MFS.registerHandlers "/agrippa/mac-file/suggest"   "/agrippa/mac-file/open"

@@ -92,5 +92,5 @@ launch :: forall e. String
                  -> String
                  -> (Array JQuery -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
                  -> Eff (ajax :: AJAX, dom :: DOM | e) String
-launch _ _ _ _ = pure "Use shortcuts to launch apps."
+launch _ _ _ _ = pure "Please use shortcuts."
 
