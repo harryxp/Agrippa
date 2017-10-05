@@ -10,6 +10,6 @@ lookupJSON key m = do
   jValue <- M.lookup key m
   result <- return (fromJSON jValue)
   case result of
-    Error e   -> Nothing
+    Error   e -> Nothing
     Success v -> Just v
 
