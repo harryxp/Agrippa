@@ -2,11 +2,12 @@
 module Agrippa.Plugins.FileSystem.Commons (registerHandlers) where
 
 import Data.Aeson (Object)
+import Data.Char (toLower)
 import Data.List (partition)
 import System.FilePath (takeBaseName, (</>))
 import Web.Scotty (ActionM, RoutePattern, ScottyM, json, jsonData, liftAndCatchIO, param, post, text)
 
-import qualified Data.Text.Lazy    as T   (Text, isInfixOf, lines, pack, unpack)
+import qualified Data.Text.Lazy    as T   (Text, isInfixOf, lines, pack, toLower, unpack)
 import qualified Data.Text.Lazy.IO as TIO (readFile)
 
 import Agrippa.Utils (getConfigDir, lookupJSON)
@@ -25,7 +26,7 @@ registerHandlers open plugin suggestUrl openUrl = do
           (Just . liftAndCatchIO . findFiles taskName plugin) term
     case maybeItems of
       Just items -> items >>= json
-      Nothing    -> json ([] :: [String])
+      Nothing    -> json ([] :: [T.Text])
 
   post openUrl $ do
     item <- param "item" :: ActionM String
@@ -37,8 +38,14 @@ findFiles taskName plugin term = do
   configDir <- getConfigDir
   let indexDir = configDir </> plugin </> taskName
   index <- TIO.readFile (indexDir </> "index")
-  let items = T.lines index
-      matches = filter (T.isInfixOf (T.pack term)) items
-      (exactMatches, others) = partition ((== term) . takeBaseName . T.unpack) matches
+  let items         :: [T.Text]
+      items         = T.lines index
+      lowerTerm     :: String
+      lowerTerm     = toLower <$> term
+      lowerTermText :: T.Text
+      lowerTermText = T.pack lowerTerm
+      matches       :: [T.Text]
+      matches       = filter (T.isInfixOf lowerTermText . T.toLower) items
+      (exactMatches, others) = partition ((== lowerTerm) . takeBaseName . T.unpack) matches
   return (exactMatches ++ others)
 
