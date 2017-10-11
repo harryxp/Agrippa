@@ -9,11 +9,12 @@ import Data.JSDate (fromDateTime, toDateString, toTimeString)
 
 import Agrippa.Config (Config)
 
-showTime :: forall e. Config
+showTime :: forall e. String
+                   -> Config
                    -> String
                    -> (Array JQuery -> Eff (now :: NOW | e) Unit)
                    -> Eff (now :: NOW | e) String
-showTime _ _ _ = do
+showTime _ _ _ _ = do
   LocalValue (Locale maybeLocaleName _) dt <- nowDateTime
   {-
   let localeName = case maybeLocaleName of

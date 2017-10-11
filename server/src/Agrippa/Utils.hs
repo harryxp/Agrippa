@@ -2,15 +2,12 @@ module Agrippa.Utils (getConfigDir, lookupJSON) where
 
 import Data.Aeson (FromJSON, Object, Result(..), fromJSON)
 import Data.Text (Text)
-import System.Directory (getHomeDirectory)
-import System.FilePath.Posix ((</>))
+import System.Directory (getAppUserDataDirectory)
 
 import qualified Data.HashMap.Lazy as M (lookup)
 
 getConfigDir :: IO String
-getConfigDir = do
-  homeDir <- getHomeDirectory
-  return (homeDir </> ".agrippa.d")
+getConfigDir = getAppUserDataDirectory "agrippa.d"
 
 lookupJSON :: FromJSON a => Text -> Object -> Maybe a
 lookupJSON key m = do

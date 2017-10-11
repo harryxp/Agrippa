@@ -106,8 +106,8 @@ execTask (Task { name: name
          keyCode = do
   displayTask name
   case keyCode of
-    13        -> activate taskConfig taskInput displayOutput >>= displayOutputText
-    otherwise -> prompt   taskConfig taskInput displayOutput >>= displayOutputText
+    13        -> activate name taskConfig taskInput displayOutput >>= displayOutputText
+    otherwise -> prompt   name taskConfig taskInput displayOutput >>= displayOutputText
 
 displayTask :: forall e. String -> Eff (dom :: DOM | e) Unit
 displayTask t = select "#agrippa-task" >>= setText t

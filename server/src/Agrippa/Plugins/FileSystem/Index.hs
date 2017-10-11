@@ -46,22 +46,22 @@ buildSearchIndex' taskName plugin paths = do
   files <- case predicates of
     Just (rPred, fPred) -> (fmap concat . mapM (find rPred fPred)) paths :: IO [String]
     Nothing -> error ("Failed to lookup predicates for plugin" ++ plugin)
-  writeFile (indexDir </> "index.tmp") (intercalate "\n" files)
+  writeFile  (indexDir </> "index.tmp") (intercalate "\n" files)
   renameFile (indexDir </> "index.tmp") (indexDir </> "index")
 
 recursionPredicatesByPlugin :: M.HashMap String RecursionPredicate
 recursionPredicatesByPlugin = M.fromList [ ("ExecutableSearch", always)
-                                       , ("LinuxFileSearch",  always)
-                                       , ("MacAppSearch",     (extension /=? ".app"))
-                                       , ("MacFileSearch",    always)
-                                       ]
+                                         , ("LinuxFileSearch",  always)
+                                         , ("MacAppSearch",     (extension /=? ".app"))
+                                         , ("MacFileSearch",    always)
+                                         ]
 
 filterPredicatesByPlugin :: M.HashMap String FilterPredicate
 filterPredicatesByPlugin = M.fromList [ ("ExecutableSearch", isFile)
-                                    , ("LinuxFileSearch",  always)
-                                    , ("MacAppSearch",     isMacApp)
-                                    , ("MacFileSearch",    always)
-                                    ]
+                                      , ("LinuxFileSearch",  always)
+                                      , ("MacAppSearch",     isMacApp)
+                                      , ("MacFileSearch",    always)
+                                      ]
 
 isFile :: FilterPredicate
 isFile = fileType ==? RegularFile ||? fileType ==? SymbolicLink

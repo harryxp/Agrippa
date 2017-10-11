@@ -16,11 +16,12 @@ import Text.Parsing.StringParser.String (anyDigit, char, string)
 
 import Agrippa.Config (Config)
 
-calculate :: forall e. Config
+calculate :: forall e. String
+                    -> Config
                     -> String
                     -> (Array JQuery -> Eff e Unit)
                     -> Eff e String
-calculate _ input _ = (pure <<< evalExpr <<< parseExpr <<< (replaceAll (Pattern " ") (Replacement ""))) input
+calculate _ _ input _ = (pure <<< evalExpr <<< parseExpr <<< (replaceAll (Pattern " ") (Replacement ""))) input
 
 data Expr = ExprAdd Expr Expr
           | ExprSub Expr Expr

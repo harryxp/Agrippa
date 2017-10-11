@@ -11,20 +11,22 @@ import DOM.HTML.Types (WINDOW)
 import Agrippa.Config (Config, getStringVal)
 import Agrippa.Utils (openUrl)
 
-prompt :: forall e. Config
+prompt :: forall e. String
+                 -> Config
                  -> String
                  -> (Array JQuery -> Eff (dom :: DOM, window :: WINDOW | e) Unit)
                  -> Eff (dom :: DOM, window :: WINDOW | e) String
-prompt config input _ = pure
+prompt _ config input _ = pure
   case getStringVal "url" config of
     Left  err -> err
     Right url -> "Keep typing the query.  Press <Enter> to visit " <> (completeUrl url input) <> "."
 
-search :: forall e. Config
+search :: forall e. String
+                 -> Config
                  -> String
                  -> (Array JQuery -> Eff (dom :: DOM, window :: WINDOW | e) Unit)
                  -> Eff (dom :: DOM, window :: WINDOW | e) String
-search config input _ =
+search _ config input _ =
   case getStringVal "url" config of
     Left  err -> pure err
     Right url -> openUrl (completeUrl url input)

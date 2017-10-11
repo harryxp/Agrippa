@@ -46,7 +46,7 @@ readAgrippaConfig = do
 
 buildScottyOpts :: ScottyConfig -> Options
 buildScottyOpts (ScottyConfig { host = h, port = p }) =
-  Options { verbose = 1
+  Options { verbose  = 1
           , settings = setPort p (setHost (fromString h) defaultSettings)
           }
 

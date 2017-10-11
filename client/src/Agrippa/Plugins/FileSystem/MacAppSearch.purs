@@ -9,13 +9,15 @@ import Network.HTTP.Affjax (AJAX)
 import Agrippa.Config (Config)
 import Agrippa.Plugins.FileSystem.Commons as C
 
-suggest :: forall e. Config
+suggest :: forall e. String
+                  -> Config
                   -> String
                   -> (Array JQuery -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
                   -> Eff (ajax :: AJAX, dom :: DOM | e) String
 suggest = C.suggest "/agrippa/mac-app/suggest" "/agrippa/mac-app/launch"
 
-launch :: forall e. Config
+launch :: forall e. String
+                 -> Config
                  -> String
                  -> (Array JQuery -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
                  -> Eff (ajax :: AJAX, dom :: DOM | e) String

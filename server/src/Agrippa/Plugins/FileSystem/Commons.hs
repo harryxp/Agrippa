@@ -1,28 +1,26 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Agrippa.Plugins.FileSystem.Commons (fileNameContains, registerHandlers) where
+module Agrippa.Plugins.FileSystem.Commons (registerHandlers) where
 
 import Data.Aeson (Object)
-import Data.Char (toLower)
 import Data.List (isInfixOf)
 import Data.Text.Lazy (pack)
-import System.FilePath.Find (FilterPredicate, RecursionPredicate, fileName, find)
+import System.FilePath.Posix ((</>))
 import Web.Scotty (ActionM, RoutePattern, ScottyM, json, jsonData, liftAndCatchIO, param, post, text)
 
-import Agrippa.Utils (lookupJSON)
+import Agrippa.Utils (getConfigDir, lookupJSON)
 
-registerHandlers :: RecursionPredicate
-                 -> (String -> FilterPredicate)
-                 -> (String -> IO ())
+registerHandlers :: (String -> IO ())
+                 -> String
                  -> RoutePattern
                  -> RoutePattern
                  -> ScottyM ()
-registerHandlers rPred fPred open suggestUrl openUrl = do
+registerHandlers open plugin suggestUrl openUrl = do
   post suggestUrl $ do
     o <- jsonData :: ActionM Object
     let maybeItems = do
-          term      <- lookupJSON "term"  o :: Maybe String
-          rootPaths <- lookupJSON "paths" o :: Maybe [String]
-          (Just . liftAndCatchIO . findWithPreds rPred fPred term) rootPaths
+          taskName <- lookupJSON "taskName" o :: Maybe String
+          term     <- lookupJSON "term"     o :: Maybe String
+          (Just . liftAndCatchIO . findFiles taskName plugin) term
     case maybeItems of
       Just items -> items >>= json . take 40
       Nothing    -> json ([] :: [String])
@@ -32,16 +30,10 @@ registerHandlers rPred fPred open suggestUrl openUrl = do
     (liftAndCatchIO . open) item
     (text . pack) ("Opened " ++ item ++ ".")
 
-findWithPreds :: RecursionPredicate
-              -> (String -> FilterPredicate)
-              -> String
-              -> [FilePath]
-              -> IO [FilePath]
-findWithPreds rPred fPred term rootPaths =
-  concat <$> mapM (find rPred (fPred term)) rootPaths
+findFiles :: String -> String -> String -> IO [FilePath]
+findFiles taskName plugin term = do
+  configDir <- getConfigDir
+  let indexDir = configDir </> plugin </> taskName
+  index <- readFile (indexDir </> "index")
+  (return . filter (isInfixOf term) . lines) index
 
-fileNameContains :: String -> FilterPredicate
-fileNameContains term = (isInfixOf (toLowerStr term) . toLowerStr) <$> fileName
-
-toLowerStr :: String -> String
-toLowerStr = fmap toLower

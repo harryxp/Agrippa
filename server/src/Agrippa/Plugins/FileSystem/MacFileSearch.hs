@@ -1,14 +1,13 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Agrippa.Plugins.FileSystem.MacFileSearch (registerHandlers) where
 
-import System.FilePath.Find (always)
 import System.Process (callProcess)
 import Web.Scotty (RoutePattern, ScottyM)
 
-import qualified Agrippa.Plugins.FileSystem.Commons as C (fileNameContains, registerHandlers)
+import qualified Agrippa.Plugins.FileSystem.Commons as C (registerHandlers)
 
 registerHandlers :: RoutePattern -> RoutePattern -> ScottyM ()
-registerHandlers = C.registerHandlers always C.fileNameContains openFile
+registerHandlers = C.registerHandlers openFile "MacFileSearch"
 
 openFile :: String -> IO ()
 openFile file = callProcess "open" [file]

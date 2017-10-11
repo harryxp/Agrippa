@@ -21,11 +21,13 @@ import Agrippa.Plugins.OnlineSearch                as O
 
 newtype Plugin =
   Plugin { name          :: String
-         , onInputChange :: forall e. Config
+         , onInputChange :: forall e. String
+                                   -> Config
                                    -> String
                                    -> (Array JQuery -> Eff (ajax :: AJAX, dom :: DOM, now :: NOW, window :: WINDOW | e) Unit)
                                    -> Eff (ajax :: AJAX, dom :: DOM, now :: NOW, window :: WINDOW | e) String
-         , onActivation  :: forall e. Config
+         , onActivation  :: forall e. String
+                                   -> Config
                                    -> String
                                    -> (Array JQuery -> Eff (ajax :: AJAX, dom :: DOM, now :: NOW, window :: WINDOW | e) Unit)
                                    -> Eff (ajax :: AJAX, dom :: DOM, now :: NOW, window :: WINDOW | e) String

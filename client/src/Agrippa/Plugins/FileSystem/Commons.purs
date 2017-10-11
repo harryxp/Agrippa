@@ -4,7 +4,7 @@ import Prelude (Unit, bind, const, discard, pure, show, unit, (<$), (<$>), (<>),
 import Control.Monad.Aff (runAff)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.JQuery (JQuery, addClass, append, create, setText)
-import Data.Argonaut.Core (JArray, JObject, Json, fromArray, fromObject, fromString, toArray, toString)
+import Data.Argonaut.Core (Json, fromObject, fromString, toArray, toString)
 import Data.Array (drop, take, zipWith, (..))
 import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
@@ -14,35 +14,31 @@ import Data.Traversable (sequence, traverse)
 import DOM (DOM)
 import Network.HTTP.Affjax (AJAX, post)
 
-import Agrippa.Config (Config, getBooleanVal, getStrArrayVal)
+import Agrippa.Config (Config, getBooleanVal)
 
 suggest :: forall e. String
+                  -> String
                   -> String
                   -> Config
                   -> String
                   -> (Array JQuery -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
                   -> Eff (ajax :: AJAX, dom :: DOM | e) String
-suggest suggestUrl launchUrl config input displayOutput =
+suggest suggestUrl launchUrl taskName config input displayOutput =
   let eitherEff = do
-        paths           <- getStrArrayVal "paths"           config
         useFunctionKeys <- getBooleanVal  "useFunctionKeys" config
         pure ("Searching..." <$
               runAff
                 (const (pure unit))
                 (\{ response: r } -> buildOutputNodes useFunctionKeys launchUrl r >>= displayOutput)
-                (post suggestUrl (buildSuggestReq (trim input) paths)))
+                (post suggestUrl (buildSuggestReq taskName (trim input))))
   in case eitherEff of
       Left  err -> pure err
       Right eff -> eff
 
-buildSuggestReq :: String -> Array String -> Json
-buildSuggestReq term paths =
-  let jsonPaths :: JArray
-      jsonPaths = fromString <$> paths
-      m :: JObject
-      m = (insert "paths" (fromArray jsonPaths) <<<
-           insert "term"  (fromString term)) empty
-  in fromObject m
+buildSuggestReq :: String -> String -> Json
+buildSuggestReq taskName term = (fromObject <<<
+                                 insert "taskName" (fromString taskName) <<<
+                                 insert "term"     (fromString term)) empty
 
 buildOutputNodes :: forall e. Boolean
                            -> String
@@ -88,9 +84,10 @@ foreign import reinstallShortcuts :: forall e. Boolean
                                             -> Eff (ajax :: AJAX, dom :: DOM | e) Unit
 
 launch :: forall e. String
+                 -> String
                  -> Config
                  -> String
                  -> (Array JQuery -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
                  -> Eff (ajax :: AJAX, dom :: DOM | e) String
-launch _ _ _ _ = pure "Please use shortcuts."
+launch _ _ _ _ _ = pure "Please use shortcuts."
 
