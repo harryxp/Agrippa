@@ -2,10 +2,12 @@
 module Agrippa.Plugins.FileSystem.Commons (registerHandlers) where
 
 import Data.Aeson (Object)
-import Data.List (isInfixOf)
-import Data.Text.Lazy (pack)
-import System.FilePath.Posix ((</>))
+import Data.List (partition)
+import System.FilePath (takeBaseName, (</>))
 import Web.Scotty (ActionM, RoutePattern, ScottyM, json, jsonData, liftAndCatchIO, param, post, text)
+
+import qualified Data.Text.Lazy    as T   (Text, isInfixOf, lines, pack, unpack)
+import qualified Data.Text.Lazy.IO as TIO (readFile)
 
 import Agrippa.Utils (getConfigDir, lookupJSON)
 
@@ -22,18 +24,21 @@ registerHandlers open plugin suggestUrl openUrl = do
           term     <- lookupJSON "term"     o :: Maybe String
           (Just . liftAndCatchIO . findFiles taskName plugin) term
     case maybeItems of
-      Just items -> items >>= json . take 40
+      Just items -> items >>= json
       Nothing    -> json ([] :: [String])
 
   post openUrl $ do
     item <- param "item" :: ActionM String
     (liftAndCatchIO . open) item
-    (text . pack) ("Opened " ++ item ++ ".")
+    (text . T.pack) ("Opened " ++ item ++ ".")
 
-findFiles :: String -> String -> String -> IO [FilePath]
+findFiles :: String -> String -> String -> IO [T.Text]
 findFiles taskName plugin term = do
   configDir <- getConfigDir
   let indexDir = configDir </> plugin </> taskName
-  index <- readFile (indexDir </> "index")
-  (return . filter (isInfixOf term) . lines) index
+  index <- TIO.readFile (indexDir </> "index")
+  let items = T.lines index
+      matches = filter (T.isInfixOf (T.pack term)) items
+      (exactMatches, others) = partition ((== term) . takeBaseName . T.unpack) matches
+  return (exactMatches ++ others)
 

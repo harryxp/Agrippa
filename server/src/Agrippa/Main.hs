@@ -5,7 +5,7 @@ import Data.Aeson (Object, decode)
 import Data.String (fromString)
 import Network.Wai.Handler.Warp (defaultSettings, setHost, setPort)
 import System.Exit (exitFailure)
-import System.FilePath.Posix ((</>))
+import System.FilePath ((</>))
 import System.IO (hPutStrLn, stderr)
 import Web.Scotty (Options(..), file, get, json, scottyOpts)
 

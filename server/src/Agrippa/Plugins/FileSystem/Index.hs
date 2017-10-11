@@ -5,7 +5,7 @@ import Data.Aeson (Object, Value(Object))
 import Data.List (intercalate)
 import System.Directory (createDirectoryIfMissing, renameFile)
 import System.FilePath.Find (FileType(Directory, RegularFile, SymbolicLink), FilterPredicate, RecursionPredicate, always, extension, find, fileType, (==?), (/=?), (&&?), (||?))
-import System.FilePath.Posix ((</>))
+import System.FilePath ((</>))
 
 import qualified Data.HashMap.Lazy as M (HashMap, elems, fromList, lookup, member)
 
