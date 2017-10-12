@@ -23,7 +23,7 @@ registerHandlers open plugin suggestUrl openUrl = do
     let maybeItems = do
           taskName <- lookupJSON "taskName" o :: Maybe String
           term     <- lookupJSON "term"     o :: Maybe String
-          (Just . liftAndCatchIO . findFiles taskName plugin) term
+          (Just . liftAndCatchIO . findItems taskName plugin) term
     case maybeItems of
       Just items -> items >>= json
       Nothing    -> json ([] :: [T.Text])
@@ -33,8 +33,8 @@ registerHandlers open plugin suggestUrl openUrl = do
     (liftAndCatchIO . open) item
     (text . T.pack) ("Opened " ++ item ++ ".")
 
-findFiles :: String -> String -> String -> IO [T.Text]
-findFiles taskName plugin term = do
+findItems :: String -> String -> String -> IO [T.Text]
+findItems taskName plugin term = do
   configDir <- getConfigDir
   let indexDir = configDir </> plugin </> taskName
   index <- TIO.readFile (indexDir </> "index")
