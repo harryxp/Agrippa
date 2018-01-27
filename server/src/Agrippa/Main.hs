@@ -12,7 +12,7 @@ import Web.Scotty (Options(..), file, get, json, scottyOpts)
 import qualified Data.ByteString.Lazy as B (readFile)
 
 import Agrippa.Utils (getConfigDir, lookupJSON)
-import Agrippa.Plugins.FileSystem.Index (buildSearchIndices)
+import Agrippa.Plugins.FileSystem.IndexBuilder (buildSearchIndices)
 
 import qualified Agrippa.Plugins.FileSystem.ExecutableSearch as EXS (registerHandlers)
 import qualified Agrippa.Plugins.FileSystem.LinuxFileSearch  as LFS (registerHandlers)

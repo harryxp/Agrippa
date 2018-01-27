@@ -18,7 +18,7 @@ library
   exposed-modules:     Agrippa.Main
                      , Agrippa.Utils
                      , Agrippa.Plugins.FileSystem.Commons
-                     , Agrippa.Plugins.FileSystem.Index
+                     , Agrippa.Plugins.FileSystem.IndexBuilder
                      , Agrippa.Plugins.FileSystem.ExecutableSearch
                      , Agrippa.Plugins.FileSystem.LinuxFileSearch
                      , Agrippa.Plugins.FileSystem.MacAppSearch
