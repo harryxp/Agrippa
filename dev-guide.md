@@ -38,14 +38,12 @@
 
 ## General
 
-- limit size of output (backend?)
 - Backend: readFile catch exception
 - Snippets
 - TODO list
 - Top level suggestion
 - Check runAff response status code
 - error handler for runAff
-- Do not look up config repeatedly
 - Formatted string instead of <> (Text.Formatting?)
 - Learn Except
 
@@ -58,7 +56,6 @@
 
 - highlight keyword
 - 500 internal errors
-- Quick successive inputs should be merged (maybe use a timer, or just use cache)
 
 ## Mac App search plugin
 

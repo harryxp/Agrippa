@@ -4,28 +4,28 @@ module Agrippa.Plugins.FileSystem.Commons (registerHandlers) where
 import Data.Aeson (Object)
 import Data.Char (toLower)
 import Data.List (partition)
-import System.FilePath (takeBaseName, (</>))
+import System.FilePath (takeBaseName)
 import Web.Scotty (ActionM, RoutePattern, ScottyM, json, jsonData, liftAndCatchIO, param, post, text)
 
-import qualified Data.Text.Lazy    as T   (Text, isInfixOf, lines, pack, toLower, unpack)
-import qualified Data.Text.Lazy.IO as TIO (readFile)
+import qualified Data.HashMap.Lazy as M (HashMap, lookup)
+import qualified Data.Text.Lazy    as T (Text, isInfixOf, pack, toLower, unpack)
 
-import Agrippa.Utils (getConfigDir, lookupJSON)
+import Agrippa.Utils (lookupJSON)
 
 registerHandlers :: (String -> IO ())
-                 -> String
+                 -> M.HashMap String [T.Text]
                  -> RoutePattern
                  -> RoutePattern
                  -> ScottyM ()
-registerHandlers open plugin suggestUrl openUrl = do
+registerHandlers open taskNameToIndex suggestUrl openUrl = do
   post suggestUrl $ do
     o <- jsonData :: ActionM Object
     let maybeItems = do
           taskName <- lookupJSON "taskName" o :: Maybe String
           term     <- lookupJSON "term"     o :: Maybe String
-          (Just . liftAndCatchIO . findItems taskName plugin) term
+          findItems taskNameToIndex taskName term
     case maybeItems of
-      Just items -> items >>= json
+      Just items -> json items
       Nothing    -> json ([] :: [T.Text])
 
   post openUrl $ do
@@ -33,19 +33,15 @@ registerHandlers open plugin suggestUrl openUrl = do
     (liftAndCatchIO . open) item
     (text . T.pack) ("Opened " ++ item ++ ".")
 
-findItems :: String -> String -> String -> IO [T.Text]
-findItems taskName plugin term = do
-  configDir <- getConfigDir
-  let indexDir = configDir </> plugin </> taskName
-  index <- TIO.readFile (indexDir </> "index")
-  let items         :: [T.Text]
-      items         = T.lines index
-      lowerTerm     :: String
+findItems :: M.HashMap String [T.Text] -> String -> String -> Maybe [T.Text]
+findItems taskNameToIndex taskName term =
+  let lowerTerm     :: String
       lowerTerm     = toLower <$> term
       lowerTermText :: T.Text
       lowerTermText = T.pack lowerTerm
-      matches       :: [T.Text]
-      matches       = filter (T.isInfixOf lowerTermText . T.toLower) items
-      (exactMatches, others) = partition ((== lowerTerm) . takeBaseName . T.unpack) matches
-  return (exactMatches ++ others)
+  in do
+    items                  <- M.lookup taskName taskNameToIndex :: Maybe [T.Text]
+    matches                <- (return . filter (T.isInfixOf lowerTermText . T.toLower)) items :: Maybe [T.Text]
+    (exactMatches, others) <- (return . partition ((== lowerTerm) . takeBaseName . T.unpack)) matches :: Maybe ([T.Text], [T.Text])
+    return (exactMatches ++ others)
 

@@ -10,6 +10,8 @@ import System.IO (hPutStrLn, stderr)
 import Web.Scotty (Options(..), file, get, json, scottyOpts)
 
 import qualified Data.ByteString.Lazy as B (readFile)
+import qualified Data.HashMap.Lazy    as M (HashMap)
+import qualified Data.Text.Lazy       as T (Text)
 
 import Agrippa.Utils (getConfigDir, lookupJSON)
 import Agrippa.Plugins.FileSystem.IndexBuilder (buildSearchIndices)
@@ -31,7 +33,9 @@ main = do
     Nothing       -> hPutStrLn stderr "Failed to parse Agrippa config." >>
                      hPutStrLn stderr "Please check .agrippa under your home directory." >>
                      exitFailure
-    Just (sc,ac)  -> buildSearchIndices ac >> startScotty (buildScottyOpts sc) ac
+    Just (sc,ac)  -> do
+      taskNameToIndex <- buildSearchIndices ac
+      startScotty (buildScottyOpts sc) ac taskNameToIndex
 
 readAgrippaConfig :: IO (Maybe (ScottyConfig, Object))
 readAgrippaConfig = do
@@ -50,8 +54,8 @@ buildScottyOpts (ScottyConfig { host = h, port = p }) =
           , settings = setPort p (setHost (fromString h) defaultSettings)
           }
 
-startScotty :: Options -> Object -> IO ()
-startScotty opts agrippaConfig =
+startScotty :: Options -> Object -> M.HashMap String [T.Text] -> IO ()
+startScotty opts agrippaConfig taskNameToIndex =
   scottyOpts opts $ do
     get "/agrippa/" $ do
       file "web/index.html"
@@ -63,8 +67,8 @@ startScotty opts agrippaConfig =
     get "/agrippa/config" $ do
       json agrippaConfig
 
-    EXS.registerHandlers "/agrippa/executable/suggest" "/agrippa/executable/launch"
-    LFS.registerHandlers "/agrippa/linux-file/suggest" "/agrippa/linux-file/open"
-    MAS.registerHandlers "/agrippa/mac-app/suggest"    "/agrippa/mac-app/launch"
-    MFS.registerHandlers "/agrippa/mac-file/suggest"   "/agrippa/mac-file/open"
+    EXS.registerHandlers taskNameToIndex "/agrippa/executable/suggest" "/agrippa/executable/launch"
+    LFS.registerHandlers taskNameToIndex "/agrippa/linux-file/suggest" "/agrippa/linux-file/open"
+    MAS.registerHandlers taskNameToIndex "/agrippa/mac-app/suggest"    "/agrippa/mac-app/launch"
+    MFS.registerHandlers taskNameToIndex "/agrippa/mac-file/suggest"   "/agrippa/mac-file/open"
 
