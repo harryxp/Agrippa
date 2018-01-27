@@ -19,7 +19,7 @@ import Network.HTTP.Affjax (AJAX, get)
 
 import Agrippa.Config (Config, getStrMapVal, getStringVal, lookupConfigVal)
 import Agrippa.Help (buildHelp)
-import Agrippa.Plugins.Registry (Plugin(..), pluginsByName)
+import Agrippa.Plugins.Registry (Plugin(..), nameToPlugin)
 import Agrippa.Utils (displayOutputText, mToE)
 
 main :: forall e. Eff (ajax :: AJAX, dom :: DOM, now :: NOW, ref :: REF, window :: WINDOW | e) Unit
@@ -79,11 +79,11 @@ findTask :: Config -> String -> Either String Task
 findTask config wholeInput = do
   index                                 <- mToE "No keyword found in input."                            (indexOf (Pattern " ") wholeInput)
   { before: keyword, after: taskInput } <- mToE "Failed to parse input.  This is impossible!"           (splitAt index wholeInput)
-  taskConfigsByKeyword                  <- getStrMapVal "tasks" config
-  taskConfig                            <- mToE ("Keyword '" <> keyword <> "' not found in config.")    (lookup keyword taskConfigsByKeyword)
+  keywordToTaskConfig                   <- getStrMapVal "tasks" config
+  taskConfig                            <- mToE ("Keyword '" <> keyword <> "' not found in config.")    (lookup keyword keywordToTaskConfig)
   taskName                              <- getStringVal "name" taskConfig
   pluginName                            <- getStringVal "plugin" taskConfig
-  plugin                                <- mToE ("Can't find plugin with name '" <> pluginName <> "'.") (lookup pluginName pluginsByName)
+  plugin                                <- mToE ("Can't find plugin with name '" <> pluginName <> "'.") (lookup pluginName nameToPlugin)
   pure (Task { name: taskName, plugin: plugin, input: taskInput, config: taskConfig })
 
 findDefaultTask :: Config -> String -> Either String Task
@@ -92,7 +92,7 @@ findDefaultTask config wholeInput = do
   defaultTaskConfig <- lookupConfigVal "defaultTask" prefs
   taskName          <- getStringVal    "name"        defaultTaskConfig
   pluginName        <- getStringVal    "plugin"      defaultTaskConfig
-  plugin            <- mToE ("Can't find plugin with name '" <> pluginName <> "'.") (lookup pluginName pluginsByName)
+  plugin            <- mToE ("Can't find plugin with name '" <> pluginName <> "'.") (lookup pluginName nameToPlugin)
   pure (Task { name: taskName, plugin: plugin, input: wholeInput, config: defaultTaskConfig })
 
 execTask :: forall e. Task
