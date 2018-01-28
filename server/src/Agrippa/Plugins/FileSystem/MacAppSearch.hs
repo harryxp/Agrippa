@@ -10,7 +10,7 @@ import qualified Data.Text.Lazy    as T (Text)
 import qualified Agrippa.Plugins.FileSystem.Commons as C (registerHandlers)
 
 registerHandlers :: M.HashMap String [T.Text] -> RoutePattern -> RoutePattern -> ScottyM ()
-registerHandlers = C.registerHandlers launchMacApp
+registerHandlers = C.registerHandlers openMacApp
 
-launchMacApp :: String -> IO ()
-launchMacApp app = callProcess "open" ["-a", app]
+openMacApp :: String -> IO ()
+openMacApp app = callProcess "open" ["-a", app]

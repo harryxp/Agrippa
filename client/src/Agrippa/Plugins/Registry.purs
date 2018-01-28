@@ -46,7 +46,7 @@ plugins = [ Plugin { name: "Calculator"
                    }
           , Plugin { name: "ExecutableSearch"
                    , onInputChange: ES.suggest
-                   , onActivation: ES.launch
+                   , onActivation: ES.open
                    }
           , Plugin { name: "LinuxFileSearch"
                    , onInputChange: LFS.suggest
@@ -58,7 +58,7 @@ plugins = [ Plugin { name: "Calculator"
                    }
           , Plugin { name: "MacAppSearch"
                    , onInputChange: MAS.suggest
-                   , onActivation: MAS.launch
+                   , onActivation: MAS.open
                    }
           , Plugin { name: "OnlineSearch"
                    , onInputChange: O.prompt

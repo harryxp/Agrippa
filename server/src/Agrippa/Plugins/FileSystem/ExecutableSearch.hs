@@ -10,7 +10,7 @@ import qualified Data.Text.Lazy    as T (Text)
 import qualified Agrippa.Plugins.FileSystem.Commons as C (registerHandlers)
 
 registerHandlers :: M.HashMap String [T.Text] -> RoutePattern -> RoutePattern -> ScottyM ()
-registerHandlers = C.registerHandlers launchExecutable
+registerHandlers = C.registerHandlers openExecutable
 
-launchExecutable :: String -> IO ()
-launchExecutable = callCommand
+openExecutable :: String -> IO ()
+openExecutable = callCommand

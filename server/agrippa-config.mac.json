@@ -17,17 +17,14 @@
         "a":   { "name": "Launch Mac Apps"
                , "plugin": "MacAppSearch"
                , "paths": ["/Applications/", "/Users/hpan/Applications/"]
-               , "useFunctionKeys": false
                },
         "e":   { "name": "Launch Executables"
                , "plugin": "ExecutableSearch"
                , "paths": ["/bin/", "/usr/bin/"]
-               , "useFunctionKeys": false
                },
         "f":   { "name": "Search for Files"
                , "plugin": "MacFileSearch"
                , "paths": ["/Users/hpan/Documents/", "/Users/hpan/Downloads/"]
-               , "useFunctionKeys": false
                },
 
         "d":   { "name": "Dictionary"

@@ -17,12 +17,10 @@
         "e":   { "name": "Launch Executables"
                , "plugin": "ExecutableSearch"
                , "paths": ["/bin/", "/usr/bin/", "/usr/local/bin/", "/opt/plan9/bin/"]
-               , "useFunctionKeys": true
                },
         "f":   { "name": "Search for Files"
                , "plugin": "LinuxFileSearch"
                , "paths": ["/home/harry/Downloads", "/home/harry/Dropbox"]
-               , "useFunctionKeys": true
                },
 
         "c":   { "name": "Clock"

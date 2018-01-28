@@ -21,4 +21,4 @@ open :: forall e. String
                -> String
                -> (Array JQuery -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
                -> Eff (ajax :: AJAX, dom :: DOM | e) String
-open = C.launch "/agrippa/linux-file/open"
+open = C.open "/agrippa/linux-file/open"

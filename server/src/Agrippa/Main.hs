@@ -67,8 +67,8 @@ startScotty opts agrippaConfig taskNameToIndex =
     get "/agrippa/config" $ do
       json agrippaConfig
 
-    EXS.registerHandlers taskNameToIndex "/agrippa/executable/suggest" "/agrippa/executable/launch"
+    EXS.registerHandlers taskNameToIndex "/agrippa/executable/suggest" "/agrippa/executable/open"
     LFS.registerHandlers taskNameToIndex "/agrippa/linux-file/suggest" "/agrippa/linux-file/open"
-    MAS.registerHandlers taskNameToIndex "/agrippa/mac-app/suggest"    "/agrippa/mac-app/launch"
+    MAS.registerHandlers taskNameToIndex "/agrippa/mac-app/suggest"    "/agrippa/mac-app/open"
     MFS.registerHandlers taskNameToIndex "/agrippa/mac-file/suggest"   "/agrippa/mac-file/open"
 
