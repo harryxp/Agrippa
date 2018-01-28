@@ -6,6 +6,7 @@ import Data.List (elem)
 import System.Directory (createDirectoryIfMissing)
 import System.FilePath.Find (FileType(Directory, RegularFile, SymbolicLink), FilterPredicate, RecursionPredicate, always, extension, find, fileType, (==?), (/=?), (&&?), (||?))
 import System.FilePath ((</>))
+import System.TimeIt (timeItT)
 
 import qualified Data.HashMap.Lazy as M (HashMap, elems, fromList, lookup)
 import qualified Data.Text.Lazy    as T (Text, pack)
@@ -18,7 +19,14 @@ buildSearchIndices :: Object -> IO (M.HashMap TaskName [T.Text])
 buildSearchIndices agrippaConfig =
   case lookupJSON "tasks" agrippaConfig :: Maybe Object of
     Nothing    -> error "Can't find tasks when building indices."
-    Just tasks -> (fmap M.fromList . mapM buildSearchIndex . filter usesFileSearchPlugin . M.elems) tasks
+    Just tasks -> do
+      putStrLn "Start building search indices."
+      (duration, indices) <- timeItT $ (fmap M.fromList . mapM buildSearchIndex . filter usesFileSearchPlugin . M.elems) tasks
+      putStrLn ("Finish building search indices in " ++
+                show duration ++
+                " second(s)."
+               )
+      return indices
 
 usesFileSearchPlugin :: Value -> Bool
 usesFileSearchPlugin (Object o) = case lookupJSON "plugin" o of

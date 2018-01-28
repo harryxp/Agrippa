@@ -1,7 +1,7 @@
 "use strict";
 
 exports.reinstallShortcuts = function (useFunctionKeys) {
-    return function (launchUrl) {
+    return function (openUrl) {
         return function (items) {
             return function () {
                 $(document.body).off("keyup");
@@ -11,7 +11,7 @@ exports.reinstallShortcuts = function (useFunctionKeys) {
                         evt.which >= baseKeyCode + 1 &&
                         evt.which <= (baseKeyCode + items.length)) {
                         var item = items[evt.which - baseKeyCode - 1];
-                        jQuery.post(launchUrl, {item: item});
+                        jQuery.get(openUrl, {item: item});
                     }
                 });
             };

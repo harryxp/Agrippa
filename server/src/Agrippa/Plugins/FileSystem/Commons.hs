@@ -5,7 +5,7 @@ import Data.Aeson (Object)
 import Data.Char (toLower)
 import Data.List (partition)
 import System.FilePath (takeBaseName)
-import Web.Scotty (ActionM, RoutePattern, ScottyM, json, jsonData, liftAndCatchIO, param, post, text)
+import Web.Scotty (ActionM, RoutePattern, ScottyM, get, json, jsonData, liftAndCatchIO, param, post, text)
 
 import qualified Data.HashMap.Lazy as M (HashMap, lookup)
 import qualified Data.Text.Lazy    as T (Text, isInfixOf, pack, toLower, unpack)
@@ -28,7 +28,7 @@ registerHandlers open taskNameToIndex suggestUrl openUrl = do
       Just items -> json items
       Nothing    -> json ([] :: [T.Text])
 
-  post openUrl $ do
+  get openUrl $ do
     item <- param "item" :: ActionM String
     (liftAndCatchIO . open) item
     (text . T.pack) ("Opened " ++ item ++ ".")
