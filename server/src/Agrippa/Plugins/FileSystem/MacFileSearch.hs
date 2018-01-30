@@ -1,7 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Agrippa.Plugins.FileSystem.MacFileSearch (registerHandlers) where
 
-import System.Process (callProcess)
+import Control.Monad (void)
+import System.Process (spawnProcess)
 import Web.Scotty (RoutePattern, ScottyM)
 
 import qualified Data.HashMap.Lazy as M (HashMap)
@@ -13,4 +14,4 @@ registerHandlers :: M.HashMap String [T.Text] -> RoutePattern -> RoutePattern ->
 registerHandlers = C.registerHandlers openFile
 
 openFile :: String -> IO ()
-openFile file = callProcess "open" [file]
+openFile file = void $ spawnProcess "open" [file]

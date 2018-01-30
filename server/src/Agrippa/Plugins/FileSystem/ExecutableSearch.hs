@@ -1,7 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Agrippa.Plugins.FileSystem.ExecutableSearch (registerHandlers) where
 
-import System.Process (callCommand)
+import Control.Monad (void)
+import System.Process (spawnCommand)
 import Web.Scotty (RoutePattern, ScottyM)
 
 import qualified Data.HashMap.Lazy as M (HashMap)
@@ -13,4 +14,4 @@ registerHandlers :: M.HashMap String [T.Text] -> RoutePattern -> RoutePattern ->
 registerHandlers = C.registerHandlers openExecutable
 
 openExecutable :: String -> IO ()
-openExecutable = callCommand
+openExecutable = void . spawnCommand
