@@ -12,6 +12,7 @@ import Data.String (trim)
 import Data.StrMap (empty, insert)
 import Data.Traversable (sequence, traverse)
 import DOM (DOM)
+import Global (encodeURIComponent)
 import Network.HTTP.Affjax (AJAX, post)
 
 import Agrippa.Config (Config)
@@ -89,7 +90,7 @@ buildLink :: forall e. String -> String -> Eff (dom :: DOM | e) JQuery
 buildLink item openUrl = do
   link <- create "<a>"
   setText item link
-  setAttr "href" (openUrl <> "?item=" <> item) link
+  setAttr "href" (openUrl <> "?item=" <> encodeURIComponent item) link
   pure link
 
 foreign import installShortcutHandler :: forall e. String

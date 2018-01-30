@@ -38,7 +38,6 @@
 
 ## General
 
-- Encode item names when sending over the network
 - Build a button to refresh file system indices manually, or use libevent etc.
 - Backend: readFile catch exception
 - Snippets
