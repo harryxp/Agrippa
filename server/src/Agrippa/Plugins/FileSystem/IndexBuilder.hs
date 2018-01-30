@@ -3,7 +3,6 @@ module Agrippa.Plugins.FileSystem.IndexBuilder (buildSearchIndices) where
 
 import Data.Aeson (Object, Value(Object))
 import Data.List (elem)
-import System.Directory (createDirectoryIfMissing)
 import System.FilePath.Find (FileType(Directory, RegularFile, SymbolicLink), FilterPredicate, RecursionPredicate, always, extension, find, fileType, (==?), (/=?), (&&?), (||?))
 import System.FilePath ((</>))
 import System.TimeIt (timeItT)
@@ -11,7 +10,7 @@ import System.TimeIt (timeItT)
 import qualified Data.HashMap.Lazy as M (HashMap, elems, fromList, lookup)
 import qualified Data.Text.Lazy    as T (Text, pack)
 
-import Agrippa.Utils (getConfigDir, lookupJSON)
+import Agrippa.Utils (lookupJSON)
 
 type TaskName = String
 
@@ -56,9 +55,6 @@ buildSearchIndex _ = error "Task values must be JSON objects."
 
 buildSearchIndex' :: TaskName -> String -> [String] -> IO (TaskName, [T.Text])
 buildSearchIndex' taskName plugin paths = do
-  configDir <- getConfigDir
-  let indexDir = configDir </> plugin </> taskName
-  createDirectoryIfMissing True indexDir
   let predicates = do
        recursionPred <- M.lookup plugin pluginToRecursionPredicate
        filterPred    <- M.lookup plugin pluginToFilterPredicate
@@ -86,5 +82,5 @@ isFile :: FilterPredicate
 isFile = fileType ==? RegularFile ||? fileType ==? SymbolicLink
 
 isMacApp :: FilterPredicate
-isMacApp = fileType ==? Directory &&? extension ==? ".app"
+isMacApp = fileType ==? Directory &&? (extension ==? ".app" ||? extension ==? ".prefPane")
 

@@ -14,4 +14,4 @@ registerHandlers :: M.HashMap String [T.Text] -> RoutePattern -> RoutePattern ->
 registerHandlers = C.registerHandlers openMacApp
 
 openMacApp :: String -> IO ()
-openMacApp app = void $ spawnProcess "open" ["-a", app]
+openMacApp app = void $ spawnProcess "open" [app]

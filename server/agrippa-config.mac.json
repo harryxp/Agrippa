@@ -16,7 +16,7 @@
 
         "a":   { "name": "Launch Mac Apps"
                , "plugin": "MacAppSearch"
-               , "paths": ["/Applications/", "/Users/hpan/Applications/"]
+               , "paths": ["/Applications/", "/Users/hpan/Applications/", "/System/Library/PreferencePanes"]
                },
         "e":   { "name": "Launch Executables"
                , "plugin": "ExecutableSearch"
