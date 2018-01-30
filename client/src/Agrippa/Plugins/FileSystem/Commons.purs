@@ -1,11 +1,11 @@
 module Agrippa.Plugins.FileSystem.Commons (open, suggest) where
 
-import Prelude (Unit, bind, const, discard, pure, unit, (<$), (<$>), (<>), (>>=), (<=<), (<<<))
+import Prelude (Unit, bind, const, discard, pure, show, unit, (<$), (<$>), (<>), (>>=), (<=<), (<<<))
 import Control.Monad.Aff (runAff)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.JQuery (JQuery, addClass, append, create, setAttr, setText)
 import Data.Argonaut.Core (Json, fromObject, fromString, toArray, toString)
-import Data.Array (drop, length, take, zipWith)
+import Data.Array (drop, take, zipWith, (..))
 import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
 import Data.String (trim)
@@ -23,8 +23,10 @@ suggest :: forall e. String
                   -> String
                   -> (Array JQuery -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
                   -> Eff (ajax :: AJAX, dom :: DOM | e) String
+-- TODO
 suggest suggestUrl openUrl taskName config input displayOutput =
-  let eitherEff = do
+  let eitherEff ::  Either String (Eff (ajax :: AJAX, dom :: DOM | e) String)
+      eitherEff = do
         pure ("Searching..." <$
               runAff
                 (const (pure unit))
@@ -39,8 +41,8 @@ buildSuggestReq taskName term = (fromObject <<<
                                  insert "taskName" (fromString taskName) <<<
                                  insert "term"     (fromString term)) empty
 
-shortcuts :: Array String
-shortcuts = ["enter", "ctrl-enter", "shift-enter", "alt-enter"]
+numOfShortcuts :: Int
+numOfShortcuts = 9
 
 buildOutputNodes :: forall e. String
                            -> Json
@@ -48,12 +50,12 @@ buildOutputNodes :: forall e. String
 buildOutputNodes openUrl contents =
   case (traverse toString <=< toArray) contents of
     Just items -> do
-      nodesWithShortcuts <- buildNodesWithShortcuts openUrl (take (length shortcuts) items)
+      nodesWithShortcuts <- buildNodesWithShortcuts openUrl (take numOfShortcuts items)
       otherNodes         <- sequence ((\item -> do
         link <- buildLink item openUrl
         div  <- create "<div>"
         append link div
-        pure div) <$> drop (length shortcuts) items)
+        pure div) <$> drop numOfShortcuts items)
       pure (nodesWithShortcuts <> otherNodes)
     Nothing       -> do
       div <- create "<div>"
@@ -64,20 +66,24 @@ buildNodesWithShortcuts :: forall e. String
                                   -> Array String
                                   -> Eff (ajax :: AJAX, dom :: DOM | e) (Array JQuery)
 buildNodesWithShortcuts openUrl items = do
-  nodes <- sequence
+  sequence
     (zipWith
-      (\shortcut item -> do
+      (\index item -> do
+        div  <- create "<div>"
+
         link <- buildLink item openUrl
+        append link div
+
         span <- create "<span>"
         addClass "shortcut-prompt" span
-        setText shortcut span
-        div  <- create "<div>"
-        append link div
+        setText ("ctrl+shift+" <> show index) span
         append span div
+
+        installShortcutHandler openUrl index item
+
         pure div)
-     shortcuts
+     (1 .. numOfShortcuts)
      items)
-  pure nodes
 
 buildLink :: forall e. String -> String -> Eff (dom :: DOM | e) JQuery
 buildLink item openUrl = do
@@ -86,11 +92,16 @@ buildLink item openUrl = do
   setAttr "href" (openUrl <> "?item=" <> item) link
   pure link
 
+foreign import installShortcutHandler :: forall e. String
+                                                -> Int
+                                                -> String
+                                                -> Eff (ajax :: AJAX, dom :: DOM | e) Unit
+
 open :: forall e. String
                -> String
                -> Config
                -> String
                -> (Array JQuery -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
                -> Eff (ajax :: AJAX, dom :: DOM | e) String
-open _ _ _ _ _ = pure "Please use shortcuts."
+open _ _ _ _ _ = pure "Please use shortcuts or links."
 
