@@ -1,4 +1,4 @@
-module Agrippa.Plugins.Registry (Plugin(..), nameToPlugin) where
+module Agrippa.Plugins.Registry (Plugin(..), namesToPlugins) where
 
 import Prelude (Unit, (<$>))
 import Control.Monad.Eff (Eff)
@@ -66,5 +66,5 @@ plugins = [ Plugin { name: "Calculator"
                    }
           ]
 
-nameToPlugin :: StrMap Plugin
-nameToPlugin = fromFoldable ((\p@(Plugin { name: n }) -> Tuple n p) <$> plugins)
+namesToPlugins :: StrMap Plugin
+namesToPlugins = fromFoldable ((\p@(Plugin { name: n }) -> Tuple n p) <$> plugins)

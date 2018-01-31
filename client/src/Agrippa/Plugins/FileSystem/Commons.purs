@@ -6,7 +6,6 @@ import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.JQuery (JQuery, addClass, append, create, setAttr, setText)
 import Data.Argonaut.Core (Json, fromObject, fromString, toArray, toString)
 import Data.Array (drop, take, zipWith, (..))
-import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
 import Data.String (trim)
 import Data.StrMap (empty, insert)
@@ -24,18 +23,12 @@ suggest :: forall e. String
                   -> String
                   -> (Array JQuery -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
                   -> Eff (ajax :: AJAX, dom :: DOM | e) String
--- TODO
 suggest suggestUrl openUrl taskName config input displayOutput =
-  let eitherEff ::  Either String (Eff (ajax :: AJAX, dom :: DOM | e) String)
-      eitherEff = do
-        pure ("Searching..." <$
-              runAff
-                (const (pure unit))
-                (\{ response: r } -> buildOutputNodes openUrl r >>= displayOutput)
-                (post suggestUrl (buildSuggestReq taskName (trim input))))
-  in case eitherEff of
-      Left  err -> pure err
-      Right eff -> eff
+  "Searching..." <$
+  runAff
+    (const (pure unit))
+    (\{ response: r } -> buildOutputNodes openUrl r >>= displayOutput)
+    (post suggestUrl (buildSuggestReq taskName (trim input)))
 
 buildSuggestReq :: String -> String -> Json
 buildSuggestReq taskName term = (fromObject <<<

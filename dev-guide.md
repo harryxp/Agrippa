@@ -56,11 +56,6 @@
 ## File System plugins
 
 - highlight keyword
-- 500 internal errors
-
-## Mac App search plugin
-
-- Pref panes (multiple extensions)
 
 ## Online Search plugin
 

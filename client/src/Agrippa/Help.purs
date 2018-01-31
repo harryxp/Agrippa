@@ -27,15 +27,15 @@ buildHelp config = do
 
 buildHelpTextForTasks :: forall e. Config -> Eff (dom :: DOM | e) Unit
 buildHelpTextForTasks config =
-  case getKeywordToTaskName config of
+  case getKeywordsToTaskNames config of
     Left  err -> displayOutputText err
     Right m   -> traverse_ buildHelpTextForTask
                   (toAscUnfoldable m :: Array (Tuple String String))
 
-getKeywordToTaskName :: Config -> Either String (StrMap String)
-getKeywordToTaskName config = do
-  keywordToTaskConfig <- getStrMapVal "tasks" config
-  traverse (getStringVal "name") keywordToTaskConfig
+getKeywordsToTaskNames :: Config -> Either String (StrMap String)
+getKeywordsToTaskNames config = do
+  keywordsToTaskConfigs <- getStrMapVal "tasks" config
+  traverse (getStringVal "name") keywordsToTaskConfigs
 
 buildHelpTextForTask :: forall e. Tuple String String -> Eff (dom :: DOM | e) Unit
 buildHelpTextForTask (Tuple keyword taskDesc) = do
