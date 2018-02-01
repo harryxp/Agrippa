@@ -30,9 +30,11 @@ main :: IO ()
 main = do
   config <- readAgrippaConfig
   case config of
-    Nothing       -> hPutStrLn stderr "Failed to parse Agrippa config." >>
-                     hPutStrLn stderr "Please check .agrippa under your home directory." >>
-                     exitFailure
+    Nothing       -> do
+      hPutStrLn stderr "Failed to parse Agrippa config."
+      configDir <- getConfigDir
+      hPutStrLn stderr ("Please check " ++ configDir ++ " under your home directory.")
+      exitFailure
     Just (sc,ac)  -> do
       taskNameToIndex <- buildSearchIndices ac
       startScotty (buildScottyOpts sc) ac taskNameToIndex
