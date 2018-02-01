@@ -3,7 +3,7 @@ module Agrippa.Plugins.FileSystem.Commons (open, suggest) where
 import Prelude (Unit, bind, const, discard, pure, show, unit, (<*), (<$>), (<>), (>>=), (<=<), (<<<))
 import Control.Monad.Aff (runAff)
 import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.JQuery (JQuery, addClass, append, create, setAttr, setText)
+import Control.Monad.Eff.JQuery (JQuery, addClass, append, create, setProp, setText)
 import Data.Argonaut.Core (Json, fromObject, fromString, toArray, toString)
 import Data.Array (drop, take, zipWith, (..))
 import Data.Maybe (Maybe(..))
@@ -84,7 +84,7 @@ buildLink :: forall e. String -> String -> Eff (dom :: DOM | e) JQuery
 buildLink item openUrl = do
   link <- create "<a>"
   setText item link
-  setAttr "href" (openUrl <> "?item=" <> encodeURIComponent item) link
+  setProp "href" (openUrl <> "?item=" <> encodeURIComponent item) link
   pure link
 
 foreign import installShortcutHandler :: forall e. String

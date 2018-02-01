@@ -18,6 +18,7 @@ import Agrippa.Plugins.FileSystem.LinuxFileSearch  as LFS
 import Agrippa.Plugins.FileSystem.MacFileSearch    as MFS
 import Agrippa.Plugins.FileSystem.MacAppSearch     as MAS
 import Agrippa.Plugins.OnlineSearch                as O
+import Agrippa.Plugins.Snippets                    as S
 
 newtype Plugin =
   Plugin { name          :: String
@@ -63,6 +64,10 @@ plugins = [ Plugin { name: "Calculator"
           , Plugin { name: "OnlineSearch"
                    , onInputChange: O.prompt
                    , onActivation: O.search
+                   }
+          , Plugin { name: "Snippets"
+                   , onInputChange: S.suggest
+                   , onActivation: S.copy
                    }
           ]
 

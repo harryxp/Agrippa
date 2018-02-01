@@ -40,13 +40,16 @@
 
 - Build a button to refresh file system indices manually, or use libevent etc.
 - Backend: readFile catch exception
-- Snippets
-- TODO list
+- TODO list plugin?
 - Top level suggestion
 - Check runAff response status code
 - Error handler for runAff
 - Formatted string instead of <> (Text.Formatting?)
 - Learn Except
+
+## Snippets plugin
+
+- Copy to clipboard
 
 ## Calculator plugin
 
