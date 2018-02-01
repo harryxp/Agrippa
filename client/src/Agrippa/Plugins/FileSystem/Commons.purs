@@ -1,6 +1,6 @@
 module Agrippa.Plugins.FileSystem.Commons (open, suggest) where
 
-import Prelude (Unit, bind, const, discard, pure, show, unit, (<$), (<$>), (<>), (>>=), (<=<), (<<<))
+import Prelude (Unit, bind, const, discard, pure, show, unit, (<*), (<$>), (<>), (>>=), (<=<), (<<<))
 import Control.Monad.Aff (runAff)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.JQuery (JQuery, addClass, append, create, setAttr, setText)
@@ -15,6 +15,7 @@ import Global (encodeURIComponent)
 import Network.HTTP.Affjax (AJAX, post)
 
 import Agrippa.Config (Config)
+import Agrippa.Utils (createSingletonTextNodeArray)
 
 suggest :: forall e. String
                   -> String
@@ -22,9 +23,9 @@ suggest :: forall e. String
                   -> Config
                   -> String
                   -> (Array JQuery -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
-                  -> Eff (ajax :: AJAX, dom :: DOM | e) String
+                  -> Eff (ajax :: AJAX, dom :: DOM | e) (Array JQuery)
 suggest suggestUrl openUrl taskName config input displayOutput =
-  "Searching..." <$
+  createSingletonTextNodeArray "Searching..." <*
   runAff
     (const (pure unit))
     (\{ response: r } -> buildOutputNodes openUrl r >>= displayOutput)
@@ -96,6 +97,6 @@ open :: forall e. String
                -> Config
                -> String
                -> (Array JQuery -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
-               -> Eff (ajax :: AJAX, dom :: DOM | e) String
-open _ _ _ _ _ = pure "Please use shortcuts or links."
+               -> Eff (ajax :: AJAX, dom :: DOM | e) (Array JQuery)
+open _ _ _ _ _ = createSingletonTextNodeArray "Please use shortcuts or links."
 

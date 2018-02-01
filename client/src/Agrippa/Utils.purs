@@ -1,26 +1,29 @@
-module Agrippa.Utils (displayOutputText, mToE, openUrl) where
+module Agrippa.Utils (createSingletonTextNodeArray, displayOutput, displayOutputText, mToE) where
 
-import Prelude (Unit, bind, pure, (>>=))
+import Prelude (Unit, bind, discard, flip, pure, (<$>), (>>=))
 import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.JQuery (select, setText)
+import Control.Monad.Eff.JQuery (JQuery, append, clear, create, select, setText)
 import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
+import Data.Traversable (sequence_)
 import DOM (DOM)
-import DOM.HTML (window)
-import DOM.HTML.Types (WINDOW)
-import DOM.HTML.Window (open)
+
+displayOutput :: forall e. Array JQuery -> Eff (dom :: DOM | e) Unit
+displayOutput nodes = do
+  output <- select "#agrippa-output"
+  clear output
+  sequence_ (flip append output <$> nodes)
 
 displayOutputText :: forall e. String -> Eff (dom :: DOM | e) Unit
-displayOutputText t = select "#agrippa-output" >>= setText t
+displayOutputText t = createSingletonTextNodeArray t >>= displayOutput
+
+createSingletonTextNodeArray :: forall e. String -> Eff (dom :: DOM | e) (Array JQuery)
+createSingletonTextNodeArray t = do
+  div <- create "<div>"
+  setText t div
+  pure [div]
 
 mToE :: forall a e. e -> Maybe a -> Either e a
 mToE err Nothing = Left  err
 mToE _ (Just x)  = Right x
 
-openUrl :: forall e. String -> Eff (dom :: DOM, window :: WINDOW | e) String
-openUrl url = do
-  w <- window
-  maybeNewWindow <- open url "_self" "" w
-  pure case maybeNewWindow of
-        Nothing -> "Something went really wrong..."
-        Just _  -> "Opening..."

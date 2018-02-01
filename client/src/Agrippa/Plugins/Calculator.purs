@@ -4,6 +4,7 @@ import Prelude (class Show, Unit, bind, id, negate, pure, show, ($>), (*), (+), 
 import Control.Alt ((<|>))
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.JQuery (JQuery)
+import DOM (DOM)
 import Data.Either (Either(..))
 import Data.List (toUnfoldable)
 import Data.Maybe (Maybe(..))
@@ -15,13 +16,14 @@ import Text.Parsing.StringParser.Expr (Assoc(..), Operator(..), OperatorTable, b
 import Text.Parsing.StringParser.String (anyDigit, char, string)
 
 import Agrippa.Config (Config)
+import Agrippa.Utils (createSingletonTextNodeArray)
 
 calculate :: forall e. String
                     -> Config
                     -> String
-                    -> (Array JQuery -> Eff e Unit)
-                    -> Eff e String
-calculate _ _ input _ = (pure <<< evalExpr <<< parseExpr <<< (replaceAll (Pattern " ") (Replacement ""))) input
+                    -> (Array JQuery -> Eff (dom :: DOM | e) Unit)
+                    -> Eff (dom :: DOM | e) (Array JQuery)
+calculate _ _ input _ = (createSingletonTextNodeArray <<< evalExpr <<< parseExpr <<< (replaceAll (Pattern " ") (Replacement ""))) input
 
 data Expr = ExprAdd Expr Expr
           | ExprSub Expr Expr

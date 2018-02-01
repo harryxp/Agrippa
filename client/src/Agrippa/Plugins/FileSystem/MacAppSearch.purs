@@ -13,13 +13,13 @@ suggest :: forall e. String
                   -> Config
                   -> String
                   -> (Array JQuery -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
-                  -> Eff (ajax :: AJAX, dom :: DOM | e) String
+                  -> Eff (ajax :: AJAX, dom :: DOM | e) (Array JQuery)
 suggest = C.suggest "/agrippa/mac-app/suggest" "/agrippa/mac-app/open"
 
 open :: forall e. String
                -> Config
                -> String
                -> (Array JQuery -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
-               -> Eff (ajax :: AJAX, dom :: DOM | e) String
+               -> Eff (ajax :: AJAX, dom :: DOM | e) (Array JQuery)
 open = C.open "/agrippa/mac-app/open"
 

@@ -1,10 +1,10 @@
 module Agrippa.Main (main) where
 
-import Prelude (Unit, bind, discard, flip, pure, show, unit, void, (==), (/=), ($), (*>), (>>=), (<>), (<$>), (&&))
+import Prelude (Unit, bind, discard, pure, show, unit, void, (==), (/=), ($), (*>), (>>=), (<>), (&&))
 import Control.Alt ((<|>))
 import Control.Monad.Aff (runAff)
 import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.JQuery (JQuery, JQueryEvent, append, body, clear, getWhich, getValue, off, on, ready, select, setText)
+import Control.Monad.Eff.JQuery (JQuery, JQueryEvent, body, getWhich, getValue, off, on, ready, select, setText)
 import Control.Monad.Eff.Now (NOW)
 import Control.Monad.Eff.Ref (REF, Ref, newRef, readRef, writeRef)
 import Control.Monad.Except (runExcept)
@@ -14,13 +14,12 @@ import Data.Either (Either(..))
 import Data.Foreign (readString)
 import Data.StrMap (lookup)
 import Data.String (Pattern(..), indexOf, splitAt)
-import Data.Traversable (sequence_)
 import Network.HTTP.Affjax (AJAX, get)
 
 import Agrippa.Config (Config, getStrMapVal, getStringVal, lookupConfigVal)
 import Agrippa.Help (buildHelp)
 import Agrippa.Plugins.Registry (Plugin(..), namesToPlugins)
-import Agrippa.Utils (displayOutputText, mToE)
+import Agrippa.Utils (displayOutput, displayOutputText, mToE)
 
 main :: forall e. Eff (ajax :: AJAX, dom :: DOM, now :: NOW, ref :: REF, window :: WINDOW | e) Unit
 main = ready $
@@ -106,15 +105,9 @@ execTask (Task { name: name
          keyCode = do
   displayTask name
   case keyCode of
-    13        -> activate name taskConfig taskInput displayOutput >>= displayOutputText
-    otherwise -> prompt   name taskConfig taskInput displayOutput >>= displayOutputText
+    13        -> activate name taskConfig taskInput displayOutput >>= displayOutput
+    otherwise -> prompt   name taskConfig taskInput displayOutput >>= displayOutput
 
 displayTask :: forall e. String -> Eff (dom :: DOM | e) Unit
 displayTask t = select "#agrippa-task" >>= setText t
-
-displayOutput :: forall e. Array JQuery -> Eff (dom :: DOM | e) Unit
-displayOutput nodes = do
-  output <- select "#agrippa-output"
-  clear output
-  sequence_ (flip append output <$> nodes)
 

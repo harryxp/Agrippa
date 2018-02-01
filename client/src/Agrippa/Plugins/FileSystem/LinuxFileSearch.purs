@@ -13,12 +13,12 @@ suggest :: forall e. String
                   -> Config
                   -> String
                   -> (Array JQuery -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
-                  -> Eff (ajax :: AJAX, dom :: DOM | e) String
+                  -> Eff (ajax :: AJAX, dom :: DOM | e) (Array JQuery)
 suggest = C.suggest "/agrippa/linux-file/suggest" "/agrippa/linux-file/open"
 
 open :: forall e. String
                -> Config
                -> String
                -> (Array JQuery -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
-               -> Eff (ajax :: AJAX, dom :: DOM | e) String
+               -> Eff (ajax :: AJAX, dom :: DOM | e) (Array JQuery)
 open = C.open "/agrippa/linux-file/open"
