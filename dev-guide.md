@@ -49,7 +49,7 @@
 
 ## Snippets plugin
 
-- Copy to clipboard
+- Shortcuts
 
 ## Calculator plugin
 

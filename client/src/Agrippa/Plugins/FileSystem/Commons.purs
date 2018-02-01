@@ -70,7 +70,7 @@ buildNodesWithShortcuts openUrl items = do
         append link div
 
         span <- create "<span>"
-        addClass "shortcut-prompt" span
+        addClass "agrippa-shortcut-prompt" span
         setText ("ctrl+shift+" <> show index) span
         append span div
 

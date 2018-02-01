@@ -1,15 +1,15 @@
 module Agrippa.Plugins.Snippets (copy, suggest) where
 
-import Prelude (Unit, bind, discard, pure, (<<<))
+import Prelude (Unit, bind, discard, flip, pure, (<<<))
 import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.JQuery (JQuery, JQueryEvent, append, create, on, setProp, setText, setValue)
+import Control.Monad.Eff.JQuery (JQuery, JQueryEvent, addClass, append, create, on, setText, setValue)
 import Data.Argonaut.Core (toString)
 import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
 import Data.StrMap (StrMap, filterKeys, toArrayWithKey)
 import Data.String (toLower, trim)
 import Data.String.Utils (includes)
-import Data.Traversable (sequence)
+import Data.Traversable (sequence, traverse_)
 import DOM (DOM)
 
 import Agrippa.Config (Config, getStrMapVal)
@@ -29,31 +29,41 @@ suggest _ config input displayOutput =
       in buildOutputNodes candidates
 
 buildOutputNodes :: forall e. StrMap Config -> Eff (dom :: DOM | e) (Array JQuery)
-buildOutputNodes candidates = sequence (toArrayWithKey buildOutputNode candidates)
+buildOutputNodes candidates =
+  let rowsEff :: Eff (dom :: DOM | e) (Array JQuery)
+      rowsEff = sequence (toArrayWithKey buildOutputRow candidates)
+  in do
+    table <- create "<table>"
+    rows  <- rowsEff
+    traverse_ (flip append table) rows
+    pure [table]
 
-buildOutputNode :: forall e. String -> Config -> Eff (dom :: DOM | e) JQuery
-buildOutputNode key value =
+buildOutputRow :: forall e. String -> Config -> Eff (dom :: DOM | e) JQuery
+buildOutputRow key value =
   let val = case toString value of
               Nothing -> "Error: snippets must be strings."
               Just s  -> s
   in do
-    keySpan <- create "<span>"
-    setText key keySpan
+    keyCell <- create "<td>"
+    setText key keyCell
 
     copyButton <- create "<button>"
     setText "Copy" copyButton
     on "click" copyButtonHandler copyButton
+    buttonCell <- create "<td>"
+    append copyButton buttonCell
 
     valField <- create "<input>"
     setValue val valField
-    -- probably should use the css function but I don't want introduce another eff...
-    setProp "style" "width: 40em; background-color: #fdf6e3" valField
+    addClass "agrippa-snippet" valField
+    valCell <- create "<td>"
+    append valField valCell
 
-    div <- create "<div>"
-    append keySpan div
-    append copyButton div
-    append valField div
-    pure div
+    tr <- create "<tr>"
+    append keyCell tr
+    append buttonCell tr
+    append valCell tr
+    pure tr
 
 foreign import copyButtonHandler :: forall e. JQueryEvent
                                            -> JQuery
