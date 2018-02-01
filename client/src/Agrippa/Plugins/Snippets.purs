@@ -2,7 +2,7 @@ module Agrippa.Plugins.Snippets (copy, suggest) where
 
 import Prelude (Unit, bind, discard, pure, (<<<))
 import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.JQuery (JQuery, append, create, setProp, setText, setValue)
+import Control.Monad.Eff.JQuery (JQuery, JQueryEvent, append, create, on, setProp, setText, setValue)
 import Data.Argonaut.Core (toString)
 import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
@@ -40,6 +40,10 @@ buildOutputNode key value =
     keySpan <- create "<span>"
     setText key keySpan
 
+    copyButton <- create "<button>"
+    setText "Copy" copyButton
+    on "click" copyButtonHandler copyButton
+
     valField <- create "<input>"
     setValue val valField
     -- probably should use the css function but I don't want introduce another eff...
@@ -47,8 +51,13 @@ buildOutputNode key value =
 
     div <- create "<div>"
     append keySpan div
+    append copyButton div
     append valField div
     pure div
+
+foreign import copyButtonHandler :: forall e. JQueryEvent
+                                           -> JQuery
+                                           -> Eff (dom :: DOM | e) Unit
 
 copy :: forall e. String
                -> Config

@@ -1,12 +1,11 @@
 {
-    "preferences": {
-        "showHelpByDefault": true,
-        "host": "127.0.0.1",
-        "port": 3000,
-        "defaultTask": { "name": "Google Search by Default"
-                       , "plugin": "OnlineSearch"
-                       , "url": "https://www.google.com/search?q=${q}"
-                       }
+    "preferences": { "showHelpByDefault": true
+                   , "host": "127.0.0.1"
+                   , "port": 3000
+                   , "defaultTask": { "name": "Google Search by Default"
+                                    , "plugin": "OnlineSearch"
+                                    , "url": "https://www.google.com/search?q=${q}"
+                                    }
     },
 
     "tasks": {
@@ -62,6 +61,23 @@
         "z":   { "name": "Amazon Search"
                , "plugin": "OnlineSearch"
                , "url": "https://www.amazon.com/s?field-keywords=${q}"
+               },
+
+        "s":   { "name": "Snippets"
+               , "plugin": "Snippets"
+               , "snippets": { "awk" : "awk -F '|' '{ print $1\"|\"$2 }'"
+                             , "mass rename": "for f in SOME-DIR/*SOME-FILE-2016-07*gz; do new=`echo $f | sed 's/SOME-DIR.[0-9_]*\\(SOME-FILE.*\\)/\\1/'`; echo mv $f $new; done | less"
+                             , "Perl confess": "use Carp qw/ confess /; local $SIG{__DIE__} = sub { confess() };"
+                             , "Perl dumper": "use Data::Dumper; print \"*****\\n\"; die Dumper($x);"
+                             , "pg_dump": "pg_dump -d DB -h HOST -p 5432 -U USER -Fc -t SOME_TABLE -f SOME-FILE"
+                             , "pg_restore":  "pg_restore -d DB -h HOST -p 5432 -U USER -Fc -a -t SOME_TABLE SOME-FILE"
+                             , "Postgres activities": "select * from public.pg_stat_activity;"
+                             , "Postgres information_schema.columns": "select table_name, column_name, data_type from information_schema.columns where column_name ~* '';"
+                             , "Postgres locks": "select * from pg_locks;"
+                             , "Postgres table size": "select pg_size_pretty(pg_total_relation_size('SOME_TABLE')) as total, pg_size_pretty(pg_table_size('SOME_TABLE')) as table;"
+                             , "wget directory": "wget -r -k -np -nH --cut-dirs=3 http://HOST/~USER/some-dir/"
+                             , "zsh for loop": "for n in {1..5}; do echo $n; done"
+                             }
                }
     }
 }
