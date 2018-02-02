@@ -1,6 +1,6 @@
 module Agrippa.Plugins.OnlineSearch (search, prompt) where
 
-import Prelude (Unit, bind, pure, (<>), (>>=))
+import Prelude (Unit, bind, pure, (<>), (>>=), (<<<))
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.JQuery (JQuery)
 import Data.Either (Either(..))
@@ -10,6 +10,7 @@ import DOM (DOM)
 import DOM.HTML (window)
 import DOM.HTML.Types (WINDOW)
 import DOM.HTML.Window (open)
+import Global (encodeURIComponent)
 
 import Agrippa.Config (Config, getStringVal)
 import Agrippa.Utils (createSingletonTextNodeArray)
@@ -43,5 +44,5 @@ openUrl url = do
         Just _  -> "Opening..."
 
 completeUrl :: String -> String -> String
-completeUrl url input = replace (Pattern "${q}") (Replacement (trim input)) url
+completeUrl url input = replace (Pattern "${q}") (Replacement ((encodeURIComponent <<< trim) input)) url
 
