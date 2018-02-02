@@ -56,27 +56,27 @@ buildSearchIndex _ = error "Task values must be JSON objects."
 buildSearchIndex' :: TaskName -> String -> [String] -> IO (TaskName, [T.Text])
 buildSearchIndex' taskName plugin paths = do
   let predicates = do
-       recursionPred <- M.lookup plugin pluginToRecursionPredicate
-       filterPred    <- M.lookup plugin pluginToFilterPredicate
+       recursionPred <- M.lookup plugin pluginsToRecursionPredicates
+       filterPred    <- M.lookup plugin pluginsToFilterPredicates
        return (recursionPred, filterPred)
   files <- case predicates of
     Just (rPred, fPred) -> (fmap concat . mapM (find rPred fPred)) paths :: IO [String]
     Nothing -> error ("Failed to lookup predicates for plugin" ++ plugin)
   return (taskName, T.pack <$> files)
 
-pluginToRecursionPredicate :: M.HashMap String RecursionPredicate
-pluginToRecursionPredicate = M.fromList [ ("ExecutableSearch", always)
-                                        , ("LinuxFileSearch",  always)
-                                        , ("MacAppSearch",     (extension /=? ".app"))
-                                        , ("MacFileSearch",    always)
-                                        ]
+pluginsToRecursionPredicates :: M.HashMap String RecursionPredicate
+pluginsToRecursionPredicates = M.fromList [ ("ExecutableSearch", always)
+                                          , ("LinuxFileSearch",  always)
+                                          , ("MacAppSearch",     (extension /=? ".app"))
+                                          , ("MacFileSearch",    always)
+                                          ]
 
-pluginToFilterPredicate :: M.HashMap String FilterPredicate
-pluginToFilterPredicate = M.fromList [ ("ExecutableSearch", isFile)
-                                     , ("LinuxFileSearch",  always)
-                                     , ("MacAppSearch",     isMacApp)
-                                     , ("MacFileSearch",    always)
-                                     ]
+pluginsToFilterPredicates :: M.HashMap String FilterPredicate
+pluginsToFilterPredicates = M.fromList [ ("ExecutableSearch", isFile)
+                                       , ("LinuxFileSearch",  always)
+                                       , ("MacAppSearch",     isMacApp)
+                                       , ("MacFileSearch",    always)
+                                       ]
 
 isFile :: FilterPredicate
 isFile = fileType ==? RegularFile ||? fileType ==? SymbolicLink

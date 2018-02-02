@@ -36,8 +36,8 @@ main = do
       hPutStrLn stderr ("Please check " ++ configDir ++ " under your home directory.")
       exitFailure
     Just (sc,ac)  -> do
-      taskNameToIndex <- buildSearchIndices ac
-      startScotty (buildScottyOpts sc) ac taskNameToIndex
+      taskNamesToItems <- buildSearchIndices ac
+      startScotty (buildScottyOpts sc) ac taskNamesToItems
 
 readAgrippaConfig :: IO (Maybe (ScottyConfig, Object))
 readAgrippaConfig = do
@@ -57,7 +57,7 @@ buildScottyOpts (ScottyConfig { host = h, port = p }) =
           }
 
 startScotty :: Options -> Object -> M.HashMap String [T.Text] -> IO ()
-startScotty opts agrippaConfig taskNameToIndex =
+startScotty opts agrippaConfig taskNamesToItems =
   scottyOpts opts $ do
     get "/agrippa/" $ do
       file "web/index.html"
@@ -69,8 +69,8 @@ startScotty opts agrippaConfig taskNameToIndex =
     get "/agrippa/config" $ do
       json agrippaConfig
 
-    EXS.registerHandlers taskNameToIndex "/agrippa/executable/suggest" "/agrippa/executable/open"
-    LFS.registerHandlers taskNameToIndex "/agrippa/linux-file/suggest" "/agrippa/linux-file/open"
-    MAS.registerHandlers taskNameToIndex "/agrippa/mac-app/suggest"    "/agrippa/mac-app/open"
-    MFS.registerHandlers taskNameToIndex "/agrippa/mac-file/suggest"   "/agrippa/mac-file/open"
+    EXS.registerHandlers taskNamesToItems "/agrippa/executable/suggest" "/agrippa/executable/open"
+    LFS.registerHandlers taskNamesToItems "/agrippa/linux-file/suggest" "/agrippa/linux-file/open"
+    MAS.registerHandlers taskNamesToItems "/agrippa/mac-app/suggest"    "/agrippa/mac-app/open"
+    MFS.registerHandlers taskNamesToItems "/agrippa/mac-file/suggest"   "/agrippa/mac-file/open"
 

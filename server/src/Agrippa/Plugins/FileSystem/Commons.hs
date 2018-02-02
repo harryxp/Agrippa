@@ -17,13 +17,13 @@ registerHandlers :: (String -> IO ())
                  -> RoutePattern
                  -> RoutePattern
                  -> ScottyM ()
-registerHandlers open taskNameToIndex suggestUrl openUrl = do
+registerHandlers open taskNamesToItems suggestUrl openUrl = do
   post suggestUrl $ do
     o <- jsonData :: ActionM Object
     let maybeItems = do
           taskName <- lookupJSON "taskName" o :: Maybe String
           term     <- lookupJSON "term"     o :: Maybe String
-          findItems taskNameToIndex taskName term
+          findItems taskNamesToItems taskName term
     case maybeItems of
       Just items -> json items
       Nothing    -> json ([] :: [T.Text])
@@ -34,15 +34,15 @@ registerHandlers open taskNameToIndex suggestUrl openUrl = do
     (text . T.pack) ("Opened " ++ item ++ ".")
 
 findItems :: M.HashMap String [T.Text] -> String -> String -> Maybe [T.Text]
-findItems taskNameToIndex taskName term =
+findItems taskNamesToItems taskName term =
   let lowerTerm     :: String
       lowerTerm     = toLower <$> term
       lowerTermText :: T.Text
       lowerTermText = T.pack lowerTerm
   in do
-    items                  <- M.lookup taskName taskNameToIndex :: Maybe [T.Text]
+    items                  <- M.lookup taskName taskNamesToItems :: Maybe [T.Text]
     matches                <- (return . filter (T.isInfixOf lowerTermText . T.toLower)) items :: Maybe [T.Text]
     (exactMatches, others) <- (return . partition ((== lowerTerm) . takeBaseName . T.unpack)) matches :: Maybe ([T.Text], [T.Text])
     -- TODO
-    return (take 40 (exactMatches ++ others))
+    return (take 100 (exactMatches ++ others))
 
