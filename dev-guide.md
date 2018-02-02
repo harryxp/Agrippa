@@ -14,7 +14,7 @@
 
 2. Some useful commands during development (to see more try `pulp`):
 
-        $ pulp browserify -O --main Agrippa.Main --to web/js/scripts.js # generate
+        $ pulp browserify -O --main Agrippa.Main --to web/js/agrippa.js # generate
 
         $ pulp build            # type check
         $ pulp psci             # or `pulp repl`
@@ -58,10 +58,12 @@
 
 ## File System plugins
 
-- highlight keyword
+- Still slow on the backend side
+- Frontend max recursion level exceeded if too many items
+- Highlight keyword
 
 ## Online Search plugin
 
-- query using a template library?  Text.Formatting?
-- only one query parameter is allowed now
+- Query using a template library?  Text.Formatting?
+- Only one query parameter is allowed now
 

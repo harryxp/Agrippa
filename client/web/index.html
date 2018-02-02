@@ -15,41 +15,48 @@
     #agrippa-input {
         width: 40em;
         padding: 0.3em;
+        color: #657b83;             /* base00 */
+        background-color: #eee8d5;  /* base2 */
     }
     #agrippa-task {
         margin-top: 0.8em;
         width: 60em;
         height: 1em;
         padding: 0.3em;
-        border: 1px dashed black;
         border-radius: 10px;
+        color: #d33682;             /* magenta */
+        background-color: #eee8d5;  /* base2 */
     }
     #agrippa-output {
         margin-top: 0.8em;
         width: 60em;
         height: 30em;
         padding: 0.3em;
-        border: 1px dashed black;
-        overflow-y: scroll;
+        overflow-x: auto;
+        overflow-y: auto;
         border-radius: 10px;
-    }
-    #agrippa-help-table {
+        background-color: #eee8d5;  /* base2 */
     }
     #agrippa-help-table td {
-        border: 1px solid #DDDDDD;
+        border: 1px solid #eee8d5;  /* base2 */
+        color: #93a1a1;             /* base1 */
     }
     .agrippa-shortcut-prompt {
         font-size: 0.8em;
         font-style: italic;
-        color: red;
+        color: #d33682;             /* magenta */
         padding: 20px;
     }
     .agrippa-snippet {
         width: 40em;
-        background-color: #fdf6e3;
+        background-color: #eee8d5;  /* base2 */
     }
     strong {
         font-size: 1.2em;
+    }
+    body {
+        color: #93a1a1;             /* base1 */
+        background-color: #fdf6e3;  /* base3 */
     }
   </style>
 
@@ -57,7 +64,7 @@
 
 <body>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-  <script src="js/scripts.js"></script>
+  <script src="js/agrippa.js"></script>
   <input id="agrippa-input" autofocus/></input>
   <div id="agrippa-task"></div>
 

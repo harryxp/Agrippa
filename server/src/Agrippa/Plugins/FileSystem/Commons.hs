@@ -43,5 +43,6 @@ findItems taskNameToIndex taskName term =
     items                  <- M.lookup taskName taskNameToIndex :: Maybe [T.Text]
     matches                <- (return . filter (T.isInfixOf lowerTermText . T.toLower)) items :: Maybe [T.Text]
     (exactMatches, others) <- (return . partition ((== lowerTerm) . takeBaseName . T.unpack)) matches :: Maybe ([T.Text], [T.Text])
-    return (exactMatches ++ others)
+    -- TODO
+    return (take 40 (exactMatches ++ others))
 
