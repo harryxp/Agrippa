@@ -1,6 +1,6 @@
 module Agrippa.Plugins.Snippets (copy, suggest) where
 
-import Prelude (Unit, bind, discard, flip, pure, (<<<))
+import Prelude (Unit, bind, discard, flip, map, pure, (<<<))
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.JQuery (JQuery, JQueryEvent, addClass, append, create, on, setText, setValue)
 import Data.Argonaut.Core (toString)
@@ -13,33 +13,30 @@ import Data.Traversable (sequence, traverse_)
 import DOM (DOM)
 
 import Agrippa.Config (Config, getStrMapVal)
-import Agrippa.Utils (createSingletonTextNodeArray)
+import Agrippa.Utils (createTextNode)
 
 suggest :: forall e. String
                   -> Config
                   -> String
-                  -> (Array JQuery -> Eff (dom :: DOM | e) Unit)
-                  -> Eff (dom :: DOM | e) (Array JQuery)
-suggest _ config input displayOutput =
+                  -> (JQuery -> Eff (dom :: DOM | e) Unit)
+                  -> Eff (dom :: DOM | e) (Maybe JQuery)
+suggest _ config input displayOutput = map Just
   case getStrMapVal "snippets" config of
-    Left  err            -> createSingletonTextNodeArray err
+    Left  err            -> createTextNode err
     Right keywordsToText ->
       let candidates :: StrMap Config
           candidates = filterKeys (includes (toLower (trim input)) <<< toLower) keywordsToText
-      in buildOutputNodes candidates
+      in buildTable candidates
 
-buildOutputNodes :: forall e. StrMap Config -> Eff (dom :: DOM | e) (Array JQuery)
-buildOutputNodes candidates =
-  let rowsEff :: Eff (dom :: DOM | e) (Array JQuery)
-      rowsEff = sequence (toArrayWithKey buildOutputRow candidates)
-  in do
-    table <- create "<table>"
-    rows  <- rowsEff
-    traverse_ (flip append table) rows
-    pure [table]
+buildTable :: forall e. StrMap Config -> Eff (dom :: DOM | e) JQuery
+buildTable candidates = do
+  rows  <- sequence (toArrayWithKey buildTableRow candidates) :: Eff (dom :: DOM | e) (Array JQuery)
+  table <- create "<table>"
+  traverse_ (flip append table) rows
+  pure table
 
-buildOutputRow :: forall e. String -> Config -> Eff (dom :: DOM | e) JQuery
-buildOutputRow key value =
+buildTableRow :: forall e. String -> Config -> Eff (dom :: DOM | e) JQuery
+buildTableRow key value =
   let val = case toString value of
               Nothing -> "Error: snippets must be strings."
               Just s  -> s
@@ -72,6 +69,6 @@ foreign import copyButtonHandler :: forall e. JQueryEvent
 copy :: forall e. String
                -> Config
                -> String
-               -> (Array JQuery -> Eff (dom :: DOM | e) Unit)
-               -> Eff (dom :: DOM | e) (Array JQuery)
-copy _ _ _ _ = pure []
+               -> (JQuery -> Eff (dom :: DOM | e) Unit)
+               -> Eff (dom :: DOM | e) (Maybe JQuery)
+copy _ _ _ _ = pure Nothing

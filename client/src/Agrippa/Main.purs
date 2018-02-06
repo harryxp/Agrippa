@@ -12,6 +12,7 @@ import DOM (DOM)
 import DOM.HTML.Types (WINDOW)
 import Data.Either (Either(..))
 import Data.Foreign (readString)
+import Data.Maybe (Maybe(..))
 import Data.StrMap (lookup)
 import Data.String (Pattern(..), indexOf, splitAt)
 import Network.HTTP.Affjax (AJAX, get)
@@ -104,9 +105,11 @@ execTask (Task { name: name
                })
          keyCode = do
   displayTask name
-  case keyCode of
-    13        -> activate name taskConfig taskInput displayOutput >>= displayOutput
-    otherwise -> prompt   name taskConfig taskInput displayOutput >>= displayOutput
+  let activateOrPrompt = if keyCode == 13 then activate else prompt
+  maybeNode <- activateOrPrompt name taskConfig taskInput displayOutput
+  case maybeNode of
+    Just node -> displayOutput node
+    Nothing   -> pure unit
 
 displayTask :: forall e. String -> Eff (dom :: DOM | e) Unit
 displayTask t = select "#agrippa-task" >>= setText t

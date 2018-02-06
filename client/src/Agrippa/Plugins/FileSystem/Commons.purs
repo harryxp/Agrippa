@@ -1,6 +1,6 @@
 module Agrippa.Plugins.FileSystem.Commons (open, suggest) where
 
-import Prelude (Unit, bind, const, discard, pure, show, unit, (<*), (<$>), (<>), (>>=), (<=<), (<<<))
+import Prelude (Unit, bind, const, discard, flip, map, pure, show, unit, (*>), (<$>), (<>), (>>=), (<=<), (<<<))
 import Control.Monad.Aff (runAff)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.JQuery (JQuery, addClass, append, create, setProp, setText)
@@ -9,27 +9,28 @@ import Data.Array (drop, take, zipWith, (..))
 import Data.Maybe (Maybe(..))
 import Data.String (trim)
 import Data.StrMap (empty, insert)
-import Data.Traversable (sequence, traverse)
+import Data.Traversable (sequence, traverse, traverse_)
 import DOM (DOM)
 import Global (encodeURIComponent)
 import Network.HTTP.Affjax (AJAX, post)
 
 import Agrippa.Config (Config)
-import Agrippa.Utils (createSingletonTextNodeArray)
+import Agrippa.Utils (createTextNode)
 
 suggest :: forall e. String
                   -> String
                   -> String
                   -> Config
                   -> String
-                  -> (Array JQuery -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
-                  -> Eff (ajax :: AJAX, dom :: DOM | e) (Array JQuery)
+                  -> (JQuery -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
+                  -> Eff (ajax :: AJAX, dom :: DOM | e) (Maybe JQuery)
 suggest suggestUrl openUrl taskName config input displayOutput =
-  createSingletonTextNodeArray "Searching..." <*
   runAff
     (const (pure unit))
-    (\{ response: r } -> buildOutputNodes openUrl r >>= displayOutput)
+    (\{ response: r } -> buildOutput openUrl r >>= displayOutput)
     (post suggestUrl (buildSuggestReq taskName (trim input)))
+  *>
+  (map Just <<< createTextNode) "Searching..."
 
 buildSuggestReq :: String -> String -> Json
 buildSuggestReq taskName term = (fromObject <<<
@@ -39,10 +40,12 @@ buildSuggestReq taskName term = (fromObject <<<
 numOfShortcuts :: Int
 numOfShortcuts = 9
 
-buildOutputNodes :: forall e. String
-                           -> Json
-                           -> Eff (ajax :: AJAX, dom :: DOM | e) (Array JQuery)
-buildOutputNodes openUrl contents =
+buildOutput :: forall e. String
+                      -> Json
+                      -> Eff (ajax :: AJAX, dom :: DOM | e) JQuery
+buildOutput openUrl contents = do
+  containerDiv <- create "<div>"
+
   case (traverse toString <=< toArray) contents of
     Just items -> do
       nodesWithShortcuts <- buildNodesWithShortcuts openUrl (take numOfShortcuts items)
@@ -51,11 +54,11 @@ buildOutputNodes openUrl contents =
         div  <- create "<div>"
         append link div
         pure div) <$> drop numOfShortcuts items)
-      pure (nodesWithShortcuts <> otherNodes)
-    Nothing       -> do
-      div <- create "<div>"
-      setText "Error: expect a JSON array of strings from server." div
-      pure [div]
+      traverse_ (flip append containerDiv) (nodesWithShortcuts <> otherNodes)
+    Nothing    -> do
+      setText "Error: expect a JSON array of strings from server." containerDiv
+
+  pure containerDiv
 
 buildNodesWithShortcuts :: forall e. String
                                   -> Array String
@@ -96,7 +99,7 @@ open :: forall e. String
                -> String
                -> Config
                -> String
-               -> (Array JQuery -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
-               -> Eff (ajax :: AJAX, dom :: DOM | e) (Array JQuery)
-open _ _ _ _ _ = createSingletonTextNodeArray "Please use shortcuts or links."
+               -> (JQuery -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
+               -> Eff (ajax :: AJAX, dom :: DOM | e) (Maybe JQuery)
+open _ _ _ _ _ = pure Nothing
 

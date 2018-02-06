@@ -4,6 +4,7 @@ import Prelude (Unit, (<$>))
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.JQuery (JQuery)
 import Control.Monad.Eff.Now (NOW)
+import Data.Maybe (Maybe)
 import Data.StrMap (StrMap, fromFoldable)
 import Data.Tuple (Tuple(..))
 import DOM (DOM)
@@ -25,13 +26,13 @@ newtype Plugin =
          , onInputChange :: forall e. String
                                    -> Config
                                    -> String
-                                   -> (Array JQuery -> Eff (ajax :: AJAX, dom :: DOM, now :: NOW, window :: WINDOW | e) Unit)
-                                   -> Eff (ajax :: AJAX, dom :: DOM, now :: NOW, window :: WINDOW | e) (Array JQuery)
+                                   -> (JQuery -> Eff (ajax :: AJAX, dom :: DOM, now :: NOW, window :: WINDOW | e) Unit)
+                                   -> Eff (ajax :: AJAX, dom :: DOM, now :: NOW, window :: WINDOW | e) (Maybe JQuery)
          , onActivation  :: forall e. String
                                    -> Config
                                    -> String
-                                   -> (Array JQuery -> Eff (ajax :: AJAX, dom :: DOM, now :: NOW, window :: WINDOW | e) Unit)
-                                   -> Eff (ajax :: AJAX, dom :: DOM, now :: NOW, window :: WINDOW | e) (Array JQuery)
+                                   -> (JQuery -> Eff (ajax :: AJAX, dom :: DOM, now :: NOW, window :: WINDOW | e) Unit)
+                                   -> Eff (ajax :: AJAX, dom :: DOM, now :: NOW, window :: WINDOW | e) (Maybe JQuery)
          }
 
 -- All known plugins.  Not necessarily all loaded.
