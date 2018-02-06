@@ -40,6 +40,7 @@
 
 - Build a button to refresh file system indices manually, or use libevent etc.
 - Backend: readFile catch exception
+- TODO mortgage plugin
 - TODO list plugin?
 - Top level suggestion
 - Check runAff response status code

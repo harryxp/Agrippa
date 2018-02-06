@@ -21,13 +21,21 @@ import Agrippa.Plugins.FileSystem.MacAppSearch     as MAS
 import Agrippa.Plugins.OnlineSearch                as O
 import Agrippa.Plugins.Snippets                    as S
 
+-- A Plugin implements a specific functionality in Agrippa.
+-- Multiple tasks may be backed by the same plugin, usually with different configurations.
 newtype Plugin =
   Plugin { name          :: String
-         , onInputChange :: forall e. String
-                                   -> Config
-                                   -> String
+
+         , onInputChange :: forall e. String  -- task name
+                                   -> Config  -- task config
+                                   -> String  -- input
+                                   -- sometimes it takes a while to compute the real output;
+                                   -- this callback function provides a mechanism to display the output asynchronously
                                    -> (JQuery -> Eff (ajax :: AJAX, dom :: DOM, now :: NOW, window :: WINDOW | e) Unit)
+                                   -- output (might be overwritten by the callback function above)
                                    -> Eff (ajax :: AJAX, dom :: DOM, now :: NOW, window :: WINDOW | e) (Maybe JQuery)
+
+                                   -- parameter types are the same as above - for some plugins we can use the same function
          , onActivation  :: forall e. String
                                    -> Config
                                    -> String
@@ -46,6 +54,15 @@ plugins = [ Plugin { name: "Calculator"
                    , onInputChange: CLK.showTime
                    , onActivation: CLK.showTime
                    }
+          , Plugin { name: "OnlineSearch"
+                   , onInputChange: O.prompt
+                   , onActivation: O.search
+                   }
+          , Plugin { name: "Snippets"
+                   , onInputChange: S.suggest
+                   , onActivation: S.copy
+                   }
+          -- the following plugins use the backend heavily
           , Plugin { name: "ExecutableSearch"
                    , onInputChange: ES.suggest
                    , onActivation: ES.open
@@ -61,14 +78,6 @@ plugins = [ Plugin { name: "Calculator"
           , Plugin { name: "MacAppSearch"
                    , onInputChange: MAS.suggest
                    , onActivation: MAS.open
-                   }
-          , Plugin { name: "OnlineSearch"
-                   , onInputChange: O.prompt
-                   , onActivation: O.search
-                   }
-          , Plugin { name: "Snippets"
-                   , onInputChange: S.suggest
-                   , onActivation: S.copy
                    }
           ]
 

@@ -23,15 +23,14 @@ import Agrippa.Plugins.Registry (Plugin(..), namesToPlugins)
 import Agrippa.Utils (displayOutput, displayOutputText, mToE)
 
 main :: forall e. Eff (ajax :: AJAX, dom :: DOM, now :: NOW, ref :: REF, window :: WINDOW | e) Unit
-main = ready $
-  loadConfig (\config -> buildHelp config *> installInputHandler config)
+main = ready (loadConfig (\config -> buildHelp config *> installInputHandler config))
 
 loadConfig :: forall e. (Config -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
                      -> Eff (ajax :: AJAX, dom :: DOM | e) Unit
 loadConfig onSuccess = void $
   runAff
     (\_ -> displayOutputText "Failed to retrieve config from server.")
-    (\{ response: r } -> onSuccess r)
+    (\{ response: config } -> onSuccess config)
     (get "/agrippa/config/")
 
 installInputHandler :: forall e. Config
