@@ -53,7 +53,7 @@ exprParensParser p = between (string "(") (string ")") p
 exprNumParser :: Parser Expr
 exprNumParser = do
   n <- many1 (anyDigit <|> char '.')
-  let strNum = (fromCharArray <<< toUnfoldable) n
+  let strNum = fromCharArray (toUnfoldable n)
       maybeNum = fromString strNum
   case maybeNum of
     Nothing  -> fail ("Can't parse " <> strNum <> " to number.")

@@ -44,5 +44,5 @@ openUrl url = do
         Just _  -> "Opening..."
 
 completeUrl :: String -> String -> String
-completeUrl url input = replace (Pattern "${q}") (Replacement ((encodeURIComponent <<< trim) input)) url
+completeUrl url input = replace (Pattern "${q}") ((Replacement <<< encodeURIComponent <<< trim) input) url
 

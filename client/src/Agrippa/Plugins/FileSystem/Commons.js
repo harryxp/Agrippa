@@ -1,19 +1,19 @@
 "use strict";
 
-exports.installShortcutHandler = function (openUrl) {
-    return function (index) {
-        return function (item) {
+exports.shortcutHandler = function (openUrl) {
+    return function (evt) {
+        return function (body) {
             return function () {
-                $(document.body).on("keyup", function (evt) {
-                    var baseKeyCode = 48;
-                    // ctrlKey and shiftKey are the reason why we have to use JavaScript
-                    // PureScript jQuery library can't access them
-                    if (evt.ctrlKey === true &&
-                        evt.shiftKey === true &&
-                        evt.which === baseKeyCode + index) {
-                        jQuery.get(openUrl, {item: item});
+                // ctrlKey and shiftKey are the reason why we have to use JavaScript
+                // PureScript jQuery library can't access them
+                if (evt.ctrlKey === true && evt.shiftKey === true) {
+                    var baseKeyCode = 48;   // key code for 0
+                    var n = evt.which - baseKeyCode + 1;
+                    var link = $("#agrippa-output > div > div:nth-child(" + n + ") > a")[0];
+                    if (link) {
+                        jQuery.get(openUrl, {item: link.text});
                     }
-                });
+                }
             };
         };
     };
