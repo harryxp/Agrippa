@@ -1,8 +1,8 @@
 module Agrippa.Plugins.Snippets (copy, suggest) where
 
-import Prelude (Unit, bind, discard, flip, map, pure, (<<<))
+import Prelude (Unit, bind, discard, flip, map, pure, (<<<), (>>=), (*>))
 import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.JQuery (JQuery, JQueryEvent, addClass, append, create, on, setText, setValue)
+import Control.Monad.Eff.JQuery (JQuery, JQueryEvent, addClass, append, body, create, on, setText, setValue)
 import Data.Argonaut.Core (toString)
 import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
@@ -13,7 +13,7 @@ import Data.Traversable (sequence, traverse_)
 import DOM (DOM)
 
 import Agrippa.Config (Config, getStrMapVal)
-import Agrippa.Utils (createTextNode)
+import Agrippa.Utils (addShortcutLabels, createTextNode)
 
 suggest :: forall e. String
                   -> Config
@@ -33,6 +33,8 @@ buildTable candidates = do
   rows  <- sequence (toArrayWithKey buildTableRow candidates) :: Eff (dom :: DOM | e) (Array JQuery)
   table <- create "<table>"
   traverse_ (flip append table) rows
+  body >>= on "keyup" shortcutHandler
+  addShortcutLabels "<td>" rows
   pure table
 
 buildTableRow :: forall e. String -> Config -> Eff (dom :: DOM | e) JQuery
@@ -44,31 +46,33 @@ buildTableRow key value =
     keyCell <- create "<td>"
     setText key keyCell
 
-    copyButton <- create "<button>"
-    setText "Copy" copyButton
-    on "click" copyButtonHandler copyButton
-    buttonCell <- create "<td>"
-    append copyButton buttonCell
-
     valField <- create "<input>"
     setValue val valField
     addClass "agrippa-snippet" valField
     valCell <- create "<td>"
     append valField valCell
 
+    copyButton <- create "<button>"
+    setText "Copy" copyButton
+    on "click" copyButtonHandler copyButton
+    buttonCell <- create "<td>"
+    append copyButton buttonCell
+
     tr <- create "<tr>"
     append keyCell tr
-    append buttonCell tr
     append valCell tr
+    append buttonCell tr
     pure tr
 
-foreign import copyButtonHandler :: forall e. JQueryEvent
-                                           -> JQuery
-                                           -> Eff (dom :: DOM | e) Unit
+foreign import shortcutHandler :: forall e. JQueryEvent -> JQuery -> Eff (dom :: DOM | e) Unit
+
+foreign import copyButtonHandler :: forall e. JQueryEvent -> JQuery -> Eff (dom :: DOM | e) Unit
 
 copy :: forall e. String
                -> Config
                -> String
                -> (JQuery -> Eff (dom :: DOM | e) Unit)
                -> Eff (dom :: DOM | e) (Maybe JQuery)
-copy _ _ _ _ = pure Nothing
+copy _ _ _ _ = clickFirstCopyButton *> pure Nothing
+
+foreign import clickFirstCopyButton :: forall e. Eff (dom :: DOM | e) Unit

@@ -24,6 +24,8 @@
 
     import Unsafe.Coerce (unsafeCoerce)
 
+See [Differences from Haskell](https://github.com/purescript/documentation/blob/master/language/Differences-from-Haskell.md).
+
 ## Server
 
 1. Dependencies are in agrippa-server.cabal.
@@ -38,19 +40,17 @@
 
 ## General
 
+- Release
+- keepass plugin
+- mortgage plugin
+- list plugin?
 - Build a button to refresh file system indices manually, or use libevent etc.
 - Backend: readFile catch exception
-- TODO mortgage plugin
-- TODO list plugin?
 - Top level suggestion
 - Check runAff response status code
 - Error handler for runAff
 - Formatted string instead of <> (Text.Formatting?)
 - Learn Except
-
-## Snippets plugin
-
-- Shortcuts
 
 ## Calculator plugin
 
