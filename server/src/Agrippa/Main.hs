@@ -42,7 +42,9 @@ main = do
 readAgrippaConfig :: IO (Maybe (ScottyConfig, Object))
 readAgrippaConfig = do
   configDir <- getConfigDir
-  configStr <- B.readFile (configDir </> "config.json")
+  let configFile = configDir </> "config.json"
+  putStrLn ("Reading configuration from " ++ configFile ++ ".")
+  configStr <- B.readFile configFile
   return $ do
     agrippaConfig <- decode configStr                       :: Maybe Object
     prefs         <- lookupJSON "preferences" agrippaConfig :: Maybe Object

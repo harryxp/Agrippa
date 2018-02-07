@@ -9,9 +9,11 @@ exports.shortcutHandler = function (openUrl) {
                 if (evt.ctrlKey === true && evt.shiftKey === true) {
                     var baseKeyCode = 48;   // key code for 0
                     var n = evt.which - baseKeyCode + 1;
-                    var link = $("#agrippa-output > div > div:nth-child(" + n + ") > a")[0];
-                    if (link) {
-                        jQuery.get(openUrl, {item: link.text});
+                    if (n >= 2 && n <= 10) {
+                        var link = $("#agrippa-output > div > div:nth-child(" + n + ") > a")[0];
+                        if (link) {
+                            jQuery.get(openUrl, {item: link.text});
+                        }
                     }
                 }
             };

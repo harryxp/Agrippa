@@ -5,9 +5,11 @@ exports.shortcutHandler = function (evt) {
         return function () {
             var baseKeyCode = 48;   // key code for 0
             var n = evt.which - baseKeyCode + 1;
-            var button = $("#agrippa-output > table > tr:nth-child(" + n + ") > td > button")[0];
-            if (button) {
-                button.click();
+            if (n >= 2 && n <= 10) {
+                var button = $("#agrippa-output > table > tr:nth-child(" + n + ") > td > button")[0];
+                if (button) {
+                    button.click();
+                }
             }
         };
     };
