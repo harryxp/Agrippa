@@ -13,17 +13,8 @@
                , "plugin": "Calculator"
                },
 
-        "a":   { "name": "Launch Mac Apps"
-               , "plugin": "MacAppSearch"
-               , "paths": ["/Applications/", "/Users/<user>/Applications/", "/System/Library/PreferencePanes"]
-               },
-        "e":   { "name": "Launch Executables"
-               , "plugin": "ExecutableSearch"
-               , "paths": ["/bin/", "/usr/bin/"]
-               },
-        "f":   { "name": "Search for Files"
-               , "plugin": "MacFileSearch"
-               , "paths": ["/Users/<user>/Documents/", "/Users/<user>/Downloads/"]
+        "c":   { "name": "Clock"
+               , "plugin": "Clock"
                },
 
         "d":   { "name": "Dictionary"

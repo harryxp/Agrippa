@@ -1,7 +1,7 @@
 # Environment setup
 
-1. Install PureScript stuff (purescript, pulp, bower)
-2. Install Haskell stuff (stack)
+1. Install PureScript stuff (purescript, pulp, bower).
+2. Install Haskell stuff (Stack).
 
 # Development
 
@@ -22,13 +22,13 @@
 
 3. Haskell's `undefined` can be mimiced by `unsafeCoerce unit`.
 
-    import Unsafe.Coerce (unsafeCoerce)
+        import Unsafe.Coerce (unsafeCoerce)
 
 See [Differences from Haskell](https://github.com/purescript/documentation/blob/master/language/Differences-from-Haskell.md).
 
 ## Server
 
-1. Dependencies are in agrippa-server.cabal.
+1. Dependencies are in `agrippa-server.cabal`.
 
 2. Some useful commands during development (to see more try `stack`):
 
@@ -36,7 +36,30 @@ See [Differences from Haskell](https://github.com/purescript/documentation/blob/
         $ stack ghci
         $ stack exec agrippad   # run the server
 
-# TODOs
+# Release
+
+## Linux and Mac
+
+        $ ./dist.sh     # under top-level directory
+        $ mv dist/ Agrippa-<version>.<os>
+        $ tar -czf Agrippa-<version>.<os>.tar.gz Agrippa-<version>.<os>
+
+## Windows
+
+Same as above but need to replace the binary `agrippad`, and use .zip.
+
+The easiest workflow seems to be:
+
+1. Install [Cmder](http://cmder.net/) and [Stack](https://www.haskellstack.org/).
+2. Build `agrippad.exe` and copy it to Linux.
+3. Then
+
+        $ mv Agrippa-<version>.Linux/ Agrippa-<version>.Windows/
+        $ rm Agrippa-<version>.Windows/agrippad
+        $ mv <some-path>/agrippad.exe Agrippa-<version>.Windows/
+        $ zip -r Agrippa-<version>.Windows.zip Agrippa-<version>.Windows/
+
+# TODO
 
 ## General
 

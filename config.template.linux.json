@@ -19,7 +19,7 @@
                },
         "f":   { "name": "Search for Files"
                , "plugin": "LinuxFileSearch"
-               , "paths": ["/home/harry/Downloads", "/home/harry/Dropbox"]
+               , "paths": ["/home/<user>/Downloads", "/home/<user>/Dropbox"]
                },
 
         "c":   { "name": "Clock"
