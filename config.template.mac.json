@@ -13,17 +13,17 @@
                , "plugin": "Calculator"
                },
 
+        "a":   { "name": "Launch Mac Apps"
+               , "plugin": "MacAppSearch"
+               , "paths": ["/Applications/", "/Users/hpan/Applications/", "/System/Library/PreferencePanes"]
+               },
         "e":   { "name": "Launch Executables"
                , "plugin": "ExecutableSearch"
-               , "paths": ["/bin/", "/usr/bin/", "/usr/local/bin/", "/opt/plan9/bin/"]
+               , "paths": ["/bin/", "/usr/bin/"]
                },
         "f":   { "name": "Search for Files"
-               , "plugin": "LinuxFileSearch"
-               , "paths": ["/home/harry/Downloads", "/home/harry/Dropbox"]
-               },
-
-        "c":   { "name": "Clock"
-               , "plugin": "Clock"
+               , "plugin": "MacFileSearch"
+               , "paths": ["/Users/hpan/Documents/", "/Users/hpan/Downloads/"]
                },
 
         "d":   { "name": "Dictionary"
@@ -49,6 +49,10 @@
         "u":   { "name": "USPS Tracking"
                , "plugin": "OnlineSearch"
                , "url": "https://tools.usps.com/go/TrackConfirmAction?tLabels=${q}"
+               },
+        "v":   { "name": "Visa Bulletin"
+               , "plugin": "OnlineSearch"
+               , "url": "https://travel.state.gov/content/travel/en/legal/visa-law0/visa-bulletin.html"
                },
         "w":   { "name": "Wikipedia Search"
                , "plugin": "OnlineSearch"
