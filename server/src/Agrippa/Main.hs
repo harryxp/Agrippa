@@ -10,11 +10,10 @@ import System.IO (hPutStrLn, stderr)
 import Web.Scotty (Options(..), file, get, json, scottyOpts)
 
 import qualified Data.ByteString.Lazy as B (readFile)
-import qualified Data.HashMap.Lazy    as M (HashMap)
 import qualified Data.Text.Lazy       as T (Text)
 
 import Agrippa.Utils (getConfigDir, lookupJSON)
-import Agrippa.Plugins.FileSystem.IndexBuilder (buildSearchIndices)
+import Agrippa.Plugins.FileSystem.IndexBuilder (Index, buildSearchIndices)
 
 import qualified Agrippa.Plugins.FileSystem.ExecutableSearch as EXS (registerHandlers)
 import qualified Agrippa.Plugins.FileSystem.LinuxFileSearch  as LFS (registerHandlers)
@@ -58,7 +57,7 @@ buildScottyOpts (ScottyConfig { host = h, port = p }) =
           , settings = setPort p (setHost (fromString h) defaultSettings)
           }
 
-startScotty :: Options -> Object -> M.HashMap String [T.Text] -> IO ()
+startScotty :: Options -> Object -> Index -> IO ()
 startScotty opts agrippaConfig taskNamesToItems =
   scottyOpts opts $ do
     get "/agrippa/" $ do
