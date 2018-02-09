@@ -30,10 +30,10 @@ suggest _ config input displayOutput = map Just
 
 buildTable :: forall e. StrMap Config -> Eff (dom :: DOM | e) JQuery
 buildTable candidates = do
+  body >>= on "keyup" shortcutHandler
   rows  <- sequence (toArrayWithKey buildTableRow candidates) :: Eff (dom :: DOM | e) (Array JQuery)
   table <- create "<table>"
   traverse_ (flip append table) rows
-  body >>= on "keyup" shortcutHandler
   addShortcutLabels "<td>" rows
   pure table
 
@@ -73,6 +73,6 @@ copy :: forall e. String
                -> String
                -> (JQuery -> Eff (dom :: DOM | e) Unit)
                -> Eff (dom :: DOM | e) (Maybe JQuery)
-copy _ _ _ _ = clickFirstCopyButton *> pure Nothing
+copy _ _ _ _ = (body >>= on "keyup" shortcutHandler) *> clickFirstCopyButton *> pure Nothing
 
 foreign import clickFirstCopyButton :: forall e. Eff (dom :: DOM | e) Unit
