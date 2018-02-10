@@ -40,33 +40,25 @@ See [Differences from Haskell](https://github.com/purescript/documentation/blob/
 
 ## Linux and Mac
 
-        $ ./dist.sh     # under top-level directory
-        $ mv dist/ Agrippa-<version>.<os>
-        $ tar -czf Agrippa-<version>.<os>.tar.gz Agrippa-<version>.<os>
+        $ ./dist.pl <version> <os>  # run it under the project directory
 
 ## Windows
 
-Same as above but need to replace the binary `agrippad`, and use .zip.
+The current process is that we build the server binary on Windows but build the
+client on a Unix-like system, and also create the archive there.
 
-The easiest workflow seems to be:
-
-1. Install [Cmder](http://cmder.net/) and [Stack](https://www.haskellstack.org/).
-2. Build `agrippad.exe` and copy it to Linux.
-3. Then
-
-        $ mv Agrippa-<version>.Linux/ Agrippa-<version>.Windows/
-        $ rm Agrippa-<version>.Windows/agrippad
-        $ mv <some-path>/agrippad.exe Agrippa-<version>.Windows/
-        $ zip -r Agrippa-<version>.Windows.zip Agrippa-<version>.Windows/
+1. Install [Cmder](http://cmder.net/) and
+   [Stack](https://www.haskellstack.org/) on Windows.
+2. Build `agrippad.exe` on Windows, copy it to Linux or Mac, and put it under
+   the project directory.
+3. Then run on Mac or Linux: `./dist.pl <version> Windows`.
 
 # TODO
 
 ## General
 
-- Release
 - keepass plugin
 - mortgage plugin
-- list plugin?
 - Build a button to refresh file system indices manually, or use libevent etc.
 - Backend: readFile catch exception
 - Top level suggestion
