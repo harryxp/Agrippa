@@ -58,7 +58,6 @@ client on a Unix-like system, and also create the archive there.
 ## General
 
 - keepass plugin
-- mortgage plugin
 - Build a button to refresh file system indices manually, or use libevent etc.
 - Backend: readFile catch exception
 - Top level suggestion

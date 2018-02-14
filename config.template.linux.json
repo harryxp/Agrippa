@@ -13,6 +13,10 @@
                , "plugin": "Calculator"
                },
 
+        "m":   { "name": "Mortgage Calculator"
+               , "plugin": "Mortgage Calculator"
+               },
+
         "e":   { "name": "Launch Executables"
                , "plugin": "ExecutableSearch"
                , "paths": ["/bin/", "/usr/bin/", "/usr/local/bin/", "/opt/plan9/bin/"]
