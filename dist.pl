@@ -30,7 +30,7 @@ sub main {
         system("cp config.template.$os_lc.json $distdir/config.json");
 
         chdir("client");
-        system("pulp browserify -O --main Agrippa.Main --to web/js/agrippa.js");
+        system("pulp browserify -O --main Agrippa.Main --to web/agrippa.js");
         system("cp -R web ../$distdir/");   # No trailing slash for web!  It matters on MacOS/BSD.
 
         if ($release_for_windows) {

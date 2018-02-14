@@ -64,8 +64,8 @@ startScotty opts agrippaConfig taskNamesToItems =
     get "/agrippa/" $ do
       file "web/index.html"
 
-    get "/agrippa/js/agrippa.js" $ do
-      file "web/js/agrippa.js"
+    get "/agrippa/agrippa.js" $ do
+      file "web/agrippa.js"
 
     -- serve the config to frontend
     get "/agrippa/config" $ do

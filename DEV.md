@@ -14,7 +14,7 @@
 
 2. Some useful commands during development (to see more try `pulp`):
 
-        $ pulp browserify -O --main Agrippa.Main --to web/js/agrippa.js # generate
+        $ pulp browserify -O --main Agrippa.Main --to web/agrippa.js    # generate
 
         $ pulp build            # type check
         $ pulp psci             # or `pulp repl`
