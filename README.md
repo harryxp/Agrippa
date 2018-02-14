@@ -6,6 +6,19 @@ application that helps the user perform various *task*s.
 Multiple *task*s may be backed by the same *plugin*, usually with different
 configurations.
 
+Current plugins and their features:
+
+- Calculator
+- Clock
+- MortgageCalc: compute your monthly payment and amortization.
+- OnlineSearch: web at your fingertips.
+- Snippets: search \& recall pieces of text.
+- [File System plugins]
+    - ExecutableSearch: search \& open executables on Unix-like systems
+    - LinuxFileSearch: search \& open files on Linux
+    - MacAppSearch: search \& open applications on Mac
+    - MacFileSearch: search \& open files on Mac
+
 # Installation
 
 1. Grab the latest [release](https://github.com/harryxp/Agrippa/releases) for
@@ -45,10 +58,14 @@ This address is also configurable in `config.json`.
    is chosen.
 3. As you type, follow the instructions and feedback.
 
-# TODO global hotkey
+# Global Hotkey
+
+Agrippa is designed to be used with a global hotkey.  The following software is
+used by the author to set that up.
 
 - Linux: [XBindKeys](http://www.nongnu.org/xbindkeys/)
 - Mac: [BetterTouchTool](https://www.boastr.net/)
+- Windows: [AutoHotKey](https://autohotkey.com/)
 
 # History
 
@@ -63,5 +80,5 @@ Therefore I created Agrippa.
 
 It is named after [Marcus Vipsanius
 Agrippa](https://en.wikipedia.org/wiki/Marcus_Vipsanius_Agrippa), right-hand
-man of [Augustus](https://en.wikipedia.org/wiki/Augustus), _Princeps Civitatis_
+man of [Augustus](https://en.wikipedia.org/wiki/Augustus), *Princeps Civitatis*
 of ancient Rome.
