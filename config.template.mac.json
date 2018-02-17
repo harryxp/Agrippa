@@ -29,6 +29,12 @@
                , "paths": ["/Users/<user>/Documents/", "/Users/<user>/Downloads/"]
                },
 
+        "k":   { "name": "KeePass"
+               , "plugin": "KeePass1"
+               , "databaseFilePath": "<database file location>"
+               , "password": "<database file master password>"
+               },
+
         "d":   { "name": "Dictionary"
                , "plugin": "OnlineSearch"
                , "url": "https://www.merriam-webster.com/dictionary/${q}"

@@ -1,10 +1,8 @@
-{-# LANGUAGE OverloadedStrings #-}
 module Agrippa.Plugins.FileSystem.IndexBuilder (buildSearchIndices) where
 
 import Data.Aeson (Object, Value(Object))
 import Data.List (elem)
 import System.FilePath.Find (FileType(Directory, RegularFile, SymbolicLink), FilterPredicate, RecursionPredicate, always, extension, find, fileType, (==?), (/=?), (&&?), (||?))
-import System.FilePath ((</>))
 import System.TimeIt (timeItT)
 
 import qualified Data.HashMap.Lazy as M (HashMap, elems, fromList, lookup)

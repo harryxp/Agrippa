@@ -1,6 +1,6 @@
 module Agrippa.Utils (getConfigDir, lookupJSON) where
 
-import Data.Aeson (FromJSON, Object, Result(..), fromJSON)
+import Data.Aeson (FromJSON, Object, Result(Error, Success), fromJSON)
 import Data.Text (Text)
 import System.Directory (getAppUserDataDirectory)
 
@@ -14,6 +14,6 @@ lookupJSON key m = do
   jValue <- M.lookup key m
   result <- return (fromJSON jValue)
   case result of
-    Error   e -> Nothing
+    Error   _ -> Nothing
     Success v -> Just v
 

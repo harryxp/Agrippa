@@ -1,4 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
 module Agrippa.Plugins.FileSystem.MacFileSearch (registerHandlers) where
 
 import Control.Monad (void)

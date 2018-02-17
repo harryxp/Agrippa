@@ -1,10 +1,10 @@
 module Agrippa.Plugins.Registry (Plugin(..), namesToPlugins) where
 
-import Prelude (Unit, (<$>))
+import Prelude (Unit, pure, (<$>))
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.JQuery (JQuery)
 import Control.Monad.Eff.Now (NOW)
-import Data.Maybe (Maybe)
+import Data.Maybe (Maybe(Nothing))
 import Data.StrMap (StrMap, fromFoldable)
 import Data.Tuple (Tuple(..))
 import DOM (DOM)
@@ -18,6 +18,7 @@ import Agrippa.Plugins.FileSystem.ExecutableSearch as ES
 import Agrippa.Plugins.FileSystem.LinuxFileSearch  as LFS
 import Agrippa.Plugins.FileSystem.MacFileSearch    as MFS
 import Agrippa.Plugins.FileSystem.MacAppSearch     as MAS
+import Agrippa.Plugins.KeePass1                    as K
 import Agrippa.Plugins.MortgageCalc                as M
 import Agrippa.Plugins.OnlineSearch                as O
 import Agrippa.Plugins.Snippets                    as S
@@ -49,11 +50,11 @@ newtype Plugin =
 plugins :: Array Plugin
 plugins = [ Plugin { name: "Calculator"
                    , onInputChange: C.calculate
-                   , onActivation: C.calculate
+                   , onActivation: \_ _ _ _ -> pure Nothing
                    }
           , Plugin { name: "Clock"
                    , onInputChange: CLK.showTime
-                   , onActivation: CLK.showTime
+                   , onActivation: \_ _ _ _ -> pure Nothing
                    }
           , Plugin { name: "Mortgage Calculator"
                    , onInputChange: M.showUsage
@@ -83,6 +84,10 @@ plugins = [ Plugin { name: "Calculator"
           , Plugin { name: "MacAppSearch"
                    , onInputChange: MAS.suggest
                    , onActivation: MAS.open
+                   }
+          , Plugin { name: "KeePass1"
+                   , onInputChange: K.suggest
+                   , onActivation: \_ _ _ _ -> pure Nothing
                    }
           ]
 

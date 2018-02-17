@@ -58,7 +58,6 @@ client on a Unix-like system, and also create the archive there.
 ## General
 
 - keepass plugin
-- Build a button to refresh file system indices manually, or use libevent etc.
 - Backend: readFile catch exception
 - Top level suggestion
 - Check runAff response status code
@@ -73,12 +72,15 @@ client on a Unix-like system, and also create the archive there.
 
 ## File System plugins
 
-- Still slow on the backend side
-- Frontend max recursion level exceeded if too many items
-- Highlight keyword
+- Support Windows.
+- Still slow on the backend side.
+- It does not detect new items automatically.
+- Frontend max recursion level exceeded if too many items.
+- Highlight keyword.
 
 ## Online Search plugin
 
 - Query using a template library?  Text.Formatting?
 - Only one query parameter is allowed now
+- Allow sending one query to multiple websites?
 

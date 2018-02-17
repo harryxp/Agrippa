@@ -1,4 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
 module Agrippa.Main (agrippadDriver) where
 
 import Control.Concurrent.Async (async, cancel)
@@ -10,7 +9,7 @@ import Network.Wai.Handler.Warp (defaultSettings, setHost, setPort)
 import System.Exit (exitFailure)
 import System.FilePath ((</>))
 import System.IO (hPutStrLn, stderr)
-import Web.Scotty (Options(..), file, get, json, liftAndCatchIO, scottyOpts)
+import Web.Scotty (Options(Options), addHeader, file, get, json, liftAndCatchIO, settings, scottyOpts, verbose)
 
 import qualified Data.ByteString.Lazy as B (readFile)
 import qualified Data.HashMap.Lazy    as M (HashMap)
@@ -23,6 +22,7 @@ import qualified Agrippa.Plugins.FileSystem.ExecutableSearch as EXS (registerHan
 import qualified Agrippa.Plugins.FileSystem.LinuxFileSearch  as LFS (registerHandlers)
 import qualified Agrippa.Plugins.FileSystem.MacAppSearch     as MAS (registerHandlers)
 import qualified Agrippa.Plugins.FileSystem.MacFileSearch    as MFS (registerHandlers)
+import qualified Agrippa.Plugins.KeePass1                    as K   (registerHandlers)
 
 data ScottyConfig = ScottyConfig { host :: String
                                  , port :: Int
@@ -58,9 +58,9 @@ readAgrippaConfig = do
   return $ do
     agrippaConfig <- decode configStr                       :: Maybe Object
     prefs         <- lookupJSON "preferences" agrippaConfig :: Maybe Object
-    host          <- lookupJSON "host"        prefs         :: Maybe String
-    port          <- lookupJSON "port"        prefs         :: Maybe Int
-    Just (ScottyConfig {host = host, port = port}, agrippaConfig)
+    host'         <- lookupJSON "host"        prefs         :: Maybe String
+    port'         <- lookupJSON "port"        prefs         :: Maybe Int
+    Just (ScottyConfig {host = host', port = port'}, agrippaConfig)
 
 buildScottyOpts :: ScottyConfig -> Options
 buildScottyOpts (ScottyConfig { host = h, port = p }) =
@@ -72,10 +72,16 @@ startScotty :: Options -> Object -> M.HashMap String [T.Text] -> MVar () -> IO (
 startScotty scottyConfig agrippaConfig taskNamesToItems mvar =
   scottyOpts scottyConfig $ do
     get "/agrippa/" $ do
+      addHeader "Content-Type" "text/html"
       file "web/index.html"
 
     get "/agrippa/agrippa.js" $ do
+      addHeader "Content-Type" "application/javascript"
       file "web/agrippa.js"
+
+    get "/agrippa/styles.css" $ do
+      addHeader "Content-Type" "text/css"
+      file "web/styles.css"
 
     -- serve the config to frontend
     get "/agrippa/config" $ do
@@ -91,4 +97,6 @@ startScotty scottyConfig agrippaConfig taskNamesToItems mvar =
     LFS.registerHandlers taskNamesToItems "/agrippa/linux-file/suggest" "/agrippa/linux-file/open"
     MAS.registerHandlers taskNamesToItems "/agrippa/mac-app/suggest"    "/agrippa/mac-app/open"
     MFS.registerHandlers taskNamesToItems "/agrippa/mac-file/suggest"   "/agrippa/mac-file/open"
+
+    K.registerHandlers   agrippaConfig    "/agrippa/keepass1/suggest"
 

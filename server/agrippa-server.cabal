@@ -15,6 +15,8 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
+  ghc-options:         -Wall -Wincomplete-uni-patterns -Wincomplete-record-updates -Wmissing-import-lists
+  default-extensions:  OverloadedStrings
   exposed-modules:     Agrippa.Main
                      , Agrippa.Utils
                      , Agrippa.Plugins.FileSystem.Commons
@@ -23,26 +25,33 @@ library
                      , Agrippa.Plugins.FileSystem.LinuxFileSearch
                      , Agrippa.Plugins.FileSystem.MacAppSearch
                      , Agrippa.Plugins.FileSystem.MacFileSearch
+                     , Agrippa.Plugins.KeePass1
   build-depends:       base >= 4.7 && < 5
                      , aeson >= 1.0.2.1
                      , async >= 2.1.1.1
                      , bytestring >= 0.10.8.1
+                     , cipher-aes >= 0.2.11
+                     , cryptohash >= 0.11.9
                      , directory >= 1.3.0.0
                      , filemanip >= 0.3.6.1
                      , filepath >= 1.4.1.1
+                     , largeword >= 1.2.5
                      , process >= 1.4.3.0
                      , scotty >= 0.11.0
                      , split >= 0.2.3.2
                      , text >= 1.2.2.1
                      , timeit >= 1.0.0.0
+                     , Twofish >= 0.3.2
                      , unordered-containers >= 0.2.8.0
+                     , utf8-string >= 1.0.1.1
                      , warp >= 3.2.12
   default-language:    Haskell2010
 
 executable agrippad
   hs-source-dirs:      app
   main-is:             Main.hs
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N -Wall -Wincomplete-uni-patterns -Wincomplete-record-updates -Wmissing-import-lists
+  default-extensions:  OverloadedStrings
   build-depends:       base
                      , agrippa-server
   default-language:    Haskell2010
@@ -53,7 +62,7 @@ test-suite agrippa-server-test
   main-is:             Spec.hs
   build-depends:       base
                      , agrippa-server
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N -Wall -Wincomplete-uni-patterns -Wincomplete-record-updates -Wmissing-import-lists
   default-language:    Haskell2010
 
 source-repository head

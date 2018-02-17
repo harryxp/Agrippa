@@ -1,0 +1,337 @@
+module Agrippa.Plugins.KeePass1 (registerHandlers) where
+
+-- Reference implementations:
+-- 1. KeePass-1.35-Src/KeePassLibCpp/Details/PwFileImpl.cpp
+-- 2. https://searchcode.com/codesearch/view/19368318/ (source downloadable at https://www.keepassx.org/downloads/0-4)
+
+import Data.Aeson (Object, ToJSON(toJSON), Value(Object, String))
+import Data.Bits (shiftL, (.&.))
+import Data.LargeWord (Word256)
+import Data.String (fromString)
+import Data.Word (Word16, Word32, Word8)
+import Web.Scotty (ActionM, RoutePattern, ScottyM, json, jsonData, liftAndCatchIO, post)
+
+import qualified Codec.Encryption.Twofish  as TF
+import qualified Crypto.Cipher.AES         as A (decryptCBC, encryptECB, initAES)
+import qualified Crypto.Hash.SHA256        as H (hash)
+import qualified Data.Bitlib               as L (pack)
+import qualified Data.ByteString           as B (ByteString, append, drop, head, last, length, readFile, take, unpack)
+import qualified Data.ByteString.UTF8      as U (toString)
+import qualified Data.HashMap.Strict       as M (HashMap, elems, empty, insert)
+import qualified Data.Text                 as T (Text, dropWhileEnd, isInfixOf, null, pack, toLower)
+
+import Agrippa.Utils (lookupJSON)
+
+import Debug.Trace
+
+registerHandlers :: Object -> RoutePattern -> ScottyM ()
+registerHandlers agrippaConfig suggestUrl =
+  post suggestUrl $ do
+    let maybePair = do
+          tasks        <- lookupJSON "tasks" agrippaConfig :: Maybe Object
+          keePass1Task <- case (filter usesKeePass1Plugin . M.elems) tasks of
+                            -- TODO what about multiple KeePass1 tasks?
+                            [t] -> Just t
+                            _   -> Nothing
+          case keePass1Task of
+            Object o -> do filePath <- lookupJSON "databaseFilePath" o
+                           password <- lookupJSON "password"         o
+                           Just (filePath, password)
+            _        -> Nothing
+    case maybePair of
+      Just (filePath, password) -> do
+        (groups, entries) <- liftAndCatchIO (readKeePass1File filePath password) -- TODO better way of password handling
+        o                 <- jsonData :: ActionM Object
+        case lookupJSON "term" o of
+          Just term -> json (findItems (keepNonBackupEntries groups entries) term)
+          Nothing   -> json ([] :: [Entry])
+      Nothing                   -> json ([] :: [Entry])
+
+usesKeePass1Plugin :: Value -> Bool
+usesKeePass1Plugin (Object o) = case lookupJSON "plugin" o :: Maybe String of
+  Just plugin -> plugin == "KeePass1"
+  Nothing     -> False
+usesKeePass1Plugin _          = False
+
+keepNonBackupEntries :: [Group] -> [Entry] -> [Entry]
+keepNonBackupEntries groups entries =
+  let backupGroups = filter isBackupGroup groups
+      backupGroupIds = concatMap (\(Group fields) -> extractGroupId fields) backupGroups
+  in case backupGroupIds of
+      [backupGroupId] -> filter (isNotBackup backupGroupId) entries
+      _               -> entries
+  where isBackupGroup (Group fields) = any (== (GroupTitle "Backup\0")) fields
+        extractGroupId (GroupId i:_ ) = [i]
+        extractGroupId (        _:xs) = extractGroupId xs
+        extractGroupId []             = []
+        isNotBackup backupGroupId (Entry fields) = not (any (== (EntryGroupId backupGroupId)) fields)
+
+findItems :: [Entry] -> String -> [Entry]
+findItems entries term = filter (\(Entry fields) -> any termMatchesEntryField fields) entries
+  where termMatchesEntryField :: EntryField -> Bool
+        termMatchesEntryField (EntryTitle title) = T.isInfixOf ((T.toLower . T.pack) term) (T.toLower title)
+        termMatchesEntryField _                  = False
+
+-- TODO make below a library
+
+headerSize      :: Int
+headerSize       = 124
+pwmDbsig1       :: Int
+pwmDbsig1        = 0x9AA2D903
+pwmDbsig2       :: Int
+pwmDbsig2        = 0xB54BFB65
+pwmDbverDw      :: Int
+pwmDbverDw       = 0x00030002
+pwmFlagRijndael :: Int
+pwmFlagRijndael  = 2
+pwmFlagArcfour  :: Int
+pwmFlagArcfour   = 4
+pwmFlagTwofish  :: Int
+pwmFlagTwofish   = 8
+
+readKeePass1File :: String -> String -> IO ([Group], [Entry])
+readKeePass1File filePath pwd = do
+  contents <- loadFile filePath
+  let hdr = parseHeader contents
+  validateSignatures hdr
+  validateVersion hdr
+  validateNumGroups hdr
+  let algorithm = selectAlgorithm hdr
+      finalKey = getFinalKey (fromString pwd) hdr
+      decryptedBuf = decrypt contents hdr algorithm finalKey
+      (groups, offsetAfterGroups) = parseGroups decryptedBuf (numGroups hdr)
+      (entries, _) = parseEntries decryptedBuf (numEntries hdr) offsetAfterGroups
+  return (groups, entries)
+
+loadFile :: String -> IO B.ByteString
+loadFile filePath = do
+  contents <- B.readFile filePath
+  if B.length contents < headerSize
+    then error "Error: file size < header size."
+    else return contents
+
+data Header = Header { signature1       :: Int
+                     , signature2       :: Int
+                     , flags            :: Int
+                     , version          :: Int
+                     , finalRandomSeed  :: B.ByteString
+                     , encryptionIV     :: B.ByteString
+                     , numGroups        :: Int
+                     , numEntries       :: Int
+                     , contentsHash     :: B.ByteString
+                     , transfRandomSeed :: B.ByteString
+                     , keyTransfRounds  :: Int
+                     }
+
+parseHeader :: B.ByteString -> Header
+parseHeader buf = Header { signature1       = (littleEndian32ToInt . substring   0  4) buf
+                         , signature2       = (littleEndian32ToInt . substring   4  4) buf
+                         , flags            = (littleEndian32ToInt . substring   8  4) buf
+                         , version          = (littleEndian32ToInt . substring  12  4) buf
+                         , finalRandomSeed  = (                      substring  16 16) buf
+                         , encryptionIV     = (                      substring  32 16) buf
+                         , numGroups        = (littleEndian32ToInt . substring  48  4) buf
+                         , numEntries       = (littleEndian32ToInt . substring  52  4) buf
+                         , contentsHash     = (                      substring  56 32) buf
+                         , transfRandomSeed = (                      substring  88 32) buf
+                         , keyTransfRounds  = (littleEndian32ToInt . substring 120  4) buf
+                         }
+
+validateSignatures :: Header -> IO ()
+validateSignatures hdr =
+  if ((signature1 hdr) == pwmDbsig1) && ((signature2 hdr) == pwmDbsig2)
+    then return ()
+    else error "Error: wrong signature."
+
+{- The reference implementation KeePass 1.35 also supports older version 0.1.x
+ - and 0.2.x databases (implemented in OpenDatabaseV1 and OpenDatabaseV2).
+ - This can be detected by the version field in header.
+ -
+ - We don't deal with older versions.
+ -}
+
+validateVersion :: Header -> IO ()
+validateVersion hdr =
+  if (version hdr) .&. 0xFFFFFF00 == pwmDbverDw .&. 0xFFFFFF00
+    then return ()
+    else error "Error: unsupported version."
+
+validateNumGroups :: Header -> IO ()
+validateNumGroups hdr = if numGroups hdr > 0 then return () else error "Error: illegal number of groups."
+
+data KeePass1Cipher = RijndaelCipher | TwofishCipher
+
+selectAlgorithm :: Header -> KeePass1Cipher
+selectAlgorithm hdr | (flags hdr) .&. pwmFlagRijndael /= 0 = RijndaelCipher
+                    | (flags hdr) .&. pwmFlagTwofish  /= 0 = TwofishCipher
+                    | otherwise                            = error "Error: unknown encryption algorithm."
+
+getFinalKey :: B.ByteString -> Header -> B.ByteString
+getFinalKey pwd hdr =
+  let rawMasterKey = H.hash pwd
+      masterKey = transformKey rawMasterKey
+  in H.hash (B.append (finalRandomSeed hdr) masterKey)
+  where
+    transformKey :: B.ByteString -> B.ByteString
+    transformKey rawMasterKey =
+      let aes = A.initAES (transfRandomSeed hdr)
+          rawMasterKey' = foldl
+                            (\accum _ -> A.encryptECB aes accum)
+                            rawMasterKey
+                            [1..(keyTransfRounds hdr)]
+      in H.hash rawMasterKey'
+
+decrypt :: B.ByteString -> Header -> KeePass1Cipher -> B.ByteString -> B.ByteString
+decrypt buffer hdr algorithm finalKey =
+  let totalSize = B.length buffer in
+    case algorithm of
+      RijndaelCipher -> let decryptedBuf = A.decryptCBC
+                                            (A.initAES finalKey)
+                                            (encryptionIV hdr)
+                                            (B.drop headerSize buffer)
+                            cryptoSize = totalSize - fromIntegral (B.last decryptedBuf) - headerSize
+                        in if validateCryptoSize cryptoSize && validateContentsHash cryptoSize decryptedBuf
+                              then decryptedBuf
+                              else error "Error: decryption failed."
+      TwofishCipher  -> let twofishKey :: Word256
+                            twofishKey = (L.pack . B.unpack) finalKey
+                            twofishCipher = TF.mkStdCipher twofishKey
+                        in undefined -- TODO use another twofish lib
+  where
+    validateCryptoSize cryptoSize = cryptoSize <= 2147483446 && not (cryptoSize == 0 && (numGroups hdr) > 0)
+    validateContentsHash cryptoSize decryptedBuf = (contentsHash hdr) == H.hash (B.take cryptoSize decryptedBuf)
+
+data Group = Group [GroupField] deriving Show
+data GroupField = GroupId    Int
+                | GroupTitle T.Text
+                | GroupImage Int
+                | GroupLevel Int
+                | GroupEnd
+                deriving (Eq, Show)
+
+-- TODO State Monad
+parseGroups :: B.ByteString -> Int -> ([Group], Int)
+parseGroups decryptedBuf numGroups' = (head . drop numGroups' . iterate parseGroup) ([], 0)
+  where
+    parseGroup :: ([Group], Int) -> ([Group], Int)
+    parseGroup (groups, offset) =
+      let (groupFields, newOffset) =
+            until
+              (\(groupFields', _) -> not (null groupFields') && head groupFields' == GroupEnd)
+              parseGroupField
+              ([], offset)
+      in (Group groupFields : groups, newOffset)
+    parseGroupField :: ([GroupField], Int) -> ([GroupField], Int)
+    parseGroupField (groupFields, offset) =
+      let fieldType = (littleEndian16ToInt . substring offset     2) decryptedBuf
+          fieldSize = (littleEndian32ToInt . substring (offset+2) 4) decryptedBuf
+          -- TODO handling out of range
+          offset'   = offset + 6
+          newOffset = offset' + fieldSize
+      in case fieldType of
+        0x0001 -> (((GroupId    . littleEndian32ToInt . substring offset' 4        ) decryptedBuf) : groupFields, newOffset)
+        0x0002 -> (((GroupTitle . T.pack . U.toString . substring offset' fieldSize) decryptedBuf) : groupFields, newOffset)
+        0x0007 -> (((GroupImage . littleEndian32ToInt . substring offset' 4        ) decryptedBuf) : groupFields, newOffset)
+        0x0008 -> (((GroupLevel . littleEndian16ToInt . substring offset' 2        ) decryptedBuf) : groupFields, newOffset)
+        0xFFFF -> (  GroupEnd                                                                      : groupFields, newOffset)
+        _      -> (groupFields, newOffset)
+        {- The last case includes:
+         - 0x0000 (ignore)
+         - 0x0003, 0x0004, 0x0005, 0x0006, 0x0009 (no longer used by KeePassX but part of the KDB format)
+         - other unsupported fields
+        -}
+
+data Entry = Entry [EntryField] deriving Show
+
+instance ToJSON Entry where
+  toJSON (Entry fields) = (Object . foldl keepFieldsOfInterest M.empty) fields
+
+keepFieldsOfInterest :: M.HashMap T.Text Value -> EntryField -> M.HashMap T.Text Value
+keepFieldsOfInterest accum (EntryTitle    title)    = keepFieldsOfInterest' accum "Title"    title
+keepFieldsOfInterest accum (EntryURL      url)      = keepFieldsOfInterest' accum "URL"      url
+keepFieldsOfInterest accum (EntryUserName userName) = keepFieldsOfInterest' accum "UserName" userName
+keepFieldsOfInterest accum (EntryPassword password) = keepFieldsOfInterest' accum "Password" password
+keepFieldsOfInterest accum (EntryComment  comment)  = keepFieldsOfInterest' accum "Comment"  comment
+keepFieldsOfInterest accum _                        = accum
+
+keepFieldsOfInterest' :: M.HashMap T.Text Value -> T.Text -> T.Text -> M.HashMap T.Text Value
+keepFieldsOfInterest' accum key value =
+  let chompedValue = T.dropWhileEnd (== '\0') value
+  in if T.null chompedValue then accum else M.insert key (String chompedValue) accum
+
+data EntryField = EntryUUID             B.ByteString
+                | EntryGroupId          Int
+                | EntryImage            Int
+                | EntryTitle            T.Text
+                | EntryURL              T.Text
+                | EntryUserName         T.Text
+                | EntryPassword         T.Text
+                | EntryComment          T.Text
+                | EntryCreationDate     B.ByteString
+                | EntryLastModifiedDate B.ByteString
+                | EntryLastAccessedDate B.ByteString
+                | EntryExpirationDate   B.ByteString
+                | EntryDesc             T.Text
+                | EntryEnd
+                deriving (Eq, Show)
+
+parseEntries :: B.ByteString -> Int -> Int -> ([Entry], Int)
+parseEntries decryptedBuf numEntries' offset = (head . drop numEntries' . iterate parseEntry) ([], offset)
+  where
+    parseEntry :: ([Entry], Int) -> ([Entry], Int)
+    parseEntry (entries, offset') =
+      let (entryFields, newOffset) =
+            until
+              (\(entryFields', _) -> not (null entryFields') && head entryFields' == EntryEnd)
+              parseEntryField
+              ([], offset')
+      in (Entry entryFields : entries, newOffset)
+    parseEntryField :: ([EntryField], Int) -> ([EntryField], Int)
+    parseEntryField (entryFields, offset') =
+      let fieldType = (littleEndian16ToInt . substring offset'     2) decryptedBuf
+          fieldSize = (littleEndian32ToInt . substring (offset'+2) 4) decryptedBuf
+          -- TODO handling out of range
+          offset''   = offset' + 6
+          newOffset  = offset'' + fieldSize
+      in case fieldType of
+        0x0001 -> (((EntryUUID             .                       substring offset'' 16       ) decryptedBuf) : entryFields, newOffset)
+        0x0002 -> (((EntryGroupId          . littleEndian32ToInt . substring offset''  4       ) decryptedBuf) : entryFields, newOffset)
+        0x0003 -> (((EntryImage            . littleEndian32ToInt . substring offset''  4       ) decryptedBuf) : entryFields, newOffset)
+        0x0004 -> (((EntryTitle            . T.pack . U.toString . substring offset'' fieldSize) decryptedBuf) : entryFields, newOffset)
+        0x0005 -> (((EntryURL              . T.pack . U.toString . substring offset'' fieldSize) decryptedBuf) : entryFields, newOffset)
+        0x0006 -> (((EntryUserName         . T.pack . U.toString . substring offset'' fieldSize) decryptedBuf) : entryFields, newOffset)
+        0x0007 -> (((EntryPassword         . T.pack . U.toString . substring offset'' fieldSize) decryptedBuf) : entryFields, newOffset)
+        0x0008 -> (((EntryComment          . T.pack . U.toString . substring offset'' fieldSize) decryptedBuf) : entryFields, newOffset)
+        0x0009 -> (((EntryCreationDate     .                       substring offset'' fieldSize) decryptedBuf) : entryFields, newOffset)
+        0x000A -> (((EntryLastModifiedDate .                       substring offset'' fieldSize) decryptedBuf) : entryFields, newOffset)
+        0x000B -> (((EntryLastAccessedDate .                       substring offset'' fieldSize) decryptedBuf) : entryFields, newOffset)
+        0x000C -> (((EntryExpirationDate   .                       substring offset'' fieldSize) decryptedBuf) : entryFields, newOffset)
+        0x000D -> (((EntryDesc             . T.pack . U.toString . substring offset'' fieldSize) decryptedBuf) : entryFields, newOffset)
+        0xFFFF -> (  EntryEnd                                                                                  : entryFields, newOffset)
+        _      -> (entryFields, newOffset)
+        {- The last case includes:
+         - 0x0000 (ignore)
+         - 0x000E (TODO)
+         - other unsupported fields
+        -}
+
+littleEndian32ToInt :: B.ByteString -> Int
+littleEndian32ToInt bytes =
+  fromIntegral ( (toInteger .                  word8ToWord32 . B.head)            bytes
+               + (toInteger . flip shiftL  8 . word8ToWord32 . B.head . B.drop 1) bytes
+               + (toInteger . flip shiftL 16 . word8ToWord32 . B.head . B.drop 2) bytes
+               + (toInteger . flip shiftL 24 . word8ToWord32 . B.head . B.drop 3) bytes
+               )
+  where word8ToWord32 :: Word8 -> Word32
+        word8ToWord32 = fromIntegral
+
+littleEndian16ToInt :: B.ByteString -> Int
+littleEndian16ToInt bytes =
+  fromIntegral ( (toInteger .                  word8ToWord16 . B.head)            bytes
+               + (toInteger . flip shiftL  8 . word8ToWord16 . B.head . B.drop 1) bytes
+               )
+  where word8ToWord16 :: Word8 -> Word16
+        word8ToWord16 = fromIntegral
+
+substring :: Int -> Int -> B.ByteString -> B.ByteString
+substring offset size = B.take size . B.drop offset

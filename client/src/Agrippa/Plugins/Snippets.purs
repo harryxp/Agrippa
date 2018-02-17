@@ -2,7 +2,7 @@ module Agrippa.Plugins.Snippets (copy, suggest) where
 
 import Prelude (Unit, bind, discard, flip, map, pure, (<<<), (>>=), (*>))
 import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.JQuery (JQuery, JQueryEvent, addClass, append, body, create, on, setText, setValue)
+import Control.Monad.Eff.JQuery (JQuery, JQueryEvent, addClass, append, body, create, on, setProp, setText, setValue)
 import Data.Argonaut.Core (toString)
 import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
@@ -49,6 +49,7 @@ buildTableRow key value =
     valField <- create "<input>"
     setValue val valField
     addClass "agrippa-snippet" valField
+    setProp "readonly" true valField
     valCell <- create "<td>"
     append valField valCell
 

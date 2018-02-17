@@ -9,8 +9,8 @@ import Data.Argonaut.Core (Json, fromObject, fromString, toArray, toString)
 import Data.Either (Either(..))
 import Data.Foreign (readString)
 import Data.Maybe (Maybe(..))
-import Data.String (trim)
 import Data.StrMap (empty, insert)
+import Data.String (trim)
 import Data.Traversable (traverse, traverse_)
 import DOM (DOM)
 import Global (encodeURIComponent)
@@ -47,8 +47,7 @@ buildOutput openUrl contents = do
       nodes <- traverse (buildNode openUrl) items
       traverse_ (flip append containerDiv) nodes
       addShortcutLabels "<span>" nodes
-    Nothing -> do
-      setText "Error: expect a JSON array of strings from server." containerDiv
+    Nothing -> setText "Error: expect a JSON array of strings from server." containerDiv
   pure containerDiv
 
 buildNode :: forall e. String -> String -> Eff (dom :: DOM | e) JQuery

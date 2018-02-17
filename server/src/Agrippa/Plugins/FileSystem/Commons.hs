@@ -1,4 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
 module Agrippa.Plugins.FileSystem.Commons (registerHandlers) where
 
 import Data.Aeson (Object)
