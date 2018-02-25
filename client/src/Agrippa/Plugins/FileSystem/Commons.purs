@@ -43,7 +43,7 @@ buildOutput openUrl contents = do
   containerDiv <- create "<div>"
   case (traverse toString <=< toArray) contents of
     Just items -> do
-      body >>= on "keyup" (shortcutHandler openUrl)
+      body >>= on "keyup" (shortcutListener openUrl)
       nodes <- traverse (buildNode openUrl) items
       traverse_ (flip append containerDiv) nodes
       addShortcutLabels "<span>" nodes
@@ -67,7 +67,7 @@ open :: forall e. String
                -> (JQuery -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
                -> Eff (ajax :: AJAX, dom :: DOM | e) (Maybe JQuery)
 open openUrl _ _ _ _ = do
-  body >>= on "keyup" (shortcutHandler openUrl)
+  body >>= on "keyup" (shortcutListener openUrl)
   link <- select "#agrippa-output > div > div:first > a"
   foreignUrl <- getProp "href" link
   case runExcept (readString foreignUrl) of
@@ -78,5 +78,5 @@ open openUrl _ _ _ _ = do
         (const (pure unit))
         (get url :: forall e1. Affjax e1 Unit)
 
-foreign import shortcutHandler :: forall e. String -> JQueryEvent -> JQuery -> Eff (ajax :: AJAX, dom :: DOM | e) Unit
+foreign import shortcutListener :: forall e. String -> JQueryEvent -> JQuery -> Eff (ajax :: AJAX, dom :: DOM | e) Unit
 

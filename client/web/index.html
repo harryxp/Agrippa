@@ -18,6 +18,16 @@
         color: #657b83;             /* base00 */
         background-color: #eee8d5;  /* base2 */
     }
+    #agrippa-help-button {
+        margin: 0.3em;
+        padding: 0.3em;
+        width: 8em;
+    }
+    #agrippa-restart-button {
+        margin: 0.3em;
+        padding: 0.3em;
+        width: 8em;
+    }
     #agrippa-task {
         margin-top: 0.8em;
         width: 60em;
@@ -37,9 +47,24 @@
         border-radius: 10px;
         background-color: #eee8d5;  /* base2 */
     }
+    #agrippa-help-content {
+        margin: auto;
+        display: none;
+        border-radius: 10px;
+        position: fixed;
+        width: 80%;
+        height: 80%;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        padding: 3em;
+        z-index: 100;
+        color: #FFFFFF;
+        background: rgba(0, 0, 0, 0.85);
+    }
     #agrippa-help-table td {
-        border: 1px solid #eee8d5;  /* base2 */
-        color: #93a1a1;             /* base1 */
+        border: 1px solid;
     }
     .agrippa-shortcut-prompt {
         font-size: 0.8em;
@@ -69,19 +94,20 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
   <script src="agrippa.js"></script>
   <input id="agrippa-input" autofocus/></input>
+  <button id="agrippa-restart-button">Restart Server</button>
+  <button id="agrippa-help-button">What do I do?</button>
   <div id="agrippa-task"></div>
 
   <div id="agrippa-output"></div>
   <br>
-  <a href="#" id="agrippa-help-link">Toggle Help</a>
-  <div id="agrippa-help-content" hidden>
-    <hr>
+  <div id="agrippa-help-content">
     <strong>Agrippa is a keyboard-driven web application that helps the user perform various tasks.</strong>
     <br>
     <br>
     Usage:
     <ol>
       <li>Please choose a task by typing a keyword, followed by a space.</li>
+      <li>Please make sure there's a space.</li>
       <li>Or, when a keyword is absent, the default task configured in config.json is chosen.</li>
       <li>As you type, follow the instructions and feedback.</li>
     </ol>

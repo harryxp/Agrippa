@@ -1,6 +1,6 @@
 "use strict";
 
-exports.shortcutHandler = function (openUrl) {
+exports.shortcutListener = function (openUrl) {
     return function (evt) {
         return function (body) {
             return function () {

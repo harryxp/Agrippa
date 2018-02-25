@@ -23,7 +23,7 @@ import Agrippa.Plugins.Registry (Plugin(..), namesToPlugins)
 import Agrippa.Utils (displayOutput, displayOutputText, mToE)
 
 main :: forall e. Eff (ajax :: AJAX, dom :: DOM, now :: NOW, ref :: REF, window :: WINDOW | e) Unit
-main = ready (loadConfig (\config -> buildHelp config *> installInputHandler config))
+main = ready (loadConfig (\config -> buildHelp config *> installInputListener config))
 
 loadConfig :: forall e. (Config -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
                      -> Eff (ajax :: AJAX, dom :: DOM | e) Unit
@@ -33,21 +33,21 @@ loadConfig onSuccess = void $
     (\{ response: config } -> onSuccess config)
     (get "/agrippa/config/")
 
-installInputHandler :: forall e. Config
-                              -> Eff (ajax :: AJAX, dom :: DOM, now :: NOW, ref :: REF, window :: WINDOW | e) Unit
-installInputHandler config = do
+installInputListener :: forall e. Config
+                               -> Eff (ajax :: AJAX, dom :: DOM, now :: NOW, ref :: REF, window :: WINDOW | e) Unit
+installInputListener config = do
   inputField   <- select "#agrippa-input"
   prevInputRef <- newRef ""
-  on "keyup" (inputHandler config prevInputRef) inputField
+  on "keyup" (inputListener config prevInputRef) inputField
 
 -- tasks, input and output
 
-inputHandler :: forall e. Config
-                       -> Ref String
-                       -> JQueryEvent
-                       -> JQuery
-                       -> Eff (ajax :: AJAX, dom :: DOM, now :: NOW, ref :: REF, window :: WINDOW | e) Unit
-inputHandler config prevInputRef event inputField = do
+inputListener :: forall e. Config
+                        -> Ref String
+                        -> JQueryEvent
+                        -> JQuery
+                        -> Eff (ajax :: AJAX, dom :: DOM, now :: NOW, ref :: REF, window :: WINDOW | e) Unit
+inputListener config prevInputRef event inputField = do
   keyCode      <- getWhich event
   foreignInput <- getValue inputField
   case runExcept (readString foreignInput) of

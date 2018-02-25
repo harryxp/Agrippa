@@ -1,6 +1,6 @@
 "use strict";
 
-exports.shortcutHandler = function (evt) {
+exports.shortcutListener = function (evt) {
     return function (body) {
         return function () {
             var baseKeyCode = 48;   // key code for 0
@@ -15,7 +15,7 @@ exports.shortcutHandler = function (evt) {
     };
 };
 
-exports.copyButtonHandler = function (evt) {
+exports.copyButtonListener = function (evt) {
     return function (button) {
         return function () {
             // button is a JQuery object

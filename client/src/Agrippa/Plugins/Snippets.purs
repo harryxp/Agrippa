@@ -30,7 +30,7 @@ suggest _ config input displayOutput = map Just
 
 buildTable :: forall e. StrMap Config -> Eff (dom :: DOM | e) JQuery
 buildTable candidates = do
-  body >>= on "keyup" shortcutHandler
+  body >>= on "keyup" shortcutListener
   rows  <- sequence (toArrayWithKey buildTableRow candidates) :: Eff (dom :: DOM | e) (Array JQuery)
   table <- create "<table>"
   traverse_ (flip append table) rows
@@ -54,7 +54,7 @@ buildTableRow key value =
 
     copyButton <- create "<button>"
     setText "Copy" copyButton
-    on "click" copyButtonHandler copyButton
+    on "click" copyButtonListener copyButton
     buttonCell <- create "<td>"
     append copyButton buttonCell
 
@@ -64,15 +64,15 @@ buildTableRow key value =
     append buttonCell tr
     pure tr
 
-foreign import shortcutHandler :: forall e. JQueryEvent -> JQuery -> Eff (dom :: DOM | e) Unit
+foreign import shortcutListener :: forall e. JQueryEvent -> JQuery -> Eff (dom :: DOM | e) Unit
 
-foreign import copyButtonHandler :: forall e. JQueryEvent -> JQuery -> Eff (dom :: DOM | e) Unit
+foreign import copyButtonListener :: forall e. JQueryEvent -> JQuery -> Eff (dom :: DOM | e) Unit
 
 copy :: forall e. String
                -> Config
                -> String
                -> (JQuery -> Eff (dom :: DOM | e) Unit)
                -> Eff (dom :: DOM | e) (Maybe JQuery)
-copy _ _ _ _ = (body >>= on "keyup" shortcutHandler) *> clickFirstCopyButton *> pure Nothing
+copy _ _ _ _ = (body >>= on "keyup" shortcutListener) *> clickFirstCopyButton *> pure Nothing
 
 foreign import clickFirstCopyButton :: forall e. Eff (dom :: DOM | e) Unit
