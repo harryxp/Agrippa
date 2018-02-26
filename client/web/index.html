@@ -12,32 +12,36 @@
 -->
 
   <style>
+    #agrippa-input-container {
+        margin: auto;
+        text-align: center;
+    }
     #agrippa-input {
-        width: 60em;
+        margin-top: 0.8em;
         padding: 0.3em;
-        color: #657b83;             /* base00 */
-        background-color: #eee8d5;  /* base2 */
+        width: 55em;
     }
     #agrippa-help-button {
-        margin: 0.3em;
         padding: 0.3em;
         width: 8em;
     }
     #agrippa-restart-button {
-        margin: 0.3em;
         padding: 0.3em;
         width: 8em;
     }
     #agrippa-task {
+        margin: auto;
         margin-top: 0.8em;
         width: 60em;
         height: 1em;
         padding: 0.3em;
         border-radius: 10px;
+        font-weight: bold;
         color: #d33682;             /* magenta */
-        background-color: #eee8d5;  /* base2 */
+        background-color: #FFFFFF;
     }
     #agrippa-output {
+        margin: auto;
         margin-top: 0.8em;
         width: 60em;
         height: 30em;
@@ -45,15 +49,15 @@
         overflow-x: auto;
         overflow-y: auto;
         border-radius: 10px;
-        background-color: #eee8d5;  /* base2 */
+        background-color: #FFFFFF;
     }
     #agrippa-help-content {
         margin: auto;
         display: none;
         border-radius: 10px;
         position: fixed;
-        width: 80%;
-        height: 80%;
+        width: 90%;
+        height: 90%;
         top: 0;
         left: 0;
         right: 0;
@@ -61,7 +65,7 @@
         padding: 3em;
         z-index: 100;
         color: #FFFFFF;
-        background: rgba(0, 0, 0, 0.85);
+        background-color: rgba(0, 0, 0, 0.85);
     }
     #agrippa-help-table td {
         border: 1px solid;
@@ -74,7 +78,6 @@
     }
     .agrippa-snippet {
         width: 40em;
-        background-color: #eee8d5;  /* base2 */
     }
     .agrippa-mortgage-calc-tr {
         text-align: right;
@@ -83,8 +86,8 @@
         font-size: 1.2em;
     }
     body {
-        color: #93a1a1;             /* base1 */
-        background-color: #fdf6e3;  /* base3 */
+        color: #B5B2B5;
+        background-color: #5CB5A1;
     }
   </style>
 
@@ -93,13 +96,14 @@
 <body>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
   <script src="agrippa.js"></script>
-  <input id="agrippa-input" autofocus/></input>
-  <button id="agrippa-restart-button">Restart Server</button>
-  <button id="agrippa-help-button">What do I do?</button>
+  <div style="text-align: center; font-size: 2em; font-family: Arial, Helvetica, sans-serif; color: #FFFFFF;">AGRIPPA</div>
+  <div id="agrippa-input-container">
+    <input id="agrippa-input" autofocus/></input>
+    <button id="agrippa-help-button">What do I do?</button>
+    <button id="agrippa-restart-button">Restart Server</button>
+  </div>
   <div id="agrippa-task"></div>
-
   <div id="agrippa-output"></div>
-  <br>
   <div id="agrippa-help-content">
     <strong>Agrippa is a keyboard-driven web application that helps the user perform various tasks.</strong>
     <br>
@@ -111,11 +115,14 @@
       <li>Or, when a keyword is absent, the default task configured in config.json is chosen.</li>
       <li>As you type, follow the instructions and feedback.</li>
     </ol>
-    Tasks are configured in config.json and implemented by plugins.  Currently configured tasks:
+    Tasks are configured in config.json and implemented by plugins.
+    <br>
+    <br>
+    Currently configured tasks:
     <br>
     <br>
     <table id="agrippa-help-table">
-      <th>Keyword</th><th>Task</th>
+      <tr><th>Keyword</th><th>Task</th></tr>
     </table>
   </div>
 </body>
