@@ -14,7 +14,7 @@ import Data.StrMap (empty, insert)
 import Data.Traversable (traverse, traverse_)
 import DOM (DOM)
 import Global (encodeURIComponent)
-import Network.HTTP.Affjax (Affjax, AJAX, get, post)
+import Network.HTTP.Affjax (AJAX, Affjax, get, post)
 
 import Agrippa.Config (Config)
 import Agrippa.Utils (addShortcutLabels, createTextNode)

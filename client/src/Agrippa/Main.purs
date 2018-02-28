@@ -15,7 +15,7 @@ import Data.Foreign (readString)
 import Data.Maybe (Maybe(..))
 import Data.StrMap (lookup)
 import Data.String (Pattern(..), indexOf, splitAt)
-import Network.HTTP.Affjax (AJAX, get)
+import Network.HTTP.Affjax (AJAX, Affjax, get)
 
 import Agrippa.Config (Config, getStrMapVal, getStringVal, lookupConfigVal)
 import Agrippa.Help (buildHelp)
@@ -23,7 +23,7 @@ import Agrippa.Plugins.Registry (Plugin(..), namesToPlugins)
 import Agrippa.Utils (displayOutput, displayOutputText, mToE)
 
 main :: forall e. Eff (ajax :: AJAX, dom :: DOM, now :: NOW, ref :: REF, window :: WINDOW | e) Unit
-main = ready (loadConfig (\config -> buildHelp config *> installInputListener config))
+main = ready (loadConfig (\config -> buildHelp config *> installInputListener config *> installRestartServerListener))
 
 loadConfig :: forall e. (Config -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
                      -> Eff (ajax :: AJAX, dom :: DOM | e) Unit
@@ -39,6 +39,16 @@ installInputListener config = do
   inputField   <- select "#agrippa-input"
   prevInputRef <- newRef ""
   on "keyup" (inputListener config prevInputRef) inputField
+
+installRestartServerListener :: forall e. Eff (ajax :: AJAX, dom :: DOM | e) Unit
+installRestartServerListener = do
+  button <- select "#agrippa-restart-button"
+  on "click"
+     (\_ _ -> runAff
+                (\_ -> displayOutputText "Restarting server... Please reload or visit the new address if that has been changed.")
+                (\_ -> displayOutputText "Restarting server... Please reload or visit the new address if that has been changed.")
+                (get "/agrippa/restart/" :: forall e1. Affjax e1 Unit))
+     button
 
 -- tasks, input and output
 

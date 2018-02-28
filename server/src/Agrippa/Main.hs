@@ -1,13 +1,16 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Agrippa.Main (main) where
+module Agrippa.Main (agrippadDriver) where
 
+import Control.Concurrent.Async (async, cancel)
+import Control.Concurrent.MVar (MVar, newEmptyMVar, putMVar, takeMVar)
+import Control.Monad (forever)
 import Data.Aeson (Object, decode)
 import Data.String (fromString)
 import Network.Wai.Handler.Warp (defaultSettings, setHost, setPort)
 import System.Exit (exitFailure)
 import System.FilePath ((</>))
 import System.IO (hPutStrLn, stderr)
-import Web.Scotty (Options(..), file, get, json, scottyOpts)
+import Web.Scotty (Options(..), file, get, json, liftAndCatchIO, scottyOpts)
 
 import qualified Data.ByteString.Lazy as B (readFile)
 import qualified Data.HashMap.Lazy    as M (HashMap)
@@ -26,18 +29,25 @@ data ScottyConfig = ScottyConfig { host :: String
                                  }
                                  deriving Show
 
-main :: IO ()
-main = do
+agrippadDriver :: IO ()
+agrippadDriver = forever $ do
+  mvar   <- newEmptyMVar
+  thread <- async (agrippadExecutor mvar)
+  takeMVar mvar -- this blocks until mvar has value
+  cancel thread
+
+agrippadExecutor :: MVar () -> IO ()
+agrippadExecutor mvar = do
   config <- readAgrippaConfig
   case config of
-    Nothing       -> do
+    Nothing                            -> do
       hPutStrLn stderr "Failed to parse Agrippa config."
       configDir <- getConfigDir
       hPutStrLn stderr ("Please check " ++ configDir ++ " under your home directory.")
       exitFailure
-    Just (sc,ac)  -> do
-      taskNamesToItems <- buildSearchIndices ac
-      startScotty (buildScottyOpts sc) ac taskNamesToItems
+    Just (scottyConfig, agrippaConfig) -> do
+      taskNamesToItems <- buildSearchIndices agrippaConfig
+      startScotty (buildScottyOpts scottyConfig) agrippaConfig taskNamesToItems mvar
 
 readAgrippaConfig :: IO (Maybe (ScottyConfig, Object))
 readAgrippaConfig = do
@@ -55,12 +65,12 @@ readAgrippaConfig = do
 buildScottyOpts :: ScottyConfig -> Options
 buildScottyOpts (ScottyConfig { host = h, port = p }) =
   Options { verbose  = 1
-          , settings = setPort p (setHost (fromString h) defaultSettings)
+          , settings = (setPort p . setHost (fromString h)) defaultSettings
           }
 
-startScotty :: Options -> Object -> M.HashMap String [T.Text] -> IO ()
-startScotty opts agrippaConfig taskNamesToItems =
-  scottyOpts opts $ do
+startScotty :: Options -> Object -> M.HashMap String [T.Text] -> MVar () -> IO ()
+startScotty scottyConfig agrippaConfig taskNamesToItems mvar =
+  scottyOpts scottyConfig $ do
     get "/agrippa/" $ do
       file "web/index.html"
 
@@ -70,6 +80,12 @@ startScotty opts agrippaConfig taskNamesToItems =
     -- serve the config to frontend
     get "/agrippa/config" $ do
       json agrippaConfig
+
+    -- it's tempting to just do `myThreadId >>= killThread` here
+    -- however Scotty would catch that so agrippadDriver won't see it
+    -- instead we use an MVar to facilitate the communication
+    get "/agrippa/restart" $ do
+      liftAndCatchIO (putMVar mvar ())
 
     EXS.registerHandlers taskNamesToItems "/agrippa/executable/suggest" "/agrippa/executable/open"
     LFS.registerHandlers taskNamesToItems "/agrippa/linux-file/suggest" "/agrippa/linux-file/open"
