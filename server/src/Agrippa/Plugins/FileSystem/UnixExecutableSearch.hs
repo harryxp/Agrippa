@@ -1,4 +1,4 @@
-module Agrippa.Plugins.FileSystem.ExecutableSearch (registerHandlers) where
+module Agrippa.Plugins.FileSystem.UnixExecutableSearch (registerHandlers) where
 
 import Control.Monad (void)
 import System.Process (spawnCommand)

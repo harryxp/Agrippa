@@ -17,7 +17,7 @@
                },
 
         "e":   { "name": "Launch Executables"
-               , "plugin": "ExecutableSearch"
+               , "plugin": "UnixExecutableSearch"
                , "paths": ["/bin/", "/usr/bin/", "/usr/local/bin/", "/opt/plan9/bin/"]
                },
         "f":   { "name": "Search for Files"

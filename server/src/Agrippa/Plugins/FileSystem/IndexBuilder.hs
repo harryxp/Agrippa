@@ -32,7 +32,7 @@ usesFileSearchPlugin (Object o) = case lookupJSON "plugin" o of
 usesFileSearchPlugin _ = False
 
 allFileSearchPlugins :: [String]
-allFileSearchPlugins = [ "ExecutableSearch"
+allFileSearchPlugins = [ "UnixExecutableSearch"
                        , "LinuxFileSearch"
                        , "MacAppSearch"
                        , "MacFileSearch"
@@ -63,14 +63,14 @@ buildSearchIndex' taskName plugin paths = do
   return (taskName, T.pack <$> files)
 
 pluginsToRecursionPredicates :: M.HashMap String RecursionPredicate
-pluginsToRecursionPredicates = M.fromList [ ("ExecutableSearch", always)
+pluginsToRecursionPredicates = M.fromList [ ("UnixExecutableSearch", always)
                                           , ("LinuxFileSearch",  always)
                                           , ("MacAppSearch",     (extension /=? ".app"))
                                           , ("MacFileSearch",    always)
                                           ]
 
 pluginsToFilterPredicates :: M.HashMap String FilterPredicate
-pluginsToFilterPredicates = M.fromList [ ("ExecutableSearch", isFile)
+pluginsToFilterPredicates = M.fromList [ ("UnixExecutableSearch", isFile)
                                        , ("LinuxFileSearch",  always)
                                        , ("MacAppSearch",     isMacApp)
                                        , ("MacFileSearch",    always)

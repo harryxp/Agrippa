@@ -21,10 +21,10 @@ library
                      , Agrippa.Utils
                      , Agrippa.Plugins.FileSystem.Commons
                      , Agrippa.Plugins.FileSystem.IndexBuilder
-                     , Agrippa.Plugins.FileSystem.ExecutableSearch
                      , Agrippa.Plugins.FileSystem.LinuxFileSearch
                      , Agrippa.Plugins.FileSystem.MacAppSearch
                      , Agrippa.Plugins.FileSystem.MacFileSearch
+                     , Agrippa.Plugins.FileSystem.UnixExecutableSearch
                      , Agrippa.Plugins.KeePass1
   build-depends:       base >= 4.7 && < 5
                      , aeson >= 1.0.2.1

@@ -21,7 +21,7 @@
                , "paths": ["/Applications/", "/Users/<user>/Applications/", "/System/Library/PreferencePanes"]
                },
         "e":   { "name": "Launch Executables"
-               , "plugin": "ExecutableSearch"
+               , "plugin": "UnixExecutableSearch"
                , "paths": ["/bin/", "/usr/bin/"]
                },
         "f":   { "name": "Search for Files"

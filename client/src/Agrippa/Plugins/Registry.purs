@@ -12,16 +12,16 @@ import DOM.HTML.Types (WINDOW)
 import Network.HTTP.Affjax (AJAX)
 
 import Agrippa.Config (Config)
-import Agrippa.Plugins.Calculator                  as C
-import Agrippa.Plugins.Clock                       as CLK
-import Agrippa.Plugins.FileSystem.ExecutableSearch as ES
-import Agrippa.Plugins.FileSystem.LinuxFileSearch  as LFS
-import Agrippa.Plugins.FileSystem.MacFileSearch    as MFS
-import Agrippa.Plugins.FileSystem.MacAppSearch     as MAS
-import Agrippa.Plugins.KeePass1                    as K
-import Agrippa.Plugins.MortgageCalc                as M
-import Agrippa.Plugins.OnlineSearch                as O
-import Agrippa.Plugins.Snippets                    as S
+import Agrippa.Plugins.Calculator                      as C
+import Agrippa.Plugins.Clock                           as CLK
+import Agrippa.Plugins.FileSystem.LinuxFileSearch      as LFS
+import Agrippa.Plugins.FileSystem.MacFileSearch        as MFS
+import Agrippa.Plugins.FileSystem.MacAppSearch         as MAS
+import Agrippa.Plugins.FileSystem.UnixExecutableSearch as UES
+import Agrippa.Plugins.KeePass1                        as K
+import Agrippa.Plugins.MortgageCalc                    as M
+import Agrippa.Plugins.OnlineSearch                    as O
+import Agrippa.Plugins.Snippets                        as S
 
 -- A Plugin implements a specific functionality in Agrippa.
 -- Multiple tasks may be backed by the same plugin, usually with different configurations.
@@ -69,10 +69,6 @@ plugins = [ Plugin { name: "Calculator"
                    , onActivation: S.copy
                    }
           -- the following plugins use the backend heavily
-          , Plugin { name: "ExecutableSearch"
-                   , onInputChange: ES.suggest
-                   , onActivation: ES.open
-                   }
           , Plugin { name: "LinuxFileSearch"
                    , onInputChange: LFS.suggest
                    , onActivation: LFS.open
@@ -84,6 +80,10 @@ plugins = [ Plugin { name: "Calculator"
           , Plugin { name: "MacAppSearch"
                    , onInputChange: MAS.suggest
                    , onActivation: MAS.open
+                   }
+          , Plugin { name: "UnixExecutableSearch"
+                   , onInputChange: UES.suggest
+                   , onActivation: UES.open
                    }
           , Plugin { name: "KeePass1"
                    , onInputChange: K.suggest

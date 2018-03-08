@@ -19,11 +19,11 @@ import qualified Data.Text.Lazy       as T (Text)
 import Agrippa.Utils (getConfigDir, lookupJSON)
 import Agrippa.Plugins.FileSystem.IndexBuilder (buildSearchIndices)
 
-import qualified Agrippa.Plugins.FileSystem.ExecutableSearch as EXS (registerHandlers)
-import qualified Agrippa.Plugins.FileSystem.LinuxFileSearch  as LFS (registerHandlers)
-import qualified Agrippa.Plugins.FileSystem.MacAppSearch     as MAS (registerHandlers)
-import qualified Agrippa.Plugins.FileSystem.MacFileSearch    as MFS (registerHandlers)
-import qualified Agrippa.Plugins.KeePass1                    as K   (registerHandlers)
+import qualified Agrippa.Plugins.FileSystem.LinuxFileSearch      as LFS (registerHandlers)
+import qualified Agrippa.Plugins.FileSystem.MacAppSearch         as MAS (registerHandlers)
+import qualified Agrippa.Plugins.FileSystem.MacFileSearch        as MFS (registerHandlers)
+import qualified Agrippa.Plugins.FileSystem.UnixExecutableSearch as UES (registerHandlers)
+import qualified Agrippa.Plugins.KeePass1                        as K   (registerHandlers)
 
 data ScottyConfig = ScottyConfig { host :: String
                                  , port :: Int
@@ -95,10 +95,10 @@ startScotty scottyConfig agrippaConfig taskNamesToItems mvar keepass1MasterPassw
     get "/agrippa/restart" $ do
       liftAndCatchIO (putMVar mvar ())
 
-    EXS.registerHandlers taskNamesToItems "/agrippa/executable/suggest" "/agrippa/executable/open"
-    LFS.registerHandlers taskNamesToItems "/agrippa/linux-file/suggest" "/agrippa/linux-file/open"
-    MAS.registerHandlers taskNamesToItems "/agrippa/mac-app/suggest"    "/agrippa/mac-app/open"
-    MFS.registerHandlers taskNamesToItems "/agrippa/mac-file/suggest"   "/agrippa/mac-file/open"
+    LFS.registerHandlers taskNamesToItems "/agrippa/linux-file/suggest"      "/agrippa/linux-file/open"
+    MAS.registerHandlers taskNamesToItems "/agrippa/mac-app/suggest"         "/agrippa/mac-app/open"
+    MFS.registerHandlers taskNamesToItems "/agrippa/mac-file/suggest"        "/agrippa/mac-file/open"
+    UES.registerHandlers taskNamesToItems "/agrippa/unix-executable/suggest" "/agrippa/unix-executable/open"
 
-    K.registerHandlers   agrippaConfig    "/agrippa/keepass1/suggest"   "/agrippa/keepass1/unlock" keepass1MasterPasswordBox
+    K.registerHandlers   agrippaConfig    "/agrippa/keepass1/suggest"        "/agrippa/keepass1/unlock"      keepass1MasterPasswordBox
 

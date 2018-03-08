@@ -57,7 +57,7 @@ client on a Unix-like system, and also create the archive there.
 
 ## General
 
-- keepass plugin: a bunch of TODOs in the code; encrypt password in memory?
+- https
 - makeAff instead of runAff?
 - Backend: readFile catch exception
 - Top level suggestion
@@ -65,6 +65,11 @@ client on a Unix-like system, and also create the archive there.
 - Error handler for runAff
 - Formatted string instead of <> (Text.Formatting?)
 - Learn Except
+
+## KeePass plugin
+- A bunch of TODOs in the code
+- Encrypt password in memory?
+- Shortcuts
 
 ## Calculator plugin
 

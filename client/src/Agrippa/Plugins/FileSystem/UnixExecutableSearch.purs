@@ -1,4 +1,4 @@
-module Agrippa.Plugins.FileSystem.ExecutableSearch (open, suggest) where
+module Agrippa.Plugins.FileSystem.UnixExecutableSearch (open, suggest) where
 
 import Prelude (Unit)
 import Control.Monad.Eff (Eff)
@@ -15,11 +15,11 @@ suggest :: forall e. String
                   -> String
                   -> (JQuery -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
                   -> Eff (ajax :: AJAX, dom :: DOM | e) (Maybe JQuery)
-suggest = C.suggest "/agrippa/executable/suggest" "/agrippa/executable/open"
+suggest = C.suggest "/agrippa/unix-executable/suggest" "/agrippa/unix-executable/open"
 
 open :: forall e. String
                -> Config
                -> String
                -> (JQuery -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
                -> Eff (ajax :: AJAX, dom :: DOM | e) (Maybe JQuery)
-open = C.open "/agrippa/executable/open"
+open = C.open "/agrippa/unix-executable/open"
