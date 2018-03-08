@@ -63,17 +63,21 @@ buildSearchIndex' taskName plugin paths = do
   return (taskName, T.pack <$> files)
 
 pluginsToRecursionPredicates :: M.HashMap String RecursionPredicate
-pluginsToRecursionPredicates = M.fromList [ ("UnixExecutableSearch", always)
-                                          , ("LinuxFileSearch",  always)
-                                          , ("MacAppSearch",     (extension /=? ".app"))
-                                          , ("MacFileSearch",    always)
+pluginsToRecursionPredicates = M.fromList [ ("LinuxFileSearch",      always)
+                                          , ("MacAppSearch",         (extension /=? ".app"))
+                                          , ("MacFileSearch",        always)
+                                          , ("UnixExecutableSearch", always)
+                                          , ("WinFileSearch",        always)
+                                          , ("WinExecutableSearch",  always)
                                           ]
 
 pluginsToFilterPredicates :: M.HashMap String FilterPredicate
-pluginsToFilterPredicates = M.fromList [ ("UnixExecutableSearch", isFile)
-                                       , ("LinuxFileSearch",  always)
-                                       , ("MacAppSearch",     isMacApp)
-                                       , ("MacFileSearch",    always)
+pluginsToFilterPredicates = M.fromList [ ("LinuxFileSearch",      always)
+                                       , ("MacAppSearch",         isMacApp)
+                                       , ("MacFileSearch",        always)
+                                       , ("UnixExecutableSearch", isFile)
+                                       , ("WinFileSearch",        always)
+                                       , ("WinExecutableSearch",  isFile &&? ((extension ==? ".exe") ||? (extension ==? ".bat")))
                                        ]
 
 isFile :: FilterPredicate

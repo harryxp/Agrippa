@@ -23,6 +23,8 @@ import qualified Agrippa.Plugins.FileSystem.LinuxFileSearch      as LFS (registe
 import qualified Agrippa.Plugins.FileSystem.MacAppSearch         as MAS (registerHandlers)
 import qualified Agrippa.Plugins.FileSystem.MacFileSearch        as MFS (registerHandlers)
 import qualified Agrippa.Plugins.FileSystem.UnixExecutableSearch as UES (registerHandlers)
+import qualified Agrippa.Plugins.FileSystem.WinExecutableSearch  as WES (registerHandlers)
+import qualified Agrippa.Plugins.FileSystem.WinFileSearch        as WFS (registerHandlers)
 import qualified Agrippa.Plugins.KeePass1                        as K   (registerHandlers)
 
 data ScottyConfig = ScottyConfig { host :: String
@@ -99,6 +101,8 @@ startScotty scottyConfig agrippaConfig taskNamesToItems mvar keepass1MasterPassw
     MAS.registerHandlers taskNamesToItems "/agrippa/mac-app/suggest"         "/agrippa/mac-app/open"
     MFS.registerHandlers taskNamesToItems "/agrippa/mac-file/suggest"        "/agrippa/mac-file/open"
     UES.registerHandlers taskNamesToItems "/agrippa/unix-executable/suggest" "/agrippa/unix-executable/open"
+    WES.registerHandlers taskNamesToItems "/agrippa/win-executable/suggest"  "/agrippa/win-executable/open"
+    WFS.registerHandlers taskNamesToItems "/agrippa/win-file/suggest"        "/agrippa/win-file/open"
 
     K.registerHandlers   agrippaConfig    "/agrippa/keepass1/suggest"        "/agrippa/keepass1/unlock"      keepass1MasterPasswordBox
 

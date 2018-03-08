@@ -78,7 +78,6 @@ client on a Unix-like system, and also create the archive there.
 
 ## File System plugins
 
-- Support Windows.
 - Still slow on the backend side - arrays in IndexBuilder?  trie?
 - It does not detect new items automatically.
 - Frontend max recursion level exceeded if too many items.

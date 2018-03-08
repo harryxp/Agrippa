@@ -18,6 +18,8 @@ import Agrippa.Plugins.FileSystem.LinuxFileSearch      as LFS
 import Agrippa.Plugins.FileSystem.MacFileSearch        as MFS
 import Agrippa.Plugins.FileSystem.MacAppSearch         as MAS
 import Agrippa.Plugins.FileSystem.UnixExecutableSearch as UES
+import Agrippa.Plugins.FileSystem.WinExecutableSearch  as WES
+import Agrippa.Plugins.FileSystem.WinFileSearch        as WFS
 import Agrippa.Plugins.KeePass1                        as K
 import Agrippa.Plugins.MortgageCalc                    as M
 import Agrippa.Plugins.OnlineSearch                    as O
@@ -84,6 +86,14 @@ plugins = [ Plugin { name: "Calculator"
           , Plugin { name: "UnixExecutableSearch"
                    , onInputChange: UES.suggest
                    , onActivation: UES.open
+                   }
+          , Plugin { name: "WinExecutableSearch"
+                   , onInputChange: WES.suggest
+                   , onActivation: WES.open
+                   }
+          , Plugin { name: "WinFileSearch"
+                   , onInputChange: WFS.suggest
+                   , onActivation: WFS.open
                    }
           , Plugin { name: "KeePass1"
                    , onInputChange: K.suggest

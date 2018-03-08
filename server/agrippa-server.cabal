@@ -25,6 +25,8 @@ library
                      , Agrippa.Plugins.FileSystem.MacAppSearch
                      , Agrippa.Plugins.FileSystem.MacFileSearch
                      , Agrippa.Plugins.FileSystem.UnixExecutableSearch
+                     , Agrippa.Plugins.FileSystem.WinExecutableSearch
+                     , Agrippa.Plugins.FileSystem.WinFileSearch
                      , Agrippa.Plugins.KeePass1
   build-depends:       base >= 4.7 && < 5
                      , aeson >= 1.0.2.1

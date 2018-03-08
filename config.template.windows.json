@@ -21,6 +21,15 @@
                , "plugin": "Clock"
                },
 
+        "e":   { "name": "Launch Executables"
+               , "plugin": "WinExecutableSearch"
+               , "paths": []
+               },
+        "f":   { "name": "Search for Files"
+               , "plugin": "WinFileSearch"
+               , "paths": []
+               },
+
         "d":   { "name": "Dictionary"
                , "plugin": "OnlineSearch"
                , "url": "https://www.merriam-webster.com/dictionary/${q}"
