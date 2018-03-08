@@ -1,19 +1,22 @@
 module Agrippa.Plugins.KeePass1 (suggest) where
 
-import Prelude (Unit, bind, const, discard, flip, map, pure, unit, (*>), (>>=), (<=<), (<<<))
+import Prelude (Unit, bind, const, discard, flip, map, pure, show, unit, void, ($), (*>), (>>=), (<=<), (<<<))
 import Control.Monad.Aff (runAff)
+import Control.Monad.Except (runExcept)
 import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.JQuery (JQuery, JQueryEvent, append, create, on, setClass, setProp, setText, setValue)
+import Control.Monad.Eff.JQuery (JQuery, JQueryEvent, append, create, getValue, on, select, setClass, setProp, setText, setValue)
 import Data.Argonaut.Core (JObject, Json, fromObject, fromString, toArray, toObject, toString)
+import Data.Either (Either(..))
+import Data.Foreign (readString)
 import Data.Maybe (Maybe(..))
 import Data.StrMap (empty, insert, lookup)
 import Data.String (trim)
 import Data.Traversable (traverse, traverse_)
 import DOM (DOM)
-import Network.HTTP.Affjax (AJAX, post)
+import Network.HTTP.Affjax (AJAX, Affjax, post)
 
 import Agrippa.Config (Config)
-import Agrippa.Utils (createTextNode)
+import Agrippa.Utils (createTextNode, displayOutputText)
 
 suggest :: forall e. String
                   -> Config
@@ -27,16 +30,46 @@ suggest _ _ input displayOutput =
     ((post "/agrippa/keepass1/suggest" <<< buildSuggestReq <<< trim) input)
   *> map Just (createTextNode "Searching...")
 
-buildOutput :: forall e. Json -> Eff (dom :: DOM | e) JQuery
+buildOutput :: forall e. Json -> Eff (ajax :: AJAX, dom :: DOM | e) JQuery
 buildOutput contents = do
   containerDiv <- create "<div>"
   case (traverse toObject <=< toArray) contents of
-    Just entries -> traverse buildOutputForEntry entries >>= traverse_ (flip append containerDiv)
-    Nothing      -> setText "Error: expect a JSON array of strings from server." containerDiv
+    Just entries -> traverse buildUIForEntry entries >>= traverse_ (flip append containerDiv)
+    Nothing      -> buildUnlockUI containerDiv
   pure containerDiv
 
-buildOutputForEntry :: forall e. JObject -> Eff (dom :: DOM | e) JQuery
-buildOutputForEntry entry = do
+buildUnlockUI :: forall e. JQuery -> Eff (ajax :: AJAX, dom :: DOM | e) Unit
+buildUnlockUI containerDiv = do
+  label <- createTextNode "Please input master password to unlock database:"
+  append label containerDiv
+
+  input <- create "<input>"
+  setProp "type" "password" input
+  setProp "id" "agrippa-keepass1-master-password" input
+  append input containerDiv
+
+  submitButton <- create "<button>"
+  on "click" submitButtonListener submitButton
+  setText "Unlock" submitButton
+  append submitButton containerDiv
+
+submitButtonListener :: forall e. JQueryEvent -> JQuery -> Eff (ajax :: AJAX, dom :: DOM | e) Unit
+submitButtonListener _ _ = do
+  masterPasswordInput <- select "#agrippa-keepass1-master-password"
+  foreignInput        <- getValue masterPasswordInput
+  case runExcept (readString foreignInput) of
+    Left  err -> displayOutputText (show err)
+    Right pwd -> void $ runAff
+                          (const (pure unit))
+                          (const (pure unit))   -- TODO fetch entries
+                          --(\{ response: r } -> (post "/agrippa/keepass1/suggest" <<< buildSuggestReq) "")
+                          ((post "/agrippa/keepass1/unlock" <<< buildUnlockReq) pwd :: forall e1. Affjax e1 Unit)
+
+buildUnlockReq :: String -> Json
+buildUnlockReq masterPassword = fromObject (insert "password" (fromString masterPassword) empty)
+
+buildUIForEntry :: forall e. JObject -> Eff (dom :: DOM | e) JQuery
+buildUIForEntry entry = do
   entryDiv <- create "<div>"
   appendDiv "Title" entryDiv
   appendDiv "URL"   entryDiv

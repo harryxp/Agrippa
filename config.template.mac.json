@@ -32,7 +32,6 @@
         "k":   { "name": "KeePass"
                , "plugin": "KeePass1"
                , "databaseFilePath": "<database file location>"
-               , "password": "<database file master password>"
                },
 
         "d":   { "name": "Dictionary"

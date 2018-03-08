@@ -4,6 +4,7 @@ import Control.Concurrent.Async (async, cancel)
 import Control.Concurrent.MVar (MVar, newEmptyMVar, putMVar, takeMVar)
 import Control.Monad (forever)
 import Data.Aeson (Object, decode)
+import Data.IORef (IORef, newIORef)
 import Data.String (fromString)
 import Network.Wai.Handler.Warp (defaultSettings, setHost, setPort)
 import System.Exit (exitFailure)
@@ -47,7 +48,8 @@ agrippadExecutor mvar = do
       exitFailure
     Just (scottyConfig, agrippaConfig) -> do
       taskNamesToItems <- buildSearchIndices agrippaConfig
-      startScotty (buildScottyOpts scottyConfig) agrippaConfig taskNamesToItems mvar
+      keepass1MasterPasswordBox <- newIORef Nothing
+      startScotty (buildScottyOpts scottyConfig) agrippaConfig taskNamesToItems mvar keepass1MasterPasswordBox
 
 readAgrippaConfig :: IO (Maybe (ScottyConfig, Object))
 readAgrippaConfig = do
@@ -68,8 +70,8 @@ buildScottyOpts (ScottyConfig { host = h, port = p }) =
           , settings = (setPort p . setHost (fromString h)) defaultSettings
           }
 
-startScotty :: Options -> Object -> M.HashMap String [T.Text] -> MVar () -> IO ()
-startScotty scottyConfig agrippaConfig taskNamesToItems mvar =
+startScotty :: Options -> Object -> M.HashMap String [T.Text] -> MVar () -> IORef (Maybe String) -> IO ()
+startScotty scottyConfig agrippaConfig taskNamesToItems mvar keepass1MasterPasswordBox =
   scottyOpts scottyConfig $ do
     get "/agrippa/" $ do
       addHeader "Content-Type" "text/html"
@@ -98,5 +100,5 @@ startScotty scottyConfig agrippaConfig taskNamesToItems mvar =
     MAS.registerHandlers taskNamesToItems "/agrippa/mac-app/suggest"    "/agrippa/mac-app/open"
     MFS.registerHandlers taskNamesToItems "/agrippa/mac-file/suggest"   "/agrippa/mac-file/open"
 
-    K.registerHandlers   agrippaConfig    "/agrippa/keepass1/suggest"
+    K.registerHandlers   agrippaConfig    "/agrippa/keepass1/suggest"   "/agrippa/keepass1/unlock" keepass1MasterPasswordBox
 

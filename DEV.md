@@ -57,7 +57,8 @@ client on a Unix-like system, and also create the archive there.
 
 ## General
 
-- keepass plugin
+- keepass plugin: a bunch of TODOs in the code; encrypt password in memory?
+- makeAff instead of runAff?
 - Backend: readFile catch exception
 - Top level suggestion
 - Check runAff response status code
@@ -73,7 +74,7 @@ client on a Unix-like system, and also create the archive there.
 ## File System plugins
 
 - Support Windows.
-- Still slow on the backend side.
+- Still slow on the backend side - arrays in IndexBuilder?  trie?
 - It does not detect new items automatically.
 - Frontend max recursion level exceeded if too many items.
 - Highlight keyword.

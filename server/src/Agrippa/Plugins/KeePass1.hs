@@ -4,54 +4,58 @@ module Agrippa.Plugins.KeePass1 (registerHandlers) where
 -- 1. KeePass-1.35-Src/KeePassLibCpp/Details/PwFileImpl.cpp
 -- 2. https://searchcode.com/codesearch/view/19368318/ (source downloadable at https://www.keepassx.org/downloads/0-4)
 
-import Data.Aeson (Object, ToJSON(toJSON), Value(Object, String))
+import Data.Aeson (Object, ToJSON(toJSON), Value(Null, Object, String))
 import Data.Bits (shiftL, (.&.))
-import Data.LargeWord (Word256)
+import Data.IORef (IORef, readIORef, writeIORef)
 import Data.String (fromString)
 import Data.Word (Word16, Word32, Word8)
 import Web.Scotty (ActionM, RoutePattern, ScottyM, json, jsonData, liftAndCatchIO, post)
 
-import qualified Codec.Encryption.Twofish  as TF
 import qualified Crypto.Cipher.AES         as A (decryptCBC, encryptECB, initAES)
 import qualified Crypto.Hash.SHA256        as H (hash)
-import qualified Data.Bitlib               as L (pack)
-import qualified Data.ByteString           as B (ByteString, append, drop, head, last, length, readFile, take, unpack)
+import qualified Data.ByteString           as B (ByteString, append, drop, head, last, length, readFile, take)
 import qualified Data.ByteString.UTF8      as U (toString)
 import qualified Data.HashMap.Strict       as M (HashMap, elems, empty, insert)
 import qualified Data.Text                 as T (Text, dropWhileEnd, isInfixOf, null, pack, toLower)
 
 import Agrippa.Utils (lookupJSON)
 
-import Debug.Trace
-
-registerHandlers :: Object -> RoutePattern -> ScottyM ()
-registerHandlers agrippaConfig suggestUrl =
+registerHandlers :: Object -> RoutePattern -> RoutePattern -> IORef (Maybe String) -> ScottyM ()
+registerHandlers agrippaConfig suggestUrl unlockUrl passwordBox = do
   post suggestUrl $ do
-    let maybePair = do
-          tasks        <- lookupJSON "tasks" agrippaConfig :: Maybe Object
-          keePass1Task <- case (filter usesKeePass1Plugin . M.elems) tasks of
-                            -- TODO what about multiple KeePass1 tasks?
-                            [t] -> Just t
-                            _   -> Nothing
-          case keePass1Task of
-            Object o -> do filePath <- lookupJSON "databaseFilePath" o
-                           password <- lookupJSON "password"         o
-                           Just (filePath, password)
+    password <- liftAndCatchIO (readIORef passwordBox)
+    params   <- jsonData :: ActionM Object
+    let maybeEntriesActionM = do
+          tasks    <- lookupJSON "tasks" agrippaConfig :: Maybe Object
+          task     <- case (filter usesKeePass1Plugin . M.elems) tasks of
+            [t] -> Just t  -- TODO what about multiple KeePass1 tasks?
+            _   -> Nothing
+          filePath <- case task of
+            Object o -> lookupJSON "databaseFilePath" o :: Maybe String
             _        -> Nothing
-    case maybePair of
-      Just (filePath, password) -> do
-        (groups, entries) <- liftAndCatchIO (readKeePass1File filePath password) -- TODO better way of password handling
-        o                 <- jsonData :: ActionM Object
-        case lookupJSON "term" o of
-          Just term -> json (findItems (keepNonBackupEntries groups entries) term)
-          Nothing   -> json ([] :: [Entry])
-      Nothing                   -> json ([] :: [Entry])
+          pwd      <- password
+          term     <- lookupJSON "term" params
+          Just (liftAndCatchIO (getKeePass1Entries filePath pwd term))
+    case maybeEntriesActionM of
+      Just entriesActionM -> entriesActionM >>= json
+      Nothing             -> json Null
+
+  post unlockUrl $ do
+    params   <- jsonData :: ActionM Object
+    case lookupJSON "password" params :: Maybe String of
+      Just password -> liftAndCatchIO (writeIORef passwordBox (Just password)) >> json ("OK" :: String)
+      Nothing       -> json ("Incorrect parameter." :: String)
 
 usesKeePass1Plugin :: Value -> Bool
 usesKeePass1Plugin (Object o) = case lookupJSON "plugin" o :: Maybe String of
   Just plugin -> plugin == "KeePass1"
   Nothing     -> False
 usesKeePass1Plugin _          = False
+
+getKeePass1Entries :: String -> String -> String -> IO [Entry]
+getKeePass1Entries filePath password term = do
+  (groups, entries) <- readKeePass1File filePath password
+  return $ findItems (keepNonBackupEntries groups entries) term
 
 keepNonBackupEntries :: [Group] -> [Entry] -> [Entry]
 keepNonBackupEntries groups entries =
@@ -67,6 +71,7 @@ keepNonBackupEntries groups entries =
         isNotBackup backupGroupId (Entry fields) = not (any (== (EntryGroupId backupGroupId)) fields)
 
 findItems :: [Entry] -> String -> [Entry]
+findItems entries ""   = entries
 findItems entries term = filter (\(Entry fields) -> any termMatchesEntryField fields) entries
   where termMatchesEntryField :: EntryField -> Bool
         termMatchesEntryField (EntryTitle title) = T.isInfixOf ((T.toLower . T.pack) term) (T.toLower title)
@@ -193,10 +198,7 @@ decrypt buffer hdr algorithm finalKey =
                         in if validateCryptoSize cryptoSize && validateContentsHash cryptoSize decryptedBuf
                               then decryptedBuf
                               else error "Error: decryption failed."
-      TwofishCipher  -> let twofishKey :: Word256
-                            twofishKey = (L.pack . B.unpack) finalKey
-                            twofishCipher = TF.mkStdCipher twofishKey
-                        in undefined -- TODO use another twofish lib
+      TwofishCipher  -> undefined -- TODO
   where
     validateCryptoSize cryptoSize = cryptoSize <= 2147483446 && not (cryptoSize == 0 && (numGroups hdr) > 0)
     validateContentsHash cryptoSize decryptedBuf = (contentsHash hdr) == H.hash (B.take cryptoSize decryptedBuf)

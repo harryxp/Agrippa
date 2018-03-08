@@ -18,10 +18,10 @@ registerHandlers :: (String -> IO ())
                  -> ScottyM ()
 registerHandlers open taskNamesToItems suggestUrl openUrl = do
   post suggestUrl $ do
-    o <- jsonData :: ActionM Object
+    params <- jsonData :: ActionM Object
     let maybeItems = do
-          taskName <- lookupJSON "taskName" o :: Maybe String
-          term     <- lookupJSON "term"     o :: Maybe String
+          taskName <- lookupJSON "taskName" params :: Maybe String
+          term     <- lookupJSON "term"     params :: Maybe String
           findItems taskNamesToItems taskName term
     case maybeItems of
       Just items -> json items
