@@ -58,7 +58,7 @@ client on a Unix-like system, and also create the archive there.
 ## General
 
 - https
-- Better documentation - document each plugin.
+- Better documentation - document each plugin, hotkey setup.
 - Installation utility?
 - Top level suggestion
 - Better error handling

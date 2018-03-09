@@ -7,6 +7,8 @@ import Data.Aeson (Object, decode)
 import Data.IORef (IORef, newIORef)
 import Data.String (fromString)
 import Network.Wai.Handler.Warp (defaultSettings, setHost, setPort)
+import System.Directory (setCurrentDirectory)
+import System.Environment (getExecutablePath)
 import System.Exit (exitFailure)
 import System.FilePath ((</>))
 import System.IO (hPutStrLn, stderr)
@@ -33,11 +35,14 @@ data ScottyConfig = ScottyConfig { host :: String
                                  deriving Show
 
 agrippadDriver :: IO ()
-agrippadDriver = forever $ do
-  mvar   <- newEmptyMVar
-  thread <- async (agrippadExecutor mvar)
-  takeMVar mvar -- this blocks until mvar has value
-  cancel thread
+agrippadDriver = do
+  execPath <- getExecutablePath
+  setCurrentDirectory execPath
+  forever $ do
+    mvar   <- newEmptyMVar
+    thread <- async (agrippadExecutor mvar)
+    takeMVar mvar -- this blocks until mvar has value
+    cancel thread
 
 agrippadExecutor :: MVar () -> IO ()
 agrippadExecutor mvar = do
