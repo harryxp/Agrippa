@@ -58,11 +58,16 @@ client on a Unix-like system, and also create the archive there.
 ## General
 
 - https
-- makeAff instead of runAff?
-- Backend: readFile catch exception
+- Better documentation - document each plugin.
+- Installation utility?
+- PureScript - makeAff instead of runAff?
+- PureScript - migrate to newer libraries
 - Top level suggestion
-- Check runAff response status code
-- Error handler for runAff
+- Better error handling
+    - Check runAff response status code
+    - Error handler for runAff
+    - Backend: readFile catch exception?
+    - Every Nothing
 - Formatted string instead of <> (Text.Formatting?)
 - Learn Except
 
@@ -78,6 +83,7 @@ client on a Unix-like system, and also create the archive there.
 
 ## File System plugins
 
+- Press <Enter> when "Searching..." would trigger a bug
 - Still slow on the backend side - arrays in IndexBuilder?  trie?
 - It does not detect new items automatically.
 - Frontend max recursion level exceeded if too many items.
