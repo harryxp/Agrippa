@@ -1,5 +1,8 @@
-[Agrippa](https://github.com/harryxp/Agrippa) is a keyboard-driven web
-application that helps the user perform various *task*s.
+[Agrippa](https://github.com/harryxp/Agrippa) is a quick-access tool that helps
+the user perform various *task*s.
+
+Alongside the productivity boost, a creative user can use Agrippa to streamline
+his routines.
 
 *Task*s are configured in `config.json` and their features are implemented by
 [*plugin*s](https://github.com/harryxp/Agrippa/tree/master/client/src/Agrippa/Plugins).
@@ -10,20 +13,23 @@ Current plugins and their features:
 
 - Calculator
 - Clock
+- KeePass1: query KeePass 1.x databases.
 - MortgageCalc: compute your monthly payment and amortization.
 - OnlineSearch: web at your fingertips.
 - Snippets: search \& recall pieces of text.
 - [File System plugins]
-    - ExecutableSearch: search \& open executables on Unix-like systems
-    - LinuxFileSearch: search \& open files on Linux
-    - MacAppSearch: search \& open applications on Mac
-    - MacFileSearch: search \& open files on Mac
+    - LinuxFileSearch: search \& open files on Linux.
+    - MacAppSearch: search \& open applications on Mac.
+    - MacFileSearch: search \& open files on Mac.
+    - UnixExecutableSearch: search \& open executables on Unix-like systems.
+    - WinExecutableSearch: search \& open executables on Windows.
+    - WinFileSearch: search \& open files on Windows.
 
 # Installation
 
 1. Grab the latest [release](https://github.com/harryxp/Agrippa/releases) for
    your operating system.
-2. Unzip it to `<installation path>`.
+2. Unzip it to the location of your choice - let's call it `<installation path>`.
 3. Create the directory that holds the configuration file of Agrippa:
 
 - Linux or Mac
@@ -31,7 +37,7 @@ Current plugins and their features:
         $ mkdir ~/.agrippa.d/
 
 - Windows: create directory `%APPDATA%/agrippa.d/` (typically
-  `C:/Users/<user>/AppData/Roaming/agrippa.d`).
+  `C:\Users\<user>\AppData\Roaming\agrippa.d`).
 
 4. Copy `<installation path>/config.template.<your OS>.json` to the directory
    in step 3.  Rename it to `config.json`.

@@ -1,8 +1,8 @@
 module Agrippa.Main (main) where
 
-import Prelude (Unit, bind, discard, pure, show, unit, void, (==), (/=), ($), (*>), (>>=), (<>), (&&))
+import Prelude (Unit, bind, discard, pure, show, unit, (==), (/=), (*>), (>>=), (<>), (&&))
 import Control.Alt ((<|>))
-import Control.Monad.Aff (runAff)
+import Control.Monad.Aff (runAff, runAff_)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.JQuery (JQuery, JQueryEvent, body, getWhich, getValue, off, on, ready, select, setText)
 import Control.Monad.Eff.Now (NOW)
@@ -23,15 +23,12 @@ import Agrippa.Plugins.Registry (Plugin(..), namesToPlugins)
 import Agrippa.Utils (displayOutput, displayOutputText, mToE)
 
 main :: forall e. Eff (ajax :: AJAX, dom :: DOM, now :: NOW, ref :: REF, window :: WINDOW | e) Unit
-main = ready (loadConfig (\config -> buildHelp config *> installInputListener config *> installRestartServerListener))
-
-loadConfig :: forall e. (Config -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
-                     -> Eff (ajax :: AJAX, dom :: DOM | e) Unit
-loadConfig onSuccess = void $
-  runAff
-    (\_ -> displayOutputText "Failed to retrieve config from server.")
-    (\{ response: config } -> onSuccess config)
-    (get "/agrippa/config/")
+main = ready (runAff_ affHandler (get "/agrippa/config/"))
+  where affHandler (Left  _)                    = displayOutputText "Failed to retrieve config from server."
+        affHandler (Right { response: config }) = do
+          buildHelp config
+          installInputListener config
+          installRestartServerListener
 
 installInputListener :: forall e. Config
                                -> Eff (ajax :: AJAX, dom :: DOM, now :: NOW, ref :: REF, window :: WINDOW | e) Unit
@@ -45,7 +42,6 @@ installRestartServerListener = do
   button <- select "#agrippa-restart-button"
   on "click"
      (\_ _ -> runAff
-                (\_ -> displayOutputText "Restarting server... Please reload or visit the new address if that has been changed.")
                 (\_ -> displayOutputText "Restarting server... Please reload or visit the new address if that has been changed.")
                 (get "/agrippa/restart/" :: forall e1. Affjax e1 Unit))
      button

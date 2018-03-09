@@ -24,11 +24,10 @@ suggest :: forall e. String
                   -> (JQuery -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
                   -> Eff (ajax :: AJAX, dom :: DOM | e) (Maybe JQuery)
 suggest _ _ input displayOutput =
-  runAff
-    (const (pure unit))
-    (\{ response: r } -> buildOutput r >>= displayOutput)
-    ((post "/agrippa/keepass1/suggest" <<< buildSuggestReq <<< trim) input)
+  runAff affHandler ((post "/agrippa/keepass1/suggest" <<< buildSuggestReq <<< trim) input)
   *> map Just (createTextNode "Searching...")
+  where affHandler (Left _)                = pure unit
+        affHandler (Right { response: r }) = buildOutput r >>= displayOutput
 
 buildOutput :: forall e. Json -> Eff (ajax :: AJAX, dom :: DOM | e) JQuery
 buildOutput contents = do
@@ -60,9 +59,7 @@ submitButtonListener _ _ = do
   case runExcept (readString foreignInput) of
     Left  err -> displayOutputText (show err)
     Right pwd -> void $ runAff
-                          (const (pure unit))
-                          (const (pure unit))   -- TODO fetch entries
-                          --(\{ response: r } -> (post "/agrippa/keepass1/suggest" <<< buildSuggestReq) "")
+                          (const (pure unit)) -- TODO fetch entries
                           ((post "/agrippa/keepass1/unlock" <<< buildUnlockReq) pwd :: forall e1. Affjax e1 Unit)
 
 buildUnlockReq :: String -> Json

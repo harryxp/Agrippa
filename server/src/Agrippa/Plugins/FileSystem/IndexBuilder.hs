@@ -32,10 +32,12 @@ usesFileSearchPlugin (Object o) = case lookupJSON "plugin" o of
 usesFileSearchPlugin _ = False
 
 allFileSearchPlugins :: [String]
-allFileSearchPlugins = [ "UnixExecutableSearch"
-                       , "LinuxFileSearch"
+allFileSearchPlugins = [ "LinuxFileSearch"
                        , "MacAppSearch"
                        , "MacFileSearch"
+                       , "UnixExecutableSearch"
+                       , "WinExecutableSearch"
+                       , "WinFileSearch"
                        ]
 
 buildSearchIndex :: Value -> IO (TaskName, [T.Text])
@@ -67,8 +69,8 @@ pluginsToRecursionPredicates = M.fromList [ ("LinuxFileSearch",      always)
                                           , ("MacAppSearch",         (extension /=? ".app"))
                                           , ("MacFileSearch",        always)
                                           , ("UnixExecutableSearch", always)
-                                          , ("WinFileSearch",        always)
                                           , ("WinExecutableSearch",  always)
+                                          , ("WinFileSearch",        always)
                                           ]
 
 pluginsToFilterPredicates :: M.HashMap String FilterPredicate
@@ -76,8 +78,8 @@ pluginsToFilterPredicates = M.fromList [ ("LinuxFileSearch",      always)
                                        , ("MacAppSearch",         isMacApp)
                                        , ("MacFileSearch",        always)
                                        , ("UnixExecutableSearch", isFile)
+                                       , ("WinExecutableSearch",  isFile &&? ((extension ==? ".exe") ||? (extension ==? ".bat") ||? (extension ==? ".msi")))
                                        , ("WinFileSearch",        always)
-                                       , ("WinExecutableSearch",  isFile &&? ((extension ==? ".exe") ||? (extension ==? ".bat")))
                                        ]
 
 isFile :: FilterPredicate

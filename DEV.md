@@ -60,8 +60,6 @@ client on a Unix-like system, and also create the archive there.
 - https
 - Better documentation - document each plugin.
 - Installation utility?
-- PureScript - makeAff instead of runAff?
-- PureScript - migrate to newer libraries
 - Top level suggestion
 - Better error handling
     - Check runAff response status code
@@ -74,6 +72,7 @@ client on a Unix-like system, and also create the archive there.
 ## KeePass plugin
 - A bunch of TODOs in the code
 - Encrypt password in memory?
+- Master key file?
 - Shortcuts
 
 ## Calculator plugin

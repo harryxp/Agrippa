@@ -27,11 +27,10 @@ suggest :: forall e. String
                   -> (JQuery -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
                   -> Eff (ajax :: AJAX, dom :: DOM | e) (Maybe JQuery)
 suggest suggestUrl openUrl taskName config input displayOutput =
-  runAff
-    (const (pure unit))
-    (\{ response: r } -> buildOutput openUrl r >>= displayOutput)
-    ((post suggestUrl <<< buildSuggestReq taskName <<< trim) input)
+  runAff affHandler ((post suggestUrl <<< buildSuggestReq taskName <<< trim) input)
   *> map Just (createTextNode "Searching...")
+  where affHandler (Left _)                = pure unit
+        affHandler (Right { response: r }) = buildOutput openUrl r >>= displayOutput
 
 buildSuggestReq :: String -> String -> Json
 buildSuggestReq taskName term = (fromObject <<<
@@ -72,10 +71,7 @@ open openUrl _ _ _ _ = do
   case runExcept (readString foreignUrl) of
     Left  err -> (map Just <<< createTextNode <<< show) err
     Right url -> Nothing <$
-      runAff
-        (const (pure unit))
-        (const (pure unit))
-        (get url :: forall e1. Affjax e1 Unit)
+      runAff (const (pure unit)) (get url :: forall e1. Affjax e1 Unit)
 
 foreign import shortcutListener :: forall e. String -> JQueryEvent -> JQuery -> Eff (ajax :: AJAX, dom :: DOM | e) Unit
 

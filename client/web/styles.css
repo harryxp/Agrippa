@@ -1,3 +1,9 @@
+#agrippa-title {
+    text-align: center;
+    font-size: 2em;
+    font-family: Arial, Helvetica, sans-serif;
+    color: #FFFFFF;
+}
 #agrippa-input-container {
     margin: auto;
     text-align: center;
@@ -37,6 +43,14 @@
     border-radius: 10px;
     background-color: #FFFFFF;
 }
+#agrippa-contact {
+    padding: 1em;
+    text-align: center;
+    color: #d33682;             /* magenta */
+}
+#agrippa-contact a:link, #agrippa-contact a:visited {
+    color: #d33682;             /* magenta */
+}
 #agrippa-help-content {
     margin: auto;
     display: none;
@@ -54,6 +68,10 @@
     background-color: rgba(0, 0, 0, 0.85);
     overflow-x: auto;
     overflow-y: auto;
+}
+#agrippa-help-close {
+    color: yellow;
+    float: right;
 }
 #agrippa-help-table td {
     border: 1px solid;
