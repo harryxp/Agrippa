@@ -1,4 +1,4 @@
-module Agrippa.Plugins.KeePass1 (suggest) where
+module Agrippa.Plugins.KeePass1 (keePass1) where
 
 import Prelude (Unit, bind, const, discard, flip, map, pure, show, unit, void, ($), (*>), (>>=), (<=<), (<<<))
 import Control.Monad.Aff (runAff)
@@ -16,7 +16,14 @@ import DOM (DOM)
 import Network.HTTP.Affjax (AJAX, Affjax, post)
 
 import Agrippa.Config (Config)
+import Agrippa.Plugins.Base (Plugin(..))
 import Agrippa.Utils (createTextNode, displayOutputText)
+
+keePass1 :: Plugin
+keePass1 = Plugin { name: "KeePass1"
+                  , onInputChange: suggest
+                  , onActivation: \_ _ _ _ -> pure Nothing
+                  }
 
 suggest :: forall e. String
                   -> Config

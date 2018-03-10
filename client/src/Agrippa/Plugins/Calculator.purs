@@ -1,4 +1,4 @@
-module Agrippa.Plugins.Calculator (calculate) where
+module Agrippa.Plugins.Calculator (calculator) where
 
 import Prelude (class Show, Unit, bind, map, id, negate, pure, show, ($>), (*), (+), (-), (/), (<<<), (<>))
 import Control.Alt ((<|>))
@@ -16,7 +16,14 @@ import Text.Parsing.StringParser.Expr (Assoc(..), Operator(..), OperatorTable, b
 import Text.Parsing.StringParser.String (anyDigit, char, string)
 
 import Agrippa.Config (Config)
+import Agrippa.Plugins.Base (Plugin(..))
 import Agrippa.Utils (createTextNode)
+
+calculator :: Plugin
+calculator = Plugin { name: "Calculator"
+                    , onInputChange: calculate
+                    , onActivation: \_ _ _ _ -> pure Nothing
+                    }
 
 calculate :: forall e. String
                     -> Config

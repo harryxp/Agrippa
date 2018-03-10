@@ -19,7 +19,8 @@ import Network.HTTP.Affjax (AJAX, Affjax, get)
 
 import Agrippa.Config (Config, getStrMapVal, getStringVal, lookupConfigVal)
 import Agrippa.Help (buildHelp)
-import Agrippa.Plugins.Registry (Plugin(..), namesToPlugins)
+import Agrippa.Plugins.Base (Plugin(..))
+import Agrippa.Plugins.Registry (namesToPlugins)
 import Agrippa.Utils (displayOutput, displayOutputText, mToE)
 
 main :: forall e. Eff (ajax :: AJAX, dom :: DOM, now :: NOW, ref :: REF, window :: WINDOW | e) Unit

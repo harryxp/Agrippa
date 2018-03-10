@@ -1,104 +1,39 @@
-module Agrippa.Plugins.Registry (Plugin(..), namesToPlugins) where
+module Agrippa.Plugins.Registry (namesToPlugins) where
 
-import Prelude (Unit, pure, (<$>))
-import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.JQuery (JQuery)
-import Control.Monad.Eff.Now (NOW)
-import Data.Maybe (Maybe(Nothing))
+import Prelude ((<$>))
 import Data.StrMap (StrMap, fromFoldable)
 import Data.Tuple (Tuple(..))
-import DOM (DOM)
-import DOM.HTML.Types (WINDOW)
-import Network.HTTP.Affjax (AJAX)
 
-import Agrippa.Config (Config)
-import Agrippa.Plugins.Calculator                      as C
-import Agrippa.Plugins.Clock                           as CLK
-import Agrippa.Plugins.FileSystem.LinuxFileSearch      as LFS
-import Agrippa.Plugins.FileSystem.MacFileSearch        as MFS
-import Agrippa.Plugins.FileSystem.MacAppSearch         as MAS
-import Agrippa.Plugins.FileSystem.UnixExecutableSearch as UES
-import Agrippa.Plugins.FileSystem.WinExecutableSearch  as WES
-import Agrippa.Plugins.FileSystem.WinFileSearch        as WFS
-import Agrippa.Plugins.KeePass1                        as K
-import Agrippa.Plugins.MortgageCalc                    as M
-import Agrippa.Plugins.OnlineSearch                    as O
-import Agrippa.Plugins.Snippets                        as S
-
--- A Plugin implements a specific functionality in Agrippa.
--- Multiple tasks may be backed by the same plugin, usually with different configurations.
-newtype Plugin =
-  Plugin { name          :: String
-
-         , onInputChange :: forall e. String  -- task name
-                                   -> Config  -- task config
-                                   -> String  -- input
-                                   -- sometimes it takes a while to compute the real output;
-                                   -- this callback function provides a mechanism to display the output asynchronously
-                                   -> (JQuery -> Eff (ajax :: AJAX, dom :: DOM, now :: NOW, window :: WINDOW | e) Unit)
-                                   -- output (might be overwritten by the callback function above)
-                                   -> Eff (ajax :: AJAX, dom :: DOM, now :: NOW, window :: WINDOW | e) (Maybe JQuery)
-
-                                   -- parameter types are the same as above - for some plugins we can use the same function
-         , onActivation  :: forall e. String
-                                   -> Config
-                                   -> String
-                                   -> (JQuery -> Eff (ajax :: AJAX, dom :: DOM, now :: NOW, window :: WINDOW | e) Unit)
-                                   -> Eff (ajax :: AJAX, dom :: DOM, now :: NOW, window :: WINDOW | e) (Maybe JQuery)
-         }
+import Agrippa.Plugins.Base (Plugin(..))
+import Agrippa.Plugins.Calculator (calculator)
+import Agrippa.Plugins.Clock (clock)
+import Agrippa.Plugins.FileSystem.LinuxFileSearch (linuxFileSearch)
+import Agrippa.Plugins.FileSystem.MacAppSearch (macAppSearch)
+import Agrippa.Plugins.FileSystem.MacFileSearch (macFileSearch)
+import Agrippa.Plugins.FileSystem.UnixExecutableSearch (unixExecutableSearch)
+import Agrippa.Plugins.FileSystem.WinExecutableSearch (winExecutableSearch)
+import Agrippa.Plugins.FileSystem.WinFileSearch (winFileSearch)
+import Agrippa.Plugins.KeePass1 (keePass1)
+import Agrippa.Plugins.MortgageCalc (mortgageCalc)
+import Agrippa.Plugins.OnlineSearch (onlineSearch)
+import Agrippa.Plugins.Snippets (snippets)
 
 -- All known plugins.  Not necessarily all loaded.
 -- Loaded ones are specified in the config file.
 plugins :: Array Plugin
-plugins = [ Plugin { name: "Calculator"
-                   , onInputChange: C.calculate
-                   , onActivation: \_ _ _ _ -> pure Nothing
-                   }
-          , Plugin { name: "Clock"
-                   , onInputChange: CLK.showTime
-                   , onActivation: \_ _ _ _ -> pure Nothing
-                   }
-          , Plugin { name: "Mortgage Calculator"
-                   , onInputChange: M.showUsage
-                   , onActivation: M.calculateMortgage
-                   }
-          , Plugin { name: "OnlineSearch"
-                   , onInputChange: O.prompt
-                   , onActivation: O.search
-                   }
-          , Plugin { name: "Snippets"
-                   , onInputChange: S.suggest
-                   , onActivation: S.copy
-                   }
+plugins = [ calculator
+          , clock
+          , mortgageCalc
+          , onlineSearch
+          , snippets
           -- the following plugins use the backend heavily
-          , Plugin { name: "LinuxFileSearch"
-                   , onInputChange: LFS.suggest
-                   , onActivation: LFS.open
-                   }
-          , Plugin { name: "MacFileSearch"
-                   , onInputChange: MFS.suggest
-                   , onActivation: MFS.open
-                   }
-          , Plugin { name: "MacAppSearch"
-                   , onInputChange: MAS.suggest
-                   , onActivation: MAS.open
-                   }
-          , Plugin { name: "UnixExecutableSearch"
-                   , onInputChange: UES.suggest
-                   , onActivation: UES.open
-                   }
-          , Plugin { name: "WinExecutableSearch"
-                   , onInputChange: WES.suggest
-                   , onActivation: WES.open
-                   }
-          , Plugin { name: "WinFileSearch"
-                   , onInputChange: WFS.suggest
-                   , onActivation: WFS.open
-                   }
-          , Plugin { name: "KeePass1"
-                   , onInputChange: K.suggest
-                   , onActivation: \_ _ _ _ -> pure Nothing
-                   }
+          , linuxFileSearch
+          , macAppSearch
+          , macFileSearch
+          , unixExecutableSearch
+          , winExecutableSearch
+          , winFileSearch
+          , keePass1
           ]
 
 namesToPlugins :: StrMap Plugin

@@ -1,4 +1,4 @@
-module Agrippa.Plugins.OnlineSearch (search, prompt) where
+module Agrippa.Plugins.OnlineSearch (onlineSearch) where
 
 import Prelude (Unit, bind, map, pure, (<>), (=<<), (<<<))
 import Control.Monad.Eff (Eff)
@@ -13,7 +13,14 @@ import DOM.HTML.Window (open)
 import Global (encodeURIComponent)
 
 import Agrippa.Config (Config, getStringVal)
+import Agrippa.Plugins.Base (Plugin(..))
 import Agrippa.Utils (createTextNode)
+
+onlineSearch :: Plugin
+onlineSearch = Plugin { name: "OnlineSearch"
+                      , onInputChange: prompt
+                      , onActivation: search
+                      }
 
 prompt :: forall e. String
                  -> Config

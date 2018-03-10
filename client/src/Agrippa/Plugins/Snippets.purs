@@ -1,4 +1,4 @@
-module Agrippa.Plugins.Snippets (copy, suggest) where
+module Agrippa.Plugins.Snippets (snippets) where
 
 import Prelude (Unit, bind, discard, flip, map, pure, (<<<), (>>=), (*>))
 import Control.Monad.Eff (Eff)
@@ -13,7 +13,14 @@ import Data.Traversable (sequence, traverse_)
 import DOM (DOM)
 
 import Agrippa.Config (Config, getStrMapVal)
+import Agrippa.Plugins.Base (Plugin(..))
 import Agrippa.Utils (addShortcutLabels, createTextNode)
+
+snippets :: Plugin
+snippets = Plugin { name: "Snippets"
+                  , onInputChange: suggest
+                  , onActivation: copy
+                  }
 
 suggest :: forall e. String
                   -> Config

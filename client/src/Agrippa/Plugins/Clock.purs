@@ -1,6 +1,6 @@
-module Agrippa.Plugins.Clock (showTime) where
+module Agrippa.Plugins.Clock (clock) where
 
-import Prelude (Unit, bind, map, (<<<), (<>))
+import Prelude (Unit, bind, map, pure, (<<<), (<>))
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.JQuery (JQuery)
 import Control.Monad.Eff.Now (NOW, nowDateTime)
@@ -10,7 +10,14 @@ import Data.JSDate (fromDateTime, toDateString, toTimeString)
 import Data.Maybe (Maybe(..))
 
 import Agrippa.Config (Config)
+import Agrippa.Plugins.Base (Plugin(..))
 import Agrippa.Utils (createTextNode)
+
+clock :: Plugin
+clock = Plugin { name: "Calculator"
+               , onInputChange: showTime
+               , onActivation: \_ _ _ _ -> pure Nothing
+               }
 
 showTime :: forall e. String
                    -> Config

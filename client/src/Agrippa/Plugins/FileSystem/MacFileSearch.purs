@@ -1,4 +1,4 @@
-module Agrippa.Plugins.FileSystem.MacFileSearch (open, suggest) where
+module Agrippa.Plugins.FileSystem.MacFileSearch (macFileSearch) where
 
 import Prelude (Unit)
 import Control.Monad.Eff (Eff)
@@ -8,7 +8,14 @@ import Data.Maybe (Maybe)
 import Network.HTTP.Affjax (AJAX)
 
 import Agrippa.Config (Config)
+import Agrippa.Plugins.Base (Plugin(..))
 import Agrippa.Plugins.FileSystem.Commons as C
+
+macFileSearch :: Plugin
+macFileSearch = Plugin { name: "MacFileSearch"
+                       , onInputChange: suggest
+                       , onActivation: open
+                       }
 
 suggest :: forall e. String
                   -> Config

@@ -1,4 +1,4 @@
-module Agrippa.Plugins.MortgageCalc (calculateMortgage, showUsage) where
+module Agrippa.Plugins.MortgageCalc (mortgageCalc) where
 
 import Prelude (Unit, bind, discard, flip, pure, (+), (-), (*), (/), (>=), (<$>), (<>))
 import Control.Monad.Eff (Eff)
@@ -14,7 +14,14 @@ import DOM (DOM)
 import Math (pow)
 
 import Agrippa.Config (Config)
+import Agrippa.Plugins.Base (Plugin(..))
 import Agrippa.Utils (createTextNode)
+
+mortgageCalc :: Plugin
+mortgageCalc = Plugin { name: "Mortgage Calculator"
+                      , onInputChange: showUsage
+                      , onActivation: calculateMortgage
+                      }
 
 showUsage :: forall e. String
                     -> Config
