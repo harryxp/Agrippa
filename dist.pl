@@ -40,7 +40,6 @@ sub main {
             system("zip -r $distdir.zip $distdir")
         } else {
             chdir("../server/");
-            system("stack build");
             system("stack --local-bin-path ../$distdir build --copy-bins");
             chdir("../");
             system("tar -czf $distdir.tar.gz $distdir");

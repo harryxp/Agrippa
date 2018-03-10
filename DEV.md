@@ -32,11 +32,21 @@ See [Differences from Haskell](https://github.com/purescript/documentation/blob/
 
 2. Some useful commands during development (to see more try `stack`):
 
+        $ cd server/
         $ stack build
         $ stack ghci
-        $ stack exec agrippad   # run the server
+        $ stack exec agrippad -- ../client/     # run the server and use ../client/ as server root
 
 # Release
+
+## Tag the commit
+
+        $ git tag -a v<version> -m 'Version <version>'
+        $ git push --tags
+
+If you made a mistake
+
+        $ git tag --delete v<version>
 
 ## Linux and Mac
 

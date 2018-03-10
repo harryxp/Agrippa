@@ -7,8 +7,6 @@ import Data.Aeson (Object, decode)
 import Data.IORef (IORef, newIORef)
 import Data.String (fromString)
 import Network.Wai.Handler.Warp (defaultSettings, setHost, setPort)
-import System.Directory (setCurrentDirectory)
-import System.Environment (getExecutablePath)
 import System.Exit (exitFailure)
 import System.FilePath ((</>))
 import System.IO (hPutStrLn, stderr)
@@ -18,8 +16,8 @@ import qualified Data.ByteString.Lazy as B (readFile)
 import qualified Data.HashMap.Lazy    as M (HashMap)
 import qualified Data.Text.Lazy       as T (Text)
 
-import Agrippa.Utils (getConfigDir, lookupJSON)
 import Agrippa.Plugins.FileSystem.IndexBuilder (buildSearchIndices)
+import Agrippa.Utils (getConfigDir, lookupJSON)
 
 import qualified Agrippa.Plugins.FileSystem.LinuxFileSearch      as LFS (registerHandlers)
 import qualified Agrippa.Plugins.FileSystem.MacAppSearch         as MAS (registerHandlers)
@@ -35,14 +33,11 @@ data ScottyConfig = ScottyConfig { host :: String
                                  deriving Show
 
 agrippadDriver :: IO ()
-agrippadDriver = do
-  execPath <- getExecutablePath
-  setCurrentDirectory execPath
-  forever $ do
-    mvar   <- newEmptyMVar
-    thread <- async (agrippadExecutor mvar)
-    takeMVar mvar -- this blocks until mvar has value
-    cancel thread
+agrippadDriver = forever $ do
+  mvar   <- newEmptyMVar
+  thread <- async (agrippadExecutor mvar)
+  takeMVar mvar -- this blocks until mvar has value
+  cancel thread
 
 agrippadExecutor :: MVar () -> IO ()
 agrippadExecutor mvar = do
