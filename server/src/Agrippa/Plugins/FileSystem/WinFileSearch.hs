@@ -1,6 +1,7 @@
 module Agrippa.Plugins.FileSystem.WinFileSearch (registerHandlers) where
 
 import Control.Monad (void)
+import System.FilePath (normalise)
 import System.Process (spawnProcess)
 import Web.Scotty (RoutePattern, ScottyM)
 
@@ -13,5 +14,5 @@ registerHandlers :: M.HashMap String [T.Text] -> RoutePattern -> RoutePattern ->
 registerHandlers = C.registerHandlers openFile
 
 openFile :: String -> IO ()
-openFile file = void $ spawnProcess "cmd" ["/c start " ++ file]
+openFile file = void $ spawnProcess "explorer.exe" [normalise file]
 

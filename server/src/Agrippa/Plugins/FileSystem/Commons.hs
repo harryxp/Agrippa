@@ -39,9 +39,12 @@ findItems taskNamesToItems taskName term =
       lowerTermText :: T.Text
       lowerTermText = T.pack lowerTerm
   in do
-    items                  <- M.lookup taskName taskNamesToItems :: Maybe [T.Text]
-    matches                <- (return . filter (T.isInfixOf lowerTermText . T.toLower)) items :: Maybe [T.Text]
-    (exactMatches, others) <- (return . partition ((== lowerTerm) . takeBaseName . T.unpack)) matches :: Maybe ([T.Text], [T.Text])
-    -- TODO
-    return (take 100 (exactMatches ++ others))
+    items <- M.lookup taskName taskNamesToItems :: Maybe [T.Text]
+    -- TODO take 100
+    -- TODO shouldn't return Maybe.  throw error if task cannot be found
+    (return . take 100) $ case term of
+      "" -> items
+      _  -> let matches                = (filter (T.isInfixOf lowerTermText . T.toLower)) items
+                (exactMatches, others) = (partition ((== lowerTerm) . takeBaseName . T.unpack)) matches
+            in exactMatches ++ others
 
