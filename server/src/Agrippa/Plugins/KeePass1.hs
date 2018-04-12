@@ -180,10 +180,7 @@ getFinalKey pwd hdr =
     transformKey :: B.ByteString -> B.ByteString
     transformKey rawMasterKey =
       let aes = A.initAES (transfRandomSeed hdr)
-          rawMasterKey' = foldl
-                            (\accum _ -> A.encryptECB aes accum)
-                            rawMasterKey
-                            [1..(keyTransfRounds hdr)]
+          rawMasterKey' = iterate (A.encryptECB aes) rawMasterKey !! keyTransfRounds hdr
       in H.hash rawMasterKey'
 
 decrypt :: B.ByteString -> Header -> KeePass1Cipher -> B.ByteString -> B.ByteString
@@ -246,18 +243,18 @@ parseGroups decryptedBuf numGroups' = (head . drop numGroups' . iterate parseGro
 data Entry = Entry [EntryField] deriving Show
 
 instance ToJSON Entry where
-  toJSON (Entry fields) = (Object . foldl keepFieldsOfInterest M.empty) fields
+  toJSON (Entry fields) = (Object . foldr keepFieldsOfInterest M.empty) fields
 
-keepFieldsOfInterest :: M.HashMap T.Text Value -> EntryField -> M.HashMap T.Text Value
-keepFieldsOfInterest accum (EntryTitle    title)    = keepFieldsOfInterest' accum "Title"    title
-keepFieldsOfInterest accum (EntryURL      url)      = keepFieldsOfInterest' accum "URL"      url
-keepFieldsOfInterest accum (EntryUserName userName) = keepFieldsOfInterest' accum "UserName" userName
-keepFieldsOfInterest accum (EntryPassword password) = keepFieldsOfInterest' accum "Password" password
-keepFieldsOfInterest accum (EntryComment  comment)  = keepFieldsOfInterest' accum "Comment"  comment
-keepFieldsOfInterest accum _                        = accum
+keepFieldsOfInterest :: EntryField -> M.HashMap T.Text Value -> M.HashMap T.Text Value
+keepFieldsOfInterest (EntryTitle    title)    accum = keepFieldsOfInterest' "Title"    title    accum
+keepFieldsOfInterest (EntryURL      url)      accum = keepFieldsOfInterest' "URL"      url      accum
+keepFieldsOfInterest (EntryUserName userName) accum = keepFieldsOfInterest' "UserName" userName accum
+keepFieldsOfInterest (EntryPassword password) accum = keepFieldsOfInterest' "Password" password accum
+keepFieldsOfInterest (EntryComment  comment)  accum = keepFieldsOfInterest' "Comment"  comment  accum
+keepFieldsOfInterest _                        accum = accum
 
-keepFieldsOfInterest' :: M.HashMap T.Text Value -> T.Text -> T.Text -> M.HashMap T.Text Value
-keepFieldsOfInterest' accum key value =
+keepFieldsOfInterest' :: T.Text -> T.Text -> M.HashMap T.Text Value -> M.HashMap T.Text Value
+keepFieldsOfInterest' key value accum =
   let chompedValue = T.dropWhileEnd (== '\0') value
   in if T.null chompedValue then accum else M.insert key (String chompedValue) accum
 

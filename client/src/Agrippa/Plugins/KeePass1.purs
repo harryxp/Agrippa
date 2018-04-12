@@ -49,18 +49,18 @@ buildUnlockUI containerDiv = do
   label <- createTextNode "Please input master password to unlock database:"
   append label containerDiv
 
-  input <- create "<input>"
-  setProp "type" "password" input
-  setProp "id" "agrippa-keepass1-master-password" input
-  append input containerDiv
+  inputField <- create "<input>"
+  setProp "type" "password" inputField
+  setProp "id" "agrippa-keepass1-master-password" inputField
+  append inputField containerDiv
 
   submitButton <- create "<button>"
-  on "click" submitButtonListener submitButton
   setText "Unlock" submitButton
+  on "click" unlock submitButton
   append submitButton containerDiv
 
-submitButtonListener :: forall e. JQueryEvent -> JQuery -> Eff (ajax :: AJAX, dom :: DOM | e) Unit
-submitButtonListener _ _ = do
+unlock :: forall e. JQueryEvent -> JQuery -> Eff (ajax :: AJAX, dom :: DOM | e) Unit
+unlock _ _ = do
   masterPasswordInput <- select "#agrippa-keepass1-master-password"
   foreignInput        <- getValue masterPasswordInput
   case runExcept (readString foreignInput) of

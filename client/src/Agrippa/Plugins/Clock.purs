@@ -14,7 +14,7 @@ import Agrippa.Plugins.Base (Plugin(..))
 import Agrippa.Utils (createTextNode)
 
 clock :: Plugin
-clock = Plugin { name: "Calculator"
+clock = Plugin { name: "Clock"
                , onInputChange: showTime
                , onActivation: \_ _ _ _ -> pure Nothing
                }

@@ -12,8 +12,7 @@ getConfigDir = getAppUserDataDirectory "agrippa.d"
 lookupJSON :: FromJSON a => Text -> Object -> Maybe a
 lookupJSON key m = do
   jValue <- M.lookup key m
-  result <- return (fromJSON jValue)
-  case result of
+  case fromJSON jValue of
     Error   _ -> Nothing
     Success v -> Just v
 

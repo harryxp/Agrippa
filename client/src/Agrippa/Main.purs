@@ -25,7 +25,7 @@ import Agrippa.Utils (displayOutput, displayOutputText, mToE)
 
 main :: forall e. Eff (ajax :: AJAX, dom :: DOM, now :: NOW, ref :: REF, window :: WINDOW | e) Unit
 main = ready (runAff_ affHandler (get "/agrippa/config/"))
-  where affHandler (Left  _)                    = displayOutputText "Failed to retrieve config from server."
+  where affHandler (Left _)                     = displayOutputText "Failed to retrieve config from server."
         affHandler (Right { response: config }) = do
           buildHelp config
           installInputListener config

@@ -47,6 +47,7 @@ See [Differences from Haskell](https://github.com/purescript/documentation/blob/
 If you made a mistake
 
         $ git tag --delete v<version>
+        $ git push --delete origin v<version>
 
 ## Linux and Mac
 
