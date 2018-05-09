@@ -2,7 +2,7 @@ module Agrippa.Main (main) where
 
 import Prelude (Unit, bind, discard, pure, show, unit, (==), (/=), (*>), (>>=), (<>), (&&))
 import Control.Alt ((<|>))
-import Control.Monad.Aff (runAff, runAff_)
+import Control.Monad.Aff (runAff_)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.JQuery (JQuery, JQueryEvent, body, getWhich, getValue, off, on, ready, select, setText)
 import Control.Monad.Eff.Now (NOW)
@@ -42,7 +42,7 @@ installRestartServerListener :: forall e. Eff (ajax :: AJAX, dom :: DOM | e) Uni
 installRestartServerListener = do
   button <- select "#agrippa-restart-button"
   on "click"
-     (\_ _ -> runAff
+     (\_ _ -> runAff_
                 (\_ -> displayOutputText "Restarting server... Please reload or visit the new address if that has been changed.")
                 (get "/agrippa/restart/" :: forall e1. Affjax e1 Unit))
      button

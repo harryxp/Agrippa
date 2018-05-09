@@ -1,4 +1,4 @@
-module Agrippa.Help (buildHelp) where
+module Agrippa.Help (buildHelp, fillHelpTable) where
 
 import Prelude (Unit, bind, discard, (==), (*>), (>>=))
 import Control.Monad.Eff (Eff)
@@ -15,6 +15,11 @@ import Agrippa.Utils (displayOutputText)
 
 buildHelp :: forall e. Config -> Eff (dom :: DOM | e) Unit
 buildHelp config = do
+  helpTable <- select "#agrippa-help-table"
+  fillHelpTable config helpTable
+
+fillHelpTable :: forall e. Config -> JQuery -> Eff (dom :: DOM | e) Unit
+fillHelpTable config helpTable = do
   helpContent <- select "#agrippa-help-content"
   buildHelpTextForTasks
 
@@ -40,8 +45,7 @@ buildHelp config = do
 
     buildHelpTextForTask :: Tuple String String -> Eff (dom :: DOM | e) Unit
     buildHelpTextForTask (Tuple keyword taskDesc) = do
-      helpTable <- select "#agrippa-help-table"
-      tr        <- create "<tr>"
+      tr <- create "<tr>"
       createTd keyword tr *> createTd taskDesc tr *> append tr helpTable
       where
         createTd :: String -> JQuery -> Eff (dom :: DOM | e) Unit

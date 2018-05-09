@@ -1,7 +1,7 @@
 module Agrippa.Plugins.KeePass1 (keePass1) where
 
-import Prelude (Unit, bind, const, discard, flip, map, pure, show, unit, void, ($), (*>), (>>=), (<=<), (<<<))
-import Control.Monad.Aff (runAff)
+import Prelude (Unit, bind, const, discard, flip, map, pure, show, unit, (*>), (>>=), (<=<), (<<<))
+import Control.Monad.Aff (runAff_)
 import Control.Monad.Except (runExcept)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.JQuery (JQuery, JQueryEvent, append, create, getValue, on, select, setClass, setProp, setText, setValue)
@@ -31,7 +31,7 @@ suggest :: forall e. String
                   -> (JQuery -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
                   -> Eff (ajax :: AJAX, dom :: DOM | e) (Maybe JQuery)
 suggest _ _ input displayOutput =
-  runAff affHandler ((post "/agrippa/keepass1/suggest" <<< buildSuggestReq <<< trim) input)
+  runAff_ affHandler ((post "/agrippa/keepass1/suggest" <<< buildSuggestReq <<< trim) input)
   *> map Just (createTextNode "Searching...")
   where affHandler (Left _)                = pure unit
         affHandler (Right { response: r }) = buildOutput r >>= displayOutput
@@ -65,9 +65,9 @@ unlock _ _ = do
   foreignInput        <- getValue masterPasswordInput
   case runExcept (readString foreignInput) of
     Left  err -> displayOutputText (show err)
-    Right pwd -> void $ runAff
-                          (const (pure unit)) -- TODO fetch entries
-                          ((post "/agrippa/keepass1/unlock" <<< buildUnlockReq) pwd :: forall e1. Affjax e1 Unit)
+    Right pwd -> runAff_
+                   (const (pure unit)) -- TODO fetch entries
+                   ((post "/agrippa/keepass1/unlock" <<< buildUnlockReq) pwd :: forall e1. Affjax e1 Unit)
 
 buildUnlockReq :: String -> Json
 buildUnlockReq masterPassword = fromObject (insert "password" (fromString masterPassword) empty)
