@@ -40,7 +40,7 @@ buildOutput :: forall e. Json -> Eff (ajax :: AJAX, dom :: DOM | e) JQuery
 buildOutput contents = do
   containerDiv <- create "<div>"
   case (traverse toObject <=< toArray) contents of
-    Just entries -> traverse buildUIForEntry entries >>= traverse_ (flip append containerDiv)
+    Just entries -> traverse buildEntryUI entries >>= traverse_ (flip append containerDiv)
     Nothing      -> buildUnlockUI containerDiv
   pure containerDiv
 
@@ -72,8 +72,8 @@ unlock _ _ = do
 buildUnlockReq :: String -> Json
 buildUnlockReq masterPassword = fromObject (insert "password" (fromString masterPassword) empty)
 
-buildUIForEntry :: forall e. JObject -> Eff (dom :: DOM | e) JQuery
-buildUIForEntry entry = do
+buildEntryUI :: forall e. JObject -> Eff (dom :: DOM | e) JQuery
+buildEntryUI entry = do
   entryDiv <- create "<div>"
   appendDiv "Title" entryDiv
   appendDiv "URL"   entryDiv
