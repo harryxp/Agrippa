@@ -26,7 +26,7 @@
                },
         "e":   { "name": "Launch Executables"
                , "plugin": "UnixExecutableSearch"
-               , "paths": ["/bin/", "/usr/bin/"]
+               , "paths": ["/bin/", "/usr/bin/", "/usr/local/bin/"]
                },
         "f":   { "name": "Search for Files"
                , "plugin": "MacFileSearch"
@@ -41,6 +41,10 @@
         "d":   { "name": "Dictionary"
                , "plugin": "OnlineSearch"
                , "url": "https://www.merriam-webster.com/dictionary/${q}"
+               },
+        "g":   { "name": "Google Search"
+               , "plugin": "OnlineSearch"
+               , "url": "https://www.google.com/search?q=${q}"
                },
         "h":   { "name": "Haskell Search"
                , "plugin": "OnlineSearch"

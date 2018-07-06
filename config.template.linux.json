@@ -42,6 +42,10 @@
                , "plugin": "OnlineSearch"
                , "url": "https://www.merriam-webster.com/dictionary/${q}"
                },
+        "g":   { "name": "Google Search"
+               , "plugin": "OnlineSearch"
+               , "url": "https://www.google.com/search?q=${q}"
+               },
         "h":   { "name": "Haskell Search"
                , "plugin": "OnlineSearch"
                , "url": "https://www.google.com/search?q=haskell+${q}"
