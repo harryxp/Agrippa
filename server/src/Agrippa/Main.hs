@@ -3,16 +3,16 @@ module Agrippa.Main (agrippadDriver) where
 import Control.Concurrent.Async (async, cancel)
 import Control.Concurrent.MVar (MVar, newEmptyMVar, putMVar, takeMVar)
 import Control.Monad (forever)
-import Data.Aeson (Object, decode)
+import Data.Either.Extra (eitherToMaybe)
 import Data.IORef (IORef, newIORef)
 import Data.String (fromString)
+import Data.Yaml (Object, ParseException, decodeFileEither)
 import Network.Wai.Handler.Warp (defaultSettings, setHost, setPort)
 import System.Exit (exitFailure)
 import System.FilePath ((</>))
 import System.IO (hPutStrLn, stderr)
 import Web.Scotty (Options(Options), addHeader, file, get, json, liftAndCatchIO, settings, scottyOpts, verbose)
 
-import qualified Data.ByteString.Lazy as B (readFile)
 import qualified Data.HashMap.Lazy    as M (HashMap)
 import qualified Data.Text.Lazy       as T (Text)
 
@@ -56,11 +56,11 @@ agrippadExecutor mvar = do
 readAgrippaConfig :: IO (Maybe (ScottyConfig, Object))
 readAgrippaConfig = do
   configDir <- getConfigDir
-  let configFile = configDir </> "config.json"
+  let configFile = configDir </> "config.yaml"
   putStrLn ("Reading configuration from " ++ configFile ++ ".")
-  configStr <- B.readFile configFile
+  eitherAgrippaConfig <- decodeFileEither configFile        :: IO (Either ParseException Object)
   return $ do
-    agrippaConfig <- decode configStr                       :: Maybe Object
+    agrippaConfig <- eitherToMaybe eitherAgrippaConfig
     prefs         <- lookupJSON "preferences" agrippaConfig :: Maybe Object
     host'         <- lookupJSON "host"        prefs         :: Maybe String
     port'         <- lookupJSON "port"        prefs         :: Maybe Int
