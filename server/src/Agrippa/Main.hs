@@ -44,9 +44,9 @@ agrippadExecutor mvar = do
   config <- readAgrippaConfig
   case config of
     Nothing                            -> do
-      hPutStrLn stderr "Failed to parse Agrippa config."
       configDir <- getConfigDir
-      hPutStrLn stderr ("Please check " ++ configDir ++ " under your home directory.")
+      let configFile = configDir </> "config.yaml"
+      hPutStrLn stderr ("Failed to parse Agrippa config.  Please check " ++ configFile ++ ".")
       exitFailure
     Just (scottyConfig, agrippaConfig) -> do
       taskNamesToItems <- buildSearchIndices agrippaConfig
