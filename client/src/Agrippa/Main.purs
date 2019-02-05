@@ -1,21 +1,21 @@
 module Agrippa.Main (main) where
 
 import Prelude (Unit, bind, discard, pure, show, unit, (==), (/=), (*>), (>>=), (<>), (&&))
+import Affjax (get)
+import Affjax.ResponseFormat (ignore, json)
+import Affjax.StatusCode (StatusCode(..))
 import Control.Alt ((<|>))
-import Control.Monad.Aff (runAff_)
-import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.JQuery (JQuery, JQueryEvent, body, getWhich, getValue, off, on, ready, select, setText)
-import Control.Monad.Eff.Now (NOW)
-import Control.Monad.Eff.Ref (REF, Ref, newRef, readRef, writeRef)
 import Control.Monad.Except (runExcept)
-import DOM (DOM)
-import DOM.HTML.Types (WINDOW)
 import Data.Either (Either(..))
-import Data.Foreign (readString)
+import Data.Map as Map
 import Data.Maybe (Maybe(..))
-import Data.StrMap (lookup)
 import Data.String (Pattern(..), indexOf, splitAt)
-import Network.HTTP.Affjax (AJAX, Affjax, get)
+import Effect (Effect)
+import Effect.Aff (runAff_)
+import Effect.Ref (Ref, new, read, write)
+import Foreign (readString)
+import Foreign.Object (lookup)
+import JQuery (JQuery, JQueryEvent, body, getWhich, getValue, off, on, ready, select, setText)
 
 import Agrippa.Config (Config, getStrMapVal, getStringVal, lookupConfigVal)
 import Agrippa.Help (buildHelp)
@@ -23,45 +23,42 @@ import Agrippa.Plugins.Base (Plugin(..))
 import Agrippa.Plugins.Registry (namesToPlugins)
 import Agrippa.Utils (displayOutput, displayOutputText, mToE)
 
-main :: forall e. Eff (ajax :: AJAX, dom :: DOM, now :: NOW, ref :: REF, window :: WINDOW | e) Unit
-main = ready (runAff_ affHandler (get "/agrippa/config/"))
-  where affHandler (Left _)                     = displayOutputText "Failed to retrieve config from server."
-        affHandler (Right { response: config }) = do
+main :: Effect Unit
+main = ready (runAff_ affHandler (get json "/agrippa/config/"))
+  where affHandler (Right { status: (StatusCode 200)
+                          , body:   (Right config)
+                          }) = do
           buildHelp config
           installInputListener config
           installRestartServerListener
+        affHandler _         = displayOutputText "Failed to retrieve config from server."
 
-installInputListener :: forall e. Config
-                               -> Eff (ajax :: AJAX, dom :: DOM, now :: NOW, ref :: REF, window :: WINDOW | e) Unit
+installInputListener :: Config -> Effect Unit
 installInputListener config = do
   inputField   <- select "#agrippa-input"
-  prevInputRef <- newRef ""
+  prevInputRef <- new ""
   on "keyup" (inputListener config prevInputRef) inputField
 
-installRestartServerListener :: forall e. Eff (ajax :: AJAX, dom :: DOM | e) Unit
+installRestartServerListener :: Effect Unit
 installRestartServerListener = do
   button <- select "#agrippa-restart-button"
   on "click"
      (\_ _ -> runAff_
                 (\_ -> displayOutputText "Restarting server... Please reload or visit the new address if that has been changed.")
-                (get "/agrippa/restart/" :: forall e1. Affjax e1 Unit))
+                (get ignore "/agrippa/restart/"))
      button
 
 -- tasks, input and output
 
-inputListener :: forall e. Config
-                        -> Ref String
-                        -> JQueryEvent
-                        -> JQuery
-                        -> Eff (ajax :: AJAX, dom :: DOM, now :: NOW, ref :: REF, window :: WINDOW | e) Unit
+inputListener :: Config -> Ref String -> JQueryEvent -> JQuery -> Effect Unit
 inputListener config prevInputRef event inputField = do
   keyCode      <- getWhich event
   foreignInput <- getValue inputField
   case runExcept (readString foreignInput) of
     Left  err        -> displayOutputText (show err)
     Right wholeInput -> do
-      prevInput <- readRef prevInputRef
-      writeRef prevInputRef wholeInput
+      prevInput <- read prevInputRef
+      write wholeInput prevInputRef
       if prevInput == wholeInput && keyCode /= 13
         then pure unit
         else dispatchToTask config keyCode wholeInput
@@ -72,10 +69,7 @@ data Task = Task { name   :: String
                  , config :: Config
                  }
 
-dispatchToTask :: forall e. Config
-                         -> Int
-                         -> String
-                         -> Eff (ajax :: AJAX, dom :: DOM, now :: NOW, window :: WINDOW | e) Unit
+dispatchToTask :: Config -> Int -> String -> Effect  Unit
 dispatchToTask config keyCode wholeInput =
   case findTask config wholeInput <|> findDefaultTask config wholeInput of
     Left  err  -> displayOutputText err
@@ -84,12 +78,12 @@ dispatchToTask config keyCode wholeInput =
 findTask :: Config -> String -> Either String Task
 findTask config wholeInput = do
   index                                 <- mToE "No keyword found in input."                            (indexOf (Pattern " ") wholeInput)
-  { before: keyword, after: taskInput } <- mToE "Failed to parse input.  This is impossible!"           (splitAt index wholeInput)
+  { before: keyword, after: taskInput } <- pure                                                         (splitAt index wholeInput)
   keywordsToTaskConfigs                 <- getStrMapVal "tasks" config
   taskConfig                            <- mToE ("Keyword '" <> keyword <> "' not found in config.")    (lookup keyword keywordsToTaskConfigs)
   taskName                              <- getStringVal "name" taskConfig
   pluginName                            <- getStringVal "plugin" taskConfig
-  plugin                                <- mToE ("Can't find plugin with name '" <> pluginName <> "'.") (lookup pluginName namesToPlugins)
+  plugin                                <- mToE ("Can't find plugin with name '" <> pluginName <> "'.") (Map.lookup pluginName namesToPlugins)
   pure (Task { name: taskName, plugin: plugin, input: taskInput, config: taskConfig })
 
 findDefaultTask :: Config -> String -> Either String Task
@@ -98,12 +92,10 @@ findDefaultTask config wholeInput = do
   defaultTaskConfig <- lookupConfigVal "defaultTask" prefs
   taskName          <- getStringVal    "name"        defaultTaskConfig
   pluginName        <- getStringVal    "plugin"      defaultTaskConfig
-  plugin            <- mToE ("Can't find plugin with name '" <> pluginName <> "'.") (lookup pluginName namesToPlugins)
+  plugin            <- mToE ("Can't find plugin with name '" <> pluginName <> "'.") (Map.lookup pluginName namesToPlugins)
   pure (Task { name: taskName, plugin: plugin, input: wholeInput, config: defaultTaskConfig })
 
-execTask :: forall e. Task
-                   -> Int
-                   -> Eff (ajax :: AJAX, dom :: DOM, now :: NOW, window :: WINDOW | e) Unit
+execTask :: Task -> Int -> Effect Unit
 execTask (Task { name: name
                , plugin: (Plugin { onInputChange: prompt, onActivation: activate })
                , input: taskInput
@@ -117,6 +109,5 @@ execTask (Task { name: name
     Just node -> displayOutput node
     Nothing   -> pure unit
 
-displayTask :: forall e. String -> Eff (dom :: DOM | e) Unit
+displayTask :: String -> Effect Unit
 displayTask t = select "#agrippa-task" >>= setText t
-

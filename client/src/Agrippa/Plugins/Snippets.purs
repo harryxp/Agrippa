@@ -1,16 +1,15 @@
 module Agrippa.Plugins.Snippets (snippets) where
 
 import Prelude (Unit, bind, discard, flip, map, pure, (<<<), (>>=), (*>))
-import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.JQuery (JQuery, JQueryEvent, addClass, append, body, create, on, setProp, setText, setValue)
 import Data.Argonaut.Core (toString)
 import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
-import Data.StrMap (StrMap, filterKeys, toArrayWithKey)
 import Data.String (toLower, trim)
 import Data.String.Utils (includes)
 import Data.Traversable (sequence, traverse_)
-import DOM (DOM)
+import Effect (Effect)
+import Foreign.Object (Object, filterKeys, toArrayWithKey)
+import JQuery (JQuery, JQueryEvent, addClass, append, body, create, on, setProp, setText, setValue)
 
 import Agrippa.Config (Config, getStrMapVal)
 import Agrippa.Plugins.Base (Plugin(..))
@@ -22,29 +21,25 @@ snippets = Plugin { name: "Snippets"
                   , onActivation: copy
                   }
 
-suggest :: forall e. String
-                  -> Config
-                  -> String
-                  -> (JQuery -> Eff (dom :: DOM | e) Unit)
-                  -> Eff (dom :: DOM | e) (Maybe JQuery)
+suggest :: String -> Config -> String -> (JQuery -> Effect Unit) -> Effect (Maybe JQuery)
 suggest _ config input displayOutput = map Just
   case getStrMapVal "snippets" config of
     Left  err            -> createTextNode err
     Right keywordsToText ->
-      let candidates :: StrMap Config
+      let candidates :: Object Config
           candidates = filterKeys (includes (toLower (trim input)) <<< toLower) keywordsToText
       in buildTable candidates
 
-buildTable :: forall e. StrMap Config -> Eff (dom :: DOM | e) JQuery
+buildTable :: Object Config -> Effect JQuery
 buildTable candidates = do
   body >>= on "keyup" shortcutListener
-  rows  <- sequence (toArrayWithKey buildTableRow candidates) :: Eff (dom :: DOM | e) (Array JQuery)
+  rows  <- sequence (toArrayWithKey buildTableRow candidates) :: Effect (Array JQuery)
   table <- create "<table>"
   traverse_ (flip append table) rows
   addShortcutLabels "<td>" rows
   pure table
 
-buildTableRow :: forall e. String -> Config -> Eff (dom :: DOM | e) JQuery
+buildTableRow :: String -> Config -> Effect JQuery
 buildTableRow key value =
   let val = case toString value of
               Nothing -> "Error: snippets must be strings."
@@ -72,15 +67,11 @@ buildTableRow key value =
     append buttonCell tr
     pure tr
 
-foreign import shortcutListener :: forall e. JQueryEvent -> JQuery -> Eff (dom :: DOM | e) Unit
+foreign import shortcutListener :: JQueryEvent -> JQuery -> Effect Unit
 
-foreign import copyButtonListener :: forall e. JQueryEvent -> JQuery -> Eff (dom :: DOM | e) Unit
+foreign import copyButtonListener :: JQueryEvent -> JQuery -> Effect Unit
 
-copy :: forall e. String
-               -> Config
-               -> String
-               -> (JQuery -> Eff (dom :: DOM | e) Unit)
-               -> Eff (dom :: DOM | e) (Maybe JQuery)
+copy :: String -> Config -> String -> (JQuery -> Effect Unit) -> Effect (Maybe JQuery)
 copy _ _ _ _ = (body >>= on "keyup" shortcutListener) *> clickFirstCopyButton *> pure Nothing
 
-foreign import clickFirstCopyButton :: forall e. Eff (dom :: DOM | e) Unit
+foreign import clickFirstCopyButton :: Effect Unit

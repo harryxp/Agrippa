@@ -1,19 +1,21 @@
 module Agrippa.Plugins.KeePass1 (keePass1) where
 
 import Prelude (Unit, bind, const, discard, flip, map, pure, show, unit, (*>), (>>=), (<=<), (<<<))
-import Control.Monad.Aff (runAff_)
+import Affjax (post)
+import Affjax.RequestBody as RequestBody
+import Affjax.ResponseFormat (json)
+import Affjax.StatusCode (StatusCode(..))
 import Control.Monad.Except (runExcept)
-import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.JQuery (JQuery, JQueryEvent, append, create, getValue, on, select, setClass, setProp, setText, setValue)
-import Data.Argonaut.Core (JObject, Json, fromObject, fromString, toArray, toObject, toString)
+import Data.Argonaut.Core (Json, fromObject, fromString, toArray, toObject, toString)
 import Data.Either (Either(..))
-import Data.Foreign (readString)
 import Data.Maybe (Maybe(..))
-import Data.StrMap (empty, insert, lookup)
 import Data.String (trim)
 import Data.Traversable (traverse, traverse_)
-import DOM (DOM)
-import Network.HTTP.Affjax (AJAX, Affjax, post)
+import Effect (Effect)
+import Effect.Aff (runAff_)
+import Foreign (readString)
+import Foreign.Object (Object, empty, insert, lookup)
+import JQuery (JQuery, JQueryEvent, append, create, getValue, on, select, setClass, setProp, setText, setValue)
 
 import Agrippa.Config (Config)
 import Agrippa.Plugins.Base (Plugin(..))
@@ -25,18 +27,16 @@ keePass1 = Plugin { name: "KeePass1"
                   , onActivation: \_ _ _ _ -> pure Nothing
                   }
 
-suggest :: forall e. String
-                  -> Config
-                  -> String
-                  -> (JQuery -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
-                  -> Eff (ajax :: AJAX, dom :: DOM | e) (Maybe JQuery)
+suggest :: String -> Config -> String -> (JQuery -> Effect Unit) -> Effect (Maybe JQuery)
 suggest _ _ input displayOutput =
-  runAff_ affHandler ((post "/agrippa/keepass1/suggest" <<< buildSuggestReq <<< trim) input)
+  runAff_ affHandler ((post json "/agrippa/keepass1/suggest" <<< RequestBody.Json <<< buildSuggestReq <<< trim) input)
   *> map Just (createTextNode "Searching...")
-  where affHandler (Left _)                = pure unit
-        affHandler (Right { response: r }) = buildOutput r >>= displayOutput
+  where affHandler (Right { status: (StatusCode 200)
+                          , body:   (Right resp)
+                          }) = buildOutput resp >>= displayOutput
+        affHandler _         = pure unit
 
-buildOutput :: forall e. Json -> Eff (ajax :: AJAX, dom :: DOM | e) JQuery
+buildOutput :: Json -> Effect JQuery
 buildOutput contents = do
   containerDiv <- create "<div>"
   case (traverse toObject <=< toArray) contents of
@@ -44,7 +44,7 @@ buildOutput contents = do
     Nothing      -> buildUnlockUI containerDiv
   pure containerDiv
 
-buildUnlockUI :: forall e. JQuery -> Eff (ajax :: AJAX, dom :: DOM | e) Unit
+buildUnlockUI :: JQuery -> Effect Unit
 buildUnlockUI containerDiv = do
   label <- createTextNode "Please input master password to unlock database:"
   append label containerDiv
@@ -59,7 +59,7 @@ buildUnlockUI containerDiv = do
   on "click" unlock submitButton
   append submitButton containerDiv
 
-unlock :: forall e. JQueryEvent -> JQuery -> Eff (ajax :: AJAX, dom :: DOM | e) Unit
+unlock :: JQueryEvent -> JQuery -> Effect Unit
 unlock _ _ = do
   masterPasswordInput <- select "#agrippa-keepass1-master-password"
   foreignInput        <- getValue masterPasswordInput
@@ -67,12 +67,12 @@ unlock _ _ = do
     Left  err -> displayOutputText (show err)
     Right pwd -> runAff_
                    (const (pure unit)) -- TODO fetch entries
-                   ((post "/agrippa/keepass1/unlock" <<< buildUnlockReq) pwd :: forall e1. Affjax e1 Unit)
+                   ((post json "/agrippa/keepass1/unlock" <<< RequestBody.Json <<< buildUnlockReq) pwd)
 
 buildUnlockReq :: String -> Json
 buildUnlockReq masterPassword = fromObject (insert "password" (fromString masterPassword) empty)
 
-buildEntryUI :: forall e. JObject -> Eff (dom :: DOM | e) JQuery
+buildEntryUI :: Object Json -> Effect JQuery
 buildEntryUI entry = do
   entryDiv <- create "<div>"
   appendDiv "Title" entryDiv
@@ -118,7 +118,7 @@ buildEntryUI entry = do
           append pre entryDiv
         Nothing         -> pure unit
 
-foreign import copyButtonListener :: forall e. JQueryEvent -> JQuery -> Eff (dom :: DOM | e) Unit
+foreign import copyButtonListener :: JQueryEvent -> JQuery -> Effect Unit
 
 buildSuggestReq :: String -> Json
 buildSuggestReq term = fromObject (insert "term" (fromString term) empty)

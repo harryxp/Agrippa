@@ -1,8 +1,6 @@
 module Agrippa.Plugins.MortgageCalc (mortgageCalc) where
 
 import Prelude (Unit, bind, discard, flip, pure, (+), (-), (*), (/), (>=), (<$>), (<>))
-import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.JQuery (JQuery, addClass, append, create, setText)
 import Data.Array (reverse, (:))
 import Data.Maybe (Maybe(..))
 import Data.Number (fromString)
@@ -10,7 +8,8 @@ import Data.Number.Format (fixed, toStringWith)
 import Data.String (trim)
 import Data.String.Utils (words)
 import Data.Traversable (traverse, traverse_)
-import DOM (DOM)
+import Effect (Effect)
+import JQuery (JQuery, addClass, append, create, setText)
 import Math (pow)
 
 import Agrippa.Config (Config)
@@ -23,11 +22,7 @@ mortgageCalc = Plugin { name: "Mortgage Calculator"
                       , onActivation: calculateMortgage
                       }
 
-showUsage :: forall e. String
-                    -> Config
-                    -> String
-                    -> (JQuery -> Eff (dom :: DOM | e) Unit)
-                    -> Eff (dom :: DOM | e) (Maybe JQuery)
+showUsage :: String -> Config -> String -> (JQuery -> Effect Unit) -> Effect (Maybe JQuery)
 showUsage _ _ _ _ = do
   n1 <- createTextNode "<Loan Amount> <Interest Rate (%)> <Mortgage Period (years)>"
   n2 <- createTextNode "E.g.: 300000 4 30<Enter>"
@@ -41,11 +36,7 @@ type Params = { loanAmount   :: Number
               , periodInYear :: Number
               }
 
-calculateMortgage :: forall e. String
-                            -> Config
-                            -> String
-                            -> (JQuery -> Eff (dom :: DOM | e) Unit)
-                            -> Eff (dom :: DOM | e) (Maybe JQuery)
+calculateMortgage :: String -> Config -> String -> (JQuery -> Effect Unit) -> Effect (Maybe JQuery)
 calculateMortgage _ _ input _ =
   case words (trim input) of
     [loanAmountStr, interestRateStr, periodInYearStr] ->
@@ -110,16 +101,16 @@ calculateAmortization monthlyPayment loanAmount interestRate periodInYear =
              , balance          : newBalance
              } : accum)
 
-buildTable :: forall e. Array MonthlyInstallment -> Eff (dom :: DOM | e) JQuery
+buildTable :: Array MonthlyInstallment -> Effect JQuery
 buildTable installments = do
   table  <- create "<table>"
   header <- buildTableHeader
-  rows   <- traverse buildTableRow installments :: Eff (dom :: DOM | e) (Array JQuery)
+  rows   <- traverse buildTableRow installments :: Effect (Array JQuery)
   append header table
   traverse_ (flip append table) rows
   pure table
 
-buildTableHeader :: forall e. Eff (dom :: DOM | e) JQuery
+buildTableHeader :: Effect JQuery
 buildTableHeader = do
   th1 <- create "<th>"
   setText "Installment #" th1
@@ -138,7 +129,7 @@ buildTableHeader = do
   pure tr
 
 
-buildTableRow :: forall e. MonthlyInstallment -> Eff (dom :: DOM | e) JQuery
+buildTableRow :: MonthlyInstallment -> Effect JQuery
 buildTableRow { installmentNumber, principal, interest, balance } = do
   td1 <- create "<td>"
   setText (truncate0 installmentNumber) td1

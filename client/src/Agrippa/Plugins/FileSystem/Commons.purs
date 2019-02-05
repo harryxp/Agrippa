@@ -1,43 +1,41 @@
 module Agrippa.Plugins.FileSystem.Commons (open, suggest) where
 
 import Prelude (Unit, bind, const, discard, flip, map, pure, show, unit, (*>), (<$), (<>), (>>=), (<=<), (<<<))
-import Control.Monad.Aff (runAff)
-import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.JQuery (JQuery, JQueryEvent, append, body, create, getProp, on, select, setProp, setText)
+import Affjax (get, post)
+import Affjax.RequestBody as RequestBody
+import Affjax.ResponseFormat (json)
+import Affjax.StatusCode (StatusCode(..))
+import Effect.Aff (runAff)
 import Control.Monad.Except (runExcept)
 import Data.Argonaut.Core (Json, fromObject, fromString, toArray, toString)
 import Data.Either (Either(..))
-import Data.Foreign (readString)
 import Data.Maybe (Maybe(..))
-import Data.StrMap (empty, insert)
 import Data.String (trim)
 import Data.Traversable (traverse, traverse_)
-import DOM (DOM)
-import Global (encodeURIComponent)
-import Network.HTTP.Affjax (AJAX, Affjax, get, post)
+import Effect (Effect)
+import Foreign (readString)
+import Foreign.Object (empty, insert)
+import Global.Unsafe (unsafeEncodeURIComponent)
+import JQuery (JQuery, JQueryEvent, append, body, create, getProp, on, select, setProp, setText)
 
 import Agrippa.Config (Config)
 import Agrippa.Utils (addShortcutLabels, createTextNode)
 
-suggest :: forall e. String
-                  -> String
-                  -> String
-                  -> Config
-                  -> String
-                  -> (JQuery -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
-                  -> Eff (ajax :: AJAX, dom :: DOM | e) (Maybe JQuery)
+suggest :: String -> String -> String -> Config -> String -> (JQuery -> Effect Unit) -> Effect (Maybe JQuery)
 suggest suggestUrl openUrl taskName config input displayOutput =
-  runAff affHandler ((post suggestUrl <<< buildSuggestReq taskName <<< trim) input)
+  runAff affHandler ((post json suggestUrl <<< RequestBody.Json <<< buildSuggestReq taskName <<< trim) input)
   *> map Just (createTextNode "Searching...")
-  where affHandler (Left _)                = pure unit
-        affHandler (Right { response: r }) = buildOutput openUrl r >>= displayOutput
+  where affHandler (Right { status: (StatusCode 200)
+                          , body:   (Right resp)
+                          }) = buildOutput openUrl resp >>= displayOutput
+        affHandler _         = pure unit
 
 buildSuggestReq :: String -> String -> Json
 buildSuggestReq taskName term = (fromObject <<<
                                  insert "taskName" (fromString taskName) <<<
                                  insert "term"     (fromString term)) empty
 
-buildOutput :: forall e. String -> Json -> Eff (ajax :: AJAX, dom :: DOM | e) JQuery
+buildOutput :: String -> Json -> Effect JQuery
 buildOutput openUrl contents = do
   containerDiv <- create "<div>"
   case (traverse toString <=< toArray) contents of
@@ -49,21 +47,16 @@ buildOutput openUrl contents = do
     Nothing -> setText "Error: expect a JSON array of strings from server." containerDiv
   pure containerDiv
 
-buildNode :: forall e. String -> String -> Eff (dom :: DOM | e) JQuery
+buildNode :: String -> String -> Effect JQuery
 buildNode openUrl item = do
   link <- create "<a>"
   setText item link
-  setProp "href" (openUrl <> "?item=" <> encodeURIComponent item) link
+  setProp "href" (openUrl <> "?item=" <> unsafeEncodeURIComponent item) link
   div  <- create "<div>"
   append link div
   pure div
 
-open :: forall e. String
-               -> String
-               -> Config
-               -> String
-               -> (JQuery -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
-               -> Eff (ajax :: AJAX, dom :: DOM | e) (Maybe JQuery)
+open :: String -> String -> Config -> String -> (JQuery -> Effect Unit) -> Effect (Maybe JQuery)
 open openUrl _ _ _ _ = do
   body >>= on "keyup" (shortcutListener openUrl)
   link <- select "#agrippa-output > div > div:first > a"
@@ -71,7 +64,7 @@ open openUrl _ _ _ _ = do
   case runExcept (readString foreignUrl) of
     Left  err -> (map Just <<< createTextNode <<< show) err
     Right url -> Nothing <$
-      runAff (const (pure unit)) (get url :: forall e1. Affjax e1 Unit)
+      runAff (const (pure unit)) (get json url)
 
-foreign import shortcutListener :: forall e. String -> JQueryEvent -> JQuery -> Eff (ajax :: AJAX, dom :: DOM | e) Unit
+foreign import shortcutListener :: String -> JQueryEvent -> JQuery -> Effect Unit
 

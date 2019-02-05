@@ -1,7 +1,7 @@
 module Agrippa.Plugins.Registry (namesToPlugins) where
 
 import Prelude ((<$>))
-import Data.StrMap (StrMap, fromFoldable)
+import Data.Map (Map, fromFoldable)
 import Data.Tuple (Tuple(..))
 
 import Agrippa.Plugins.Base (Plugin(..))
@@ -38,5 +38,5 @@ plugins = [ calculator
           , keePass1
           ]
 
-namesToPlugins :: StrMap Plugin
+namesToPlugins :: Map String Plugin
 namesToPlugins = fromFoldable ((\p@(Plugin { name: n }) -> Tuple n p) <$> plugins)

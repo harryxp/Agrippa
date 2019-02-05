@@ -1,24 +1,23 @@
 module Agrippa.Help (buildHelp, fillHelpTable) where
 
 import Prelude (Unit, bind, discard, (==), (*>), (>>=))
-import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.JQuery (JQuery, JQueryEvent, append, create, getText, on, select, setText, toggle)
 import Data.Either (Either(..))
 import Data.Foldable (traverse_)
-import Data.StrMap (StrMap, toAscUnfoldable)
 import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..))
-import DOM (DOM)
+import Effect (Effect)
+import Foreign.Object (Object, toAscUnfoldable)
+import JQuery (JQuery, JQueryEvent, append, create, getText, on, select, setText, toggle)
 
 import Agrippa.Config (Config, getStrMapVal, getStringVal)
 import Agrippa.Utils (displayOutputText)
 
-buildHelp :: forall e. Config -> Eff (dom :: DOM | e) Unit
+buildHelp :: Config -> Effect Unit
 buildHelp config = do
   helpTable <- select "#agrippa-help-table"
   fillHelpTable config helpTable
 
-fillHelpTable :: forall e. Config -> JQuery -> Eff (dom :: DOM | e) Unit
+fillHelpTable :: Config -> JQuery -> Effect Unit
 fillHelpTable config helpTable = do
   helpContent <- select "#agrippa-help-content"
   buildHelpTextForTasks
@@ -30,7 +29,7 @@ fillHelpTable config helpTable = do
   on "click" (toggleHelp helpContent) closeLink
 
   where
-    buildHelpTextForTasks :: Eff (dom :: DOM | e) Unit
+    buildHelpTextForTasks :: Effect Unit
     buildHelpTextForTasks =
       case getKeywordsToTaskNames of
         Left  err -> displayOutputText err
@@ -38,20 +37,20 @@ fillHelpTable config helpTable = do
                        buildHelpTextForTask
                        (toAscUnfoldable m :: Array (Tuple String String))
 
-    getKeywordsToTaskNames :: Either String (StrMap String)
+    getKeywordsToTaskNames :: Either String (Object String)
     getKeywordsToTaskNames = do
       keywordsToTaskConfigs <- getStrMapVal "tasks" config
       traverse (getStringVal "name") keywordsToTaskConfigs
 
-    buildHelpTextForTask :: Tuple String String -> Eff (dom :: DOM | e) Unit
+    buildHelpTextForTask :: Tuple String String -> Effect Unit
     buildHelpTextForTask (Tuple keyword taskDesc) = do
       tr <- create "<tr>"
       createTd keyword tr *> createTd taskDesc tr *> append tr helpTable
       where
-        createTd :: String -> JQuery -> Eff (dom :: DOM | e) Unit
+        createTd :: String -> JQuery -> Effect Unit
         createTd contents tr = create "<td>" >>= \td -> setText contents td *> append td tr
 
-    toggleHelp :: JQuery -> JQueryEvent -> JQuery -> Eff (dom :: DOM | e) Unit
+    toggleHelp :: JQuery -> JQueryEvent -> JQuery -> Effect Unit
     toggleHelp helpContent _ _ = do
       toggle helpContent
       helpButton <- select "#agrippa-help-button"
@@ -59,4 +58,3 @@ fillHelpTable config helpTable = do
       if text == "What do I do?"
         then setText "Got it!" helpButton
         else setText "What do I do?" helpButton
-

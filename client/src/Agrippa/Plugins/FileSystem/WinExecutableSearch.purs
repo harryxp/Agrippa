@@ -1,11 +1,9 @@
 module Agrippa.Plugins.FileSystem.WinExecutableSearch (winExecutableSearch) where
 
 import Prelude (Unit)
-import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.JQuery (JQuery)
-import DOM (DOM)
 import Data.Maybe (Maybe)
-import Network.HTTP.Affjax (AJAX)
+import Effect (Effect)
+import JQuery (JQuery)
 
 import Agrippa.Config (Config)
 import Agrippa.Plugins.Base (Plugin(..))
@@ -17,17 +15,9 @@ winExecutableSearch = Plugin { name: "WinExecutableSearch"
                              , onActivation: open
                              }
 
-suggest :: forall e. String
-                  -> Config
-                  -> String
-                  -> (JQuery -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
-                  -> Eff (ajax :: AJAX, dom :: DOM | e) (Maybe JQuery)
+suggest :: String -> Config -> String -> (JQuery -> Effect Unit) -> Effect (Maybe JQuery)
 suggest = C.suggest "/agrippa/win-executable/suggest" "/agrippa/win-executable/open"
 
-open :: forall e. String
-               -> Config
-               -> String
-               -> (JQuery -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
-               -> Eff (ajax :: AJAX, dom :: DOM | e) (Maybe JQuery)
+open :: String -> Config -> String -> (JQuery -> Effect Unit) -> Effect (Maybe JQuery)
 open = C.open "/agrippa/win-executable/open"
 

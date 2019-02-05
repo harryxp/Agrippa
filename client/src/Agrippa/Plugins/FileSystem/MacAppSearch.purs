@@ -1,11 +1,9 @@
 module Agrippa.Plugins.FileSystem.MacAppSearch (macAppSearch) where
 
 import Prelude (Unit)
-import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.JQuery (JQuery)
-import DOM (DOM)
 import Data.Maybe (Maybe)
-import Network.HTTP.Affjax (AJAX)
+import Effect (Effect)
+import JQuery (JQuery)
 
 import Agrippa.Config (Config)
 import Agrippa.Plugins.Base (Plugin(..))
@@ -17,17 +15,9 @@ macAppSearch = Plugin { name: "MacAppSearch"
                       , onActivation: open
                       }
 
-suggest :: forall e. String
-                  -> Config
-                  -> String
-                  -> (JQuery -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
-                  -> Eff (ajax :: AJAX, dom :: DOM | e) (Maybe JQuery)
+suggest :: String -> Config -> String -> (JQuery -> Effect Unit) -> Effect (Maybe JQuery)
 suggest = C.suggest "/agrippa/mac-app/suggest" "/agrippa/mac-app/open"
 
-open :: forall e. String
-               -> Config
-               -> String
-               -> (JQuery -> Eff (ajax :: AJAX, dom :: DOM | e) Unit)
-               -> Eff (ajax :: AJAX, dom :: DOM | e) (Maybe JQuery)
+open :: String -> Config -> String -> (JQuery -> Effect Unit) -> Effect (Maybe JQuery)
 open = C.open "/agrippa/mac-app/open"
 

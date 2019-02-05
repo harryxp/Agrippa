@@ -1,19 +1,19 @@
 module Agrippa.Plugins.Calculator (calculator) where
 
-import Prelude (class Show, Unit, bind, map, id, negate, pure, show, ($>), (*), (+), (-), (/), (<<<), (<>))
+import Prelude (class Show, Unit, bind, map, identity, negate, pure, show, ($>), (*), (+), (-), (/), (<<<), (<>))
 import Control.Alt ((<|>))
-import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.JQuery (JQuery)
-import DOM (DOM)
 import Data.Either (Either(..))
-import Data.List (toUnfoldable)
+import Data.List.NonEmpty (toUnfoldable)
 import Data.Maybe (Maybe(..))
 import Data.Number (fromString)
-import Data.String (Pattern(..), Replacement(..), fromCharArray, replaceAll)
+import Data.String (Pattern(..), Replacement(..), fromCodePointArray, replaceAll)
+import Data.String.CodePoints (codePointFromChar)
+import Effect (Effect)
+import JQuery (JQuery)
 import Text.Parsing.StringParser (ParseError(..), Parser, fail, runParser)
+import Text.Parsing.StringParser.CodePoints (anyDigit, char, string)
 import Text.Parsing.StringParser.Combinators (between, fix, many1)
 import Text.Parsing.StringParser.Expr (Assoc(..), Operator(..), OperatorTable, buildExprParser)
-import Text.Parsing.StringParser.String (anyDigit, char, string)
 
 import Agrippa.Config (Config)
 import Agrippa.Plugins.Base (Plugin(..))
@@ -25,11 +25,7 @@ calculator = Plugin { name: "Calculator"
                     , onActivation: \_ _ _ _ -> pure Nothing
                     }
 
-calculate :: forall e. String
-                    -> Config
-                    -> String
-                    -> (JQuery -> Eff (dom :: DOM | e) Unit)
-                    -> Eff (dom :: DOM | e) (Maybe JQuery)
+calculate :: String -> Config -> String -> (JQuery -> Effect Unit) -> Effect (Maybe JQuery)
 calculate _ _ input _ = (map Just <<< createTextNode <<< evalExpr <<< parseExpr <<< (replaceAll (Pattern " ") (Replacement ""))) input
 
 data Expr = ExprAdd Expr Expr
@@ -60,14 +56,14 @@ exprParensParser p = between (string "(") (string ")") p
 exprNumParser :: Parser Expr
 exprNumParser = do
   n <- many1 (anyDigit <|> char '.')
-  let strNum = fromCharArray (toUnfoldable n)
+  let strNum = (fromCodePointArray <<< toUnfoldable <<< (map codePointFromChar)) n
       maybeNum = fromString strNum
   case maybeNum of
     Nothing  -> fail ("Can't parse " <> strNum <> " to number.")
     Just num -> pure (ExprNum num)
 
 table :: OperatorTable Expr
-table = [ [Prefix (string "-" $> ExprNeg), Prefix (string "+" $> id)]
+table = [ [Prefix (string "-" $> ExprNeg), Prefix (string "+" $> identity)]
         , [Infix (string "*" $> ExprMul) AssocLeft, Infix (string "/" $> ExprDiv) AssocLeft]
         , [Infix (string "+" $> ExprAdd) AssocLeft, Infix (string "-" $> ExprSub) AssocLeft]
         ]

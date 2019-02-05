@@ -4,8 +4,8 @@ import Prelude (bind, (>=>), (<>))
 import Data.Argonaut.Core (Json, toArray, toBoolean, toObject, toString)
 import Data.Either (Either)
 import Data.Maybe (Maybe)
-import Data.StrMap (StrMap, lookup)
 import Data.Traversable (traverse)
+import Foreign.Object (Object, lookup)
 
 import Agrippa.Utils (mToE)
 
@@ -18,7 +18,7 @@ getStrArrayVal :: String -> Config -> Either String (Array String)
 getStrArrayVal key config =
   getConvertedVal key config (toArray >=> traverse toString)
 
-getStrMapVal :: String -> Config -> Either String (StrMap Config)
+getStrMapVal :: String -> Config -> Either String (Object Config)
 getStrMapVal key config = getConvertedVal key config toObject
 
 getStringVal :: String -> Config -> Either String String

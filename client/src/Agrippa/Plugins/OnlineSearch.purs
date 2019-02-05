@@ -1,16 +1,14 @@
 module Agrippa.Plugins.OnlineSearch (onlineSearch) where
 
 import Prelude (Unit, bind, map, pure, (<>), (=<<), (<<<))
-import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.JQuery (JQuery)
 import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
 import Data.String (Pattern(..), Replacement(..), replace, trim)
-import DOM (DOM)
-import DOM.HTML (window)
-import DOM.HTML.Types (WINDOW)
-import DOM.HTML.Window (open)
-import Global (encodeURIComponent)
+import Effect (Effect)
+import Global.Unsafe (unsafeEncodeURIComponent)
+import JQuery (JQuery)
+import Web.HTML (window)
+import Web.HTML.Window (open)
 
 import Agrippa.Config (Config, getStringVal)
 import Agrippa.Plugins.Base (Plugin(..))
@@ -22,27 +20,19 @@ onlineSearch = Plugin { name: "OnlineSearch"
                       , onActivation: search
                       }
 
-prompt :: forall e. String
-                 -> Config
-                 -> String
-                 -> (JQuery -> Eff (dom :: DOM, window :: WINDOW | e) Unit)
-                 -> Eff (dom :: DOM, window :: WINDOW | e) (Maybe JQuery)
+prompt :: String -> Config -> String -> (JQuery -> Effect Unit) -> Effect (Maybe JQuery)
 prompt _ config input _ = (map Just <<< createTextNode)
   case getStringVal "url" config of
     Left  err -> err
     Right url -> ("Keep typing the query.  Press <Enter> to visit " <> (completeUrl url input) <> ".")
 
-search :: forall e. String
-                 -> Config
-                 -> String
-                 -> (JQuery -> Eff (dom :: DOM, window :: WINDOW | e) Unit)
-                 -> Eff (dom :: DOM, window :: WINDOW | e) (Maybe JQuery)
+search :: String -> Config -> String -> (JQuery -> Effect Unit) -> Effect (Maybe JQuery)
 search _ config input _ = (map Just <<< createTextNode) =<<
   case getStringVal "url" config of
     Left  err -> pure err
     Right url -> openUrl (completeUrl url input)
 
-openUrl :: forall e. String -> Eff (dom :: DOM, window :: WINDOW | e) String
+openUrl :: String -> Effect String
 openUrl url = do
   w <- window
   maybeNewWindow <- open url "_self" "" w
@@ -51,5 +41,5 @@ openUrl url = do
         Just _  -> "Opening..."
 
 completeUrl :: String -> String -> String
-completeUrl url input = replace (Pattern "${q}") ((Replacement <<< encodeURIComponent <<< trim) input) url
+completeUrl url input = replace (Pattern "${q}") ((Replacement <<< unsafeEncodeURIComponent <<< trim) input) url
 
