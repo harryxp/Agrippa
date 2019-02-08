@@ -35,8 +35,8 @@ search _ config input _ = (map Just <<< createTextNode) =<<
 openUrl :: String -> Effect String
 openUrl url = do
   w <- window
-  maybeNewWindow <- open url "_self" "" w
-  pure case maybeNewWindow of
+  newWindowMb <- open url "_self" "" w
+  pure case newWindowMb of
         Nothing -> "I can't get a window object.  Something went really wrong..."
         Just _  -> "Opening..."
 

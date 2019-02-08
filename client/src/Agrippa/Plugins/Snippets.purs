@@ -11,7 +11,7 @@ import Effect (Effect)
 import Foreign.Object (Object, filterKeys, toArrayWithKey)
 import JQuery (JQuery, JQueryEvent, addClass, append, body, create, on, setProp, setText, setValue)
 
-import Agrippa.Config (Config, getStrMapVal)
+import Agrippa.Config (Config, getObjectVal)
 import Agrippa.Plugins.Base (Plugin(..))
 import Agrippa.Utils (addShortcutLabels, createTextNode)
 
@@ -23,7 +23,7 @@ snippets = Plugin { name: "Snippets"
 
 suggest :: String -> Config -> String -> (JQuery -> Effect Unit) -> Effect (Maybe JQuery)
 suggest _ config input displayOutput = map Just
-  case getStrMapVal "snippets" config of
+  case getObjectVal "snippets" config of
     Left  err            -> createTextNode err
     Right keywordsToText ->
       let candidates :: Object Config

@@ -9,7 +9,7 @@ import Effect (Effect)
 import Foreign.Object (Object, toAscUnfoldable)
 import JQuery (JQuery, JQueryEvent, append, create, getText, on, select, setText, toggle)
 
-import Agrippa.Config (Config, getStrMapVal, getStringVal)
+import Agrippa.Config (Config, getObjectVal, getStringVal)
 import Agrippa.Utils (displayOutputText)
 
 buildHelp :: Config -> Effect Unit
@@ -39,7 +39,7 @@ fillHelpTable config helpTable = do
 
     getKeywordsToTaskNames :: Either String (Object String)
     getKeywordsToTaskNames = do
-      keywordsToTaskConfigs <- getStrMapVal "tasks" config
+      keywordsToTaskConfigs <- getObjectVal "tasks" config
       traverse (getStringVal "name") keywordsToTaskConfigs
 
     buildHelpTextForTask :: Tuple String String -> Effect Unit

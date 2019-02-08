@@ -57,8 +57,8 @@ exprNumParser :: Parser Expr
 exprNumParser = do
   n <- many1 (anyDigit <|> char '.')
   let strNum = (fromCodePointArray <<< toUnfoldable <<< (map codePointFromChar)) n
-      maybeNum = fromString strNum
-  case maybeNum of
+      numMb  = fromString strNum
+  case numMb of
     Nothing  -> fail ("Can't parse " <> strNum <> " to number.")
     Just num -> pure (ExprNum num)
 

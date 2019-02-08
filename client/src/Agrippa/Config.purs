@@ -1,7 +1,7 @@
-module Agrippa.Config (Config, getBooleanVal, lookupConfigVal, getStrArrayVal, getStrMapVal, getStringVal) where
+module Agrippa.Config (Config, getBooleanVal, getNumberVal, getObjectVal, getStrArrayVal, getStringVal, lookupConfigVal) where
 
 import Prelude (bind, (>=>), (<>))
-import Data.Argonaut.Core (Json, toArray, toBoolean, toObject, toString)
+import Data.Argonaut.Core (Json, toArray, toBoolean, toNumber, toObject, toString)
 import Data.Either (Either)
 import Data.Maybe (Maybe)
 import Data.Traversable (traverse)
@@ -14,12 +14,14 @@ type Config = Json
 getBooleanVal :: String -> Config -> Either String Boolean
 getBooleanVal key config = getConvertedVal key config toBoolean
 
-getStrArrayVal :: String -> Config -> Either String (Array String)
-getStrArrayVal key config =
-  getConvertedVal key config (toArray >=> traverse toString)
+getNumberVal :: String -> Config -> Either String Number
+getNumberVal key config = getConvertedVal key config toNumber
 
-getStrMapVal :: String -> Config -> Either String (Object Config)
-getStrMapVal key config = getConvertedVal key config toObject
+getObjectVal :: String -> Config -> Either String (Object Config)
+getObjectVal key config = getConvertedVal key config toObject
+
+getStrArrayVal :: String -> Config -> Either String (Array String)
+getStrArrayVal key config = getConvertedVal key config (toArray >=> traverse toString)
 
 getStringVal :: String -> Config -> Either String String
 getStringVal key config = getConvertedVal key config toString

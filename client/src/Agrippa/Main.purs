@@ -7,17 +7,19 @@ import Affjax.StatusCode (StatusCode(..))
 import Control.Alt ((<|>))
 import Control.Monad.Except (runExcept)
 import Data.Either (Either(..))
+import Data.Int (ceil)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.String (Pattern(..), indexOf, splitAt)
 import Effect (Effect)
 import Effect.Aff (runAff_)
 import Effect.Ref (Ref, new, read, write)
+import Effect.Timer (TimeoutId, clearTimeout, setTimeout)
 import Foreign (readString)
 import Foreign.Object (lookup)
 import JQuery (JQuery, JQueryEvent, body, getWhich, getValue, off, on, ready, select, setText)
 
-import Agrippa.Config (Config, getStrMapVal, getStringVal, lookupConfigVal)
+import Agrippa.Config (Config, getNumberVal, getObjectVal, getStringVal, lookupConfigVal)
 import Agrippa.Help (buildHelp)
 import Agrippa.Plugins.Base (Plugin(..))
 import Agrippa.Plugins.Registry (namesToPlugins)
@@ -37,7 +39,8 @@ installInputListener :: Config -> Effect Unit
 installInputListener config = do
   inputField   <- select "#agrippa-input"
   prevInputRef <- new ""
-  on "keyup" (inputListener config prevInputRef) inputField
+  timeoutIdRefMb <- new Nothing
+  on "keyup" (inputListener config prevInputRef timeoutIdRefMb) inputField
 
 installRestartServerListener :: Effect Unit
 installRestartServerListener = do
@@ -50,8 +53,8 @@ installRestartServerListener = do
 
 -- tasks, input and output
 
-inputListener :: Config -> Ref String -> JQueryEvent -> JQuery -> Effect Unit
-inputListener config prevInputRef event inputField = do
+inputListener :: Config -> Ref String -> Ref (Maybe TimeoutId) ->JQueryEvent -> JQuery -> Effect Unit
+inputListener config prevInputRef timeoutIdRefMb event inputField = do
   keyCode      <- getWhich event
   foreignInput <- getValue inputField
   case runExcept (readString foreignInput) of
@@ -61,7 +64,7 @@ inputListener config prevInputRef event inputField = do
       write wholeInput prevInputRef
       if prevInput == wholeInput && keyCode /= 13
         then pure unit
-        else dispatchToTask config keyCode wholeInput
+        else dispatchToTask config keyCode wholeInput timeoutIdRefMb
 
 data Task = Task { name   :: String
                  , plugin :: Plugin
@@ -69,17 +72,17 @@ data Task = Task { name   :: String
                  , config :: Config
                  }
 
-dispatchToTask :: Config -> Int -> String -> Effect  Unit
-dispatchToTask config keyCode wholeInput =
+dispatchToTask :: Config -> Int -> String -> Ref (Maybe TimeoutId) -> Effect Unit
+dispatchToTask config keyCode wholeInput timeoutIdRefMb =
   case findTask config wholeInput <|> findDefaultTask config wholeInput of
     Left  err  -> displayOutputText err
-    Right task -> (body >>= off "keyup") *> execTask task keyCode
+    Right task -> (body >>= off "keyup") *> execTask task keyCode timeoutIdRefMb
 
 findTask :: Config -> String -> Either String Task
 findTask config wholeInput = do
   index                                 <- mToE "No keyword found in input."                            (indexOf (Pattern " ") wholeInput)
   { before: keyword, after: taskInput } <- pure                                                         (splitAt index wholeInput)
-  keywordsToTaskConfigs                 <- getStrMapVal "tasks" config
+  keywordsToTaskConfigs                 <- getObjectVal "tasks" config
   taskConfig                            <- mToE ("Keyword '" <> keyword <> "' not found in config.")    (lookup keyword keywordsToTaskConfigs)
   taskName                              <- getStringVal "name" taskConfig
   pluginName                            <- getStringVal "plugin" taskConfig
@@ -95,17 +98,33 @@ findDefaultTask config wholeInput = do
   plugin            <- mToE ("Can't find plugin with name '" <> pluginName <> "'.") (Map.lookup pluginName namesToPlugins)
   pure (Task { name: taskName, plugin: plugin, input: wholeInput, config: defaultTaskConfig })
 
-execTask :: Task -> Int -> Effect Unit
-execTask (Task { name: name
+execTask :: Task -> Int -> Ref (Maybe TimeoutId) -> Effect Unit
+execTask (Task { name: taskName
                , plugin: (Plugin { onInputChange: prompt, onActivation: activate })
                , input: taskInput
                , config: taskConfig
                })
-         keyCode = do
-  displayTask name
-  let activateOrPrompt = if keyCode == 13 then activate else prompt
-  maybeNode <- activateOrPrompt name taskConfig taskInput displayOutput
-  case maybeNode of
+         keyCode
+         timeoutIdRefMb = do
+  displayTask taskName
+  timeoutIdMb <- read timeoutIdRefMb
+  case timeoutIdMb of
+    Just timeoutId -> clearTimeout timeoutId
+    Nothing        -> pure unit
+
+  let taskKeyTimeoutE = getNumberVal "keyTimeoutInMs" taskConfig
+      promptAction = prompt taskName taskConfig taskInput displayOutput
+      taskAction = if keyCode == 13
+                   then activate taskName taskConfig taskInput displayOutput
+                   else case taskKeyTimeoutE of
+                         Left  _              -> promptAction
+                         Right taskKeyTimeout -> do
+                           newTimeoutId <- setTimeout (ceil taskKeyTimeout) (promptAction *> pure unit)
+                           write (Just newTimeoutId) timeoutIdRefMb
+                           pure Nothing
+
+  nodeMb <- taskAction
+  case nodeMb of
     Just node -> displayOutput node
     Nothing   -> pure unit
 
