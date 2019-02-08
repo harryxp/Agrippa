@@ -1,6 +1,6 @@
 module Agrippa.Plugins.MortgageCalc (mortgageCalc) where
 
-import Prelude (Unit, bind, discard, flip, pure, (+), (-), (*), (/), (>=), (<$>), (<>))
+import Prelude (bind, discard, flip, pure, unit, (+), (-), (*), (/), (>=), (<$>), (<>))
 import Data.Array (reverse, (:))
 import Data.Maybe (Maybe(..))
 import Data.Number (fromString)
@@ -13,17 +13,18 @@ import JQuery (JQuery, addClass, append, create, setText)
 import Math (pow)
 
 import Agrippa.Config (Config)
-import Agrippa.Plugins.Base (Plugin(..))
+import Agrippa.Plugins.PluginType (Plugin(..))
 import Agrippa.Utils (createTextNode)
 
 mortgageCalc :: Plugin
 mortgageCalc = Plugin { name: "Mortgage Calculator"
                       , onInputChange: showUsage
+                      , onInputChangeAfterTimeout: \_ _ _ _ -> pure unit
                       , onActivation: calculateMortgage
                       }
 
-showUsage :: String -> Config -> String -> (JQuery -> Effect Unit) -> Effect (Maybe JQuery)
-showUsage _ _ _ _ = do
+showUsage :: String -> Config -> String -> Effect (Maybe JQuery)
+showUsage _ _ _ = do
   n1 <- createTextNode "<Loan Amount> <Interest Rate (%)> <Mortgage Period (years)>"
   n2 <- createTextNode "E.g.: 300000 4 30<Enter>"
   container <- create "<div>"

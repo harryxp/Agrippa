@@ -21,7 +21,7 @@ import JQuery (JQuery, JQueryEvent, body, getWhich, getValue, off, on, ready, se
 
 import Agrippa.Config (Config, getNumberVal, getObjectVal, getStringVal, lookupConfigVal)
 import Agrippa.Help (buildHelp)
-import Agrippa.Plugins.Base (Plugin(..))
+import Agrippa.Plugins.PluginType (Plugin(..))
 import Agrippa.Plugins.Registry (namesToPlugins)
 import Agrippa.Utils (displayOutput, displayOutputText, mToE)
 
@@ -100,30 +100,30 @@ findDefaultTask config wholeInput = do
 
 execTask :: Task -> Int -> Ref (Maybe TimeoutId) -> Effect Unit
 execTask (Task { name: taskName
-               , plugin: (Plugin { onInputChange: prompt, onActivation: activate })
+               , plugin: (Plugin { onInputChange: prompt
+                                 , onInputChangeAfterTimeout: delayedPrompt
+                                 , onActivation: activate
+                                 })
                , input: taskInput
                , config: taskConfig
                })
          keyCode
          timeoutIdRefMb = do
   displayTask taskName
+
   timeoutIdMb <- read timeoutIdRefMb
   case timeoutIdMb of
     Just timeoutId -> clearTimeout timeoutId
     Nothing        -> pure unit
-
   let taskKeyTimeoutE = getNumberVal "keyTimeoutInMs" taskConfig
-      promptAction = prompt taskName taskConfig taskInput displayOutput
-      taskAction = if keyCode == 13
-                   then activate taskName taskConfig taskInput
-                   else case taskKeyTimeoutE of
-                         Left  _              -> promptAction
-                         Right taskKeyTimeout -> do
-                           newTimeoutId <- setTimeout (ceil taskKeyTimeout) (promptAction *> pure unit)
-                           write (Just newTimeoutId) timeoutIdRefMb
-                           pure Nothing
+  case taskKeyTimeoutE of
+    Left  _              -> pure unit
+    Right taskKeyTimeout -> do
+      newTimeoutId <- setTimeout (ceil taskKeyTimeout) (delayedPrompt taskName taskConfig taskInput displayOutput)
+      write (Just newTimeoutId) timeoutIdRefMb
 
-  nodeMb <- taskAction
+  let immediateAction = if keyCode == 13 then activate else prompt
+  nodeMb <- immediateAction taskName taskConfig taskInput
   case nodeMb of
     Just node -> displayOutput node
     Nothing   -> pure unit

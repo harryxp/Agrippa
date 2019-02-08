@@ -18,19 +18,19 @@ import Foreign.Object (Object, empty, insert, lookup)
 import JQuery (JQuery, JQueryEvent, append, create, getValue, on, select, setClass, setProp, setText, setValue)
 
 import Agrippa.Config (Config)
-import Agrippa.Plugins.Base (Plugin(..))
+import Agrippa.Plugins.PluginType (Plugin(..))
 import Agrippa.Utils (createTextNode, displayOutputText)
 
 keePass1 :: Plugin
 keePass1 = Plugin { name: "KeePass1"
-                  , onInputChange: suggest
+                  , onInputChange: \_ _ _ -> map Just (createTextNode "Searching...")
+                  , onInputChangeAfterTimeout: suggest
                   , onActivation: \_ _ _ -> pure Nothing
                   }
 
-suggest :: String -> Config -> String -> (JQuery -> Effect Unit) -> Effect (Maybe JQuery)
+suggest :: String -> Config -> String -> (JQuery -> Effect Unit) -> Effect Unit
 suggest _ _ input displayOutput =
   runAff_ affHandler ((post json "/agrippa/keepass1/suggest" <<< RequestBody.Json <<< buildSuggestReq <<< trim) input)
-  *> map Just (createTextNode "Searching...")
   where affHandler (Right { status: (StatusCode 200)
                           , body:   (Right resp)
                           }) = buildOutput resp >>= displayOutput

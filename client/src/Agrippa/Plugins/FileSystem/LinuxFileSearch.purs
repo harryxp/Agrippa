@@ -6,16 +6,17 @@ import Effect (Effect)
 import JQuery (JQuery)
 
 import Agrippa.Config (Config)
-import Agrippa.Plugins.Base (Plugin(..))
+import Agrippa.Plugins.PluginType (Plugin(..))
 import Agrippa.Plugins.FileSystem.Commons as C
 
 linuxFileSearch :: Plugin
 linuxFileSearch = Plugin { name: "LinuxFileSearch"
-                         , onInputChange: suggest
+                         , onInputChange: C.prompt
+                         , onInputChangeAfterTimeout: suggest
                          , onActivation: open
                          }
 
-suggest :: String -> Config -> String -> (JQuery -> Effect Unit) -> Effect (Maybe JQuery)
+suggest :: String -> Config -> String -> (JQuery -> Effect Unit) -> Effect Unit
 suggest = C.suggest "/agrippa/linux-file/suggest" "/agrippa/linux-file/open"
 
 open :: String -> Config -> String -> Effect (Maybe JQuery)

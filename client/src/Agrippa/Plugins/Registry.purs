@@ -4,7 +4,7 @@ import Prelude ((<$>))
 import Data.Map (Map, fromFoldable)
 import Data.Tuple (Tuple(..))
 
-import Agrippa.Plugins.Base (Plugin(..))
+import Agrippa.Plugins.PluginType (Plugin(..))
 import Agrippa.Plugins.Calculator (calculator)
 import Agrippa.Plugins.Clock (clock)
 import Agrippa.Plugins.FileSystem.LinuxFileSearch (linuxFileSearch)

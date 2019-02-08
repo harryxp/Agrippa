@@ -1,6 +1,6 @@
 module Agrippa.Plugins.Calculator (calculator) where
 
-import Prelude (class Show, Unit, bind, map, identity, negate, pure, show, ($>), (*), (+), (-), (/), (<<<), (<>))
+import Prelude (class Show, Unit, bind, map, identity, negate, pure, show, unit, ($>), (*), (+), (-), (/), (<<<), (<>))
 import Control.Alt ((<|>))
 import Data.Either (Either(..))
 import Data.List.NonEmpty (toUnfoldable)
@@ -16,17 +16,18 @@ import Text.Parsing.StringParser.Combinators (between, fix, many1)
 import Text.Parsing.StringParser.Expr (Assoc(..), Operator(..), OperatorTable, buildExprParser)
 
 import Agrippa.Config (Config)
-import Agrippa.Plugins.Base (Plugin(..))
+import Agrippa.Plugins.PluginType (Plugin(..))
 import Agrippa.Utils (createTextNode)
 
 calculator :: Plugin
 calculator = Plugin { name: "Calculator"
                     , onInputChange: calculate
+                    , onInputChangeAfterTimeout: \_ _ _ _ -> pure unit
                     , onActivation: \_ _ _ -> pure Nothing
                     }
 
-calculate :: String -> Config -> String -> (JQuery -> Effect Unit) -> Effect (Maybe JQuery)
-calculate _ _ input _ = (map Just <<< createTextNode <<< evalExpr <<< parseExpr <<< (replaceAll (Pattern " ") (Replacement ""))) input
+calculate :: String -> Config -> String -> Effect (Maybe JQuery)
+calculate _ _ input = (map Just <<< createTextNode <<< evalExpr <<< parseExpr <<< (replaceAll (Pattern " ") (Replacement ""))) input
 
 data Expr = ExprAdd Expr Expr
           | ExprSub Expr Expr

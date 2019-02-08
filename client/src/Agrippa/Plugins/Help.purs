@@ -1,6 +1,6 @@
 module Agrippa.Plugins.Help (help) where
 
-import Prelude (Unit, bind, discard, pure, (>>=), (*>))
+import Prelude (Unit, bind, discard, pure, unit, (>>=), (*>))
 
 import Affjax (get)
 import Affjax.ResponseFormat (json)
@@ -13,17 +13,18 @@ import JQuery (JQuery, append, create, setText)
 
 import Agrippa.Config (Config)
 import Agrippa.Help (fillHelpTable)
-import Agrippa.Plugins.Base (Plugin(..))
+import Agrippa.Plugins.PluginType (Plugin(..))
 import Agrippa.Utils (displayOutputText)
 
 help :: Plugin
 help = Plugin { name: "Help"
               , onInputChange: showHelp
+              , onInputChangeAfterTimeout: \_ _ _ _ -> pure unit
               , onActivation: \_ _ _ -> pure Nothing
               }
 
-showHelp :: String -> Config -> String -> (JQuery -> Effect Unit) -> Effect (Maybe JQuery)
-showHelp _ _ _ _ = do
+showHelp :: String -> Config -> String -> Effect (Maybe JQuery)
+showHelp _ _ _ = do
   helpTable <- create "<table>"
   tr        <- create "<tr>"
   createTh "Keyword" tr *> createTh "Task" tr *> append tr helpTable

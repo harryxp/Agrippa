@@ -1,6 +1,6 @@
 module Agrippa.Plugins.Snippets (snippets) where
 
-import Prelude (Unit, bind, discard, flip, map, pure, (<<<), (>>=), (*>))
+import Prelude (Unit, bind, discard, flip, map, pure, unit, (<<<), (>>=), (*>))
 import Data.Argonaut.Core (toString)
 import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
@@ -12,17 +12,18 @@ import Foreign.Object (Object, filterKeys, toArrayWithKey)
 import JQuery (JQuery, JQueryEvent, addClass, append, body, create, on, setProp, setText, setValue)
 
 import Agrippa.Config (Config, getObjectVal)
-import Agrippa.Plugins.Base (Plugin(..))
+import Agrippa.Plugins.PluginType (Plugin(..))
 import Agrippa.Utils (addShortcutLabels, createTextNode)
 
 snippets :: Plugin
 snippets = Plugin { name: "Snippets"
                   , onInputChange: suggest
+                  , onInputChangeAfterTimeout: \_ _ _ _ -> pure unit
                   , onActivation: copy
                   }
 
-suggest :: String -> Config -> String -> (JQuery -> Effect Unit) -> Effect (Maybe JQuery)
-suggest _ config input displayOutput = map Just
+suggest :: String -> Config -> String -> Effect (Maybe JQuery)
+suggest _ config input = map Just
   case getObjectVal "snippets" config of
     Left  err            -> createTextNode err
     Right keywordsToText ->

@@ -1,11 +1,11 @@
-module Agrippa.Plugins.FileSystem.Commons (open, suggest) where
+module Agrippa.Plugins.FileSystem.Commons (open, prompt, suggest) where
 
-import Prelude (Unit, bind, const, discard, flip, map, pure, show, unit, (*>), (<$), (<>), (>>=), (<=<), (<<<))
+import Prelude (Unit, bind, const, discard, flip, map, pure, show, unit, (<$), (<>), (>>=), (<=<), (<<<))
 import Affjax (get, post)
 import Affjax.RequestBody as RequestBody
 import Affjax.ResponseFormat (json)
 import Affjax.StatusCode (StatusCode(..))
-import Effect.Aff (runAff)
+import Effect.Aff (runAff, runAff_)
 import Control.Monad.Except (runExcept)
 import Data.Argonaut.Core (Json, fromObject, fromString, toArray, toString)
 import Data.Either (Either(..))
@@ -21,10 +21,9 @@ import JQuery (JQuery, JQueryEvent, append, body, create, getProp, on, select, s
 import Agrippa.Config (Config)
 import Agrippa.Utils (addShortcutLabels, createTextNode)
 
-suggest :: String -> String -> String -> Config -> String -> (JQuery -> Effect Unit) -> Effect (Maybe JQuery)
+suggest :: String -> String -> String -> Config -> String -> (JQuery -> Effect Unit) -> Effect Unit
 suggest suggestUrl openUrl taskName config input displayOutput =
-  runAff affHandler ((post json suggestUrl <<< RequestBody.Json <<< buildSuggestReq taskName <<< trim) input)
-  *> map Just (createTextNode "Searching...")
+  runAff_ affHandler ((post json suggestUrl <<< RequestBody.Json <<< buildSuggestReq taskName <<< trim) input)
   where affHandler (Right { status: (StatusCode 200)
                           , body:   (Right resp)
                           }) = buildOutput openUrl resp >>= displayOutput
@@ -55,6 +54,9 @@ buildNode openUrl item = do
   div  <- create "<div>"
   append link div
   pure div
+
+prompt :: String -> Config -> String -> Effect (Maybe JQuery)
+prompt _ _ _ = map Just (createTextNode "Searching...")
 
 open :: String -> String -> Config -> String -> Effect (Maybe JQuery)
 open openUrl _ _ _ = do

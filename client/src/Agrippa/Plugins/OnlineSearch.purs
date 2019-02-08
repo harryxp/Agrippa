@@ -1,6 +1,6 @@
 module Agrippa.Plugins.OnlineSearch (onlineSearch) where
 
-import Prelude (Unit, bind, map, pure, (<>), (=<<), (<<<))
+import Prelude (Unit, bind, map, pure, unit, (<>), (=<<), (<<<))
 import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
 import Data.String (Pattern(..), Replacement(..), replace, trim)
@@ -11,17 +11,18 @@ import Web.HTML (window)
 import Web.HTML.Window (open)
 
 import Agrippa.Config (Config, getStringVal)
-import Agrippa.Plugins.Base (Plugin(..))
+import Agrippa.Plugins.PluginType (Plugin(..))
 import Agrippa.Utils (createTextNode)
 
 onlineSearch :: Plugin
 onlineSearch = Plugin { name: "OnlineSearch"
                       , onInputChange: prompt
+                      , onInputChangeAfterTimeout: \_ _ _ _ -> pure unit
                       , onActivation: search
                       }
 
-prompt :: String -> Config -> String -> (JQuery -> Effect Unit) -> Effect (Maybe JQuery)
-prompt _ config input _ = (map Just <<< createTextNode)
+prompt :: String -> Config -> String -> Effect (Maybe JQuery)
+prompt _ config input = (map Just <<< createTextNode)
   case getStringVal "url" config of
     Left  err -> err
     Right url -> ("Keep typing the query.  Press <Enter> to visit " <> (completeUrl url input) <> ".")
