@@ -24,7 +24,7 @@ import Agrippa.Utils (createTextNode, displayOutputText)
 keePass1 :: Plugin
 keePass1 = Plugin { name: "KeePass1"
                   , onInputChange: suggest
-                  , onActivation: \_ _ _ _ -> pure Nothing
+                  , onActivation: \_ _ _ -> pure Nothing
                   }
 
 suggest :: String -> Config -> String -> (JQuery -> Effect Unit) -> Effect (Maybe JQuery)

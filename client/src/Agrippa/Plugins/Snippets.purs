@@ -71,7 +71,7 @@ foreign import shortcutListener :: JQueryEvent -> JQuery -> Effect Unit
 
 foreign import copyButtonListener :: JQueryEvent -> JQuery -> Effect Unit
 
-copy :: String -> Config -> String -> (JQuery -> Effect Unit) -> Effect (Maybe JQuery)
-copy _ _ _ _ = (body >>= on "keyup" shortcutListener) *> clickFirstCopyButton *> pure Nothing
+copy :: String -> Config -> String -> Effect (Maybe JQuery)
+copy _ _ _ = (body >>= on "keyup" shortcutListener) *> clickFirstCopyButton *> pure Nothing
 
 foreign import clickFirstCopyButton :: Effect Unit

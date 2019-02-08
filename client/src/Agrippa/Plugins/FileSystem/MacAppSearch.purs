@@ -18,6 +18,6 @@ macAppSearch = Plugin { name: "MacAppSearch"
 suggest :: String -> Config -> String -> (JQuery -> Effect Unit) -> Effect (Maybe JQuery)
 suggest = C.suggest "/agrippa/mac-app/suggest" "/agrippa/mac-app/open"
 
-open :: String -> Config -> String -> (JQuery -> Effect Unit) -> Effect (Maybe JQuery)
+open :: String -> Config -> String -> Effect (Maybe JQuery)
 open = C.open "/agrippa/mac-app/open"
 

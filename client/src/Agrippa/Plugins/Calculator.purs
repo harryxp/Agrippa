@@ -22,7 +22,7 @@ import Agrippa.Utils (createTextNode)
 calculator :: Plugin
 calculator = Plugin { name: "Calculator"
                     , onInputChange: calculate
-                    , onActivation: \_ _ _ _ -> pure Nothing
+                    , onActivation: \_ _ _ -> pure Nothing
                     }
 
 calculate :: String -> Config -> String -> (JQuery -> Effect Unit) -> Effect (Maybe JQuery)

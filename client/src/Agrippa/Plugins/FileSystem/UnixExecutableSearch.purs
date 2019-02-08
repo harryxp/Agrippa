@@ -18,5 +18,5 @@ unixExecutableSearch = Plugin { name: "UnixExecutableSearch"
 suggest :: String -> Config -> String -> (JQuery -> Effect Unit) -> Effect (Maybe JQuery)
 suggest = C.suggest "/agrippa/unix-executable/suggest" "/agrippa/unix-executable/open"
 
-open :: String -> Config -> String -> (JQuery -> Effect Unit) -> Effect (Maybe JQuery)
+open :: String -> Config -> String -> Effect (Maybe JQuery)
 open = C.open "/agrippa/unix-executable/open"

@@ -18,6 +18,6 @@ winExecutableSearch = Plugin { name: "WinExecutableSearch"
 suggest :: String -> Config -> String -> (JQuery -> Effect Unit) -> Effect (Maybe JQuery)
 suggest = C.suggest "/agrippa/win-executable/suggest" "/agrippa/win-executable/open"
 
-open :: String -> Config -> String -> (JQuery -> Effect Unit) -> Effect (Maybe JQuery)
+open :: String -> Config -> String -> Effect (Maybe JQuery)
 open = C.open "/agrippa/win-executable/open"
 

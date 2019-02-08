@@ -26,8 +26,8 @@ prompt _ config input _ = (map Just <<< createTextNode)
     Left  err -> err
     Right url -> ("Keep typing the query.  Press <Enter> to visit " <> (completeUrl url input) <> ".")
 
-search :: String -> Config -> String -> (JQuery -> Effect Unit) -> Effect (Maybe JQuery)
-search _ config input _ = (map Just <<< createTextNode) =<<
+search :: String -> Config -> String -> Effect (Maybe JQuery)
+search _ config input = (map Just <<< createTextNode) =<<
   case getStringVal "url" config of
     Left  err -> pure err
     Right url -> openUrl (completeUrl url input)

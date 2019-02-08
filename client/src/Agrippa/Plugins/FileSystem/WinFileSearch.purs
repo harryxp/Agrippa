@@ -17,6 +17,6 @@ winFileSearch = Plugin { name: "WinFileSearch"
 suggest :: String -> Config -> String -> (JQuery -> Effect Unit) -> Effect (Maybe JQuery)
 suggest = C.suggest "/agrippa/win-file/suggest" "/agrippa/win-file/open"
 
-open :: String -> Config -> String -> (JQuery -> Effect Unit) -> Effect (Maybe JQuery)
+open :: String -> Config -> String -> Effect (Maybe JQuery)
 open = C.open "/agrippa/win-file/open"
 

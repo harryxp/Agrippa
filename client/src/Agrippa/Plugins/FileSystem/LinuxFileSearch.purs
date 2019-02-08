@@ -18,5 +18,5 @@ linuxFileSearch = Plugin { name: "LinuxFileSearch"
 suggest :: String -> Config -> String -> (JQuery -> Effect Unit) -> Effect (Maybe JQuery)
 suggest = C.suggest "/agrippa/linux-file/suggest" "/agrippa/linux-file/open"
 
-open :: String -> Config -> String -> (JQuery -> Effect Unit) -> Effect (Maybe JQuery)
+open :: String -> Config -> String -> Effect (Maybe JQuery)
 open = C.open "/agrippa/linux-file/open"

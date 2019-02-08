@@ -56,8 +56,8 @@ buildNode openUrl item = do
   append link div
   pure div
 
-open :: String -> String -> Config -> String -> (JQuery -> Effect Unit) -> Effect (Maybe JQuery)
-open openUrl _ _ _ _ = do
+open :: String -> String -> Config -> String -> Effect (Maybe JQuery)
+open openUrl _ _ _ = do
   body >>= on "keyup" (shortcutListener openUrl)
   link <- select "#agrippa-output > div > div:first > a"
   foreignUrl <- getProp "href" link

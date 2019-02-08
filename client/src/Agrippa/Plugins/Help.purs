@@ -19,7 +19,7 @@ import Agrippa.Utils (displayOutputText)
 help :: Plugin
 help = Plugin { name: "Help"
               , onInputChange: showHelp
-              , onActivation: \_ _ _ _ -> pure Nothing
+              , onActivation: \_ _ _ -> pure Nothing
               }
 
 showHelp :: String -> Config -> String -> (JQuery -> Effect Unit) -> Effect (Maybe JQuery)

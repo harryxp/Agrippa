@@ -36,8 +36,8 @@ type Params = { loanAmount   :: Number
               , periodInYear :: Number
               }
 
-calculateMortgage :: String -> Config -> String -> (JQuery -> Effect Unit) -> Effect (Maybe JQuery)
-calculateMortgage _ _ input _ =
+calculateMortgage :: String -> Config -> String -> Effect (Maybe JQuery)
+calculateMortgage _ _ input =
   case words (trim input) of
     [loanAmountStr, interestRateStr, periodInYearStr] ->
       case parseInput loanAmountStr interestRateStr periodInYearStr of

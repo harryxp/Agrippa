@@ -115,7 +115,7 @@ execTask (Task { name: taskName
   let taskKeyTimeoutE = getNumberVal "keyTimeoutInMs" taskConfig
       promptAction = prompt taskName taskConfig taskInput displayOutput
       taskAction = if keyCode == 13
-                   then activate taskName taskConfig taskInput displayOutput
+                   then activate taskName taskConfig taskInput
                    else case taskKeyTimeoutE of
                          Left  _              -> promptAction
                          Right taskKeyTimeout -> do

@@ -13,7 +13,7 @@ import Agrippa.Utils (createTextNode)
 clock :: Plugin
 clock = Plugin { name: "Clock"
                , onInputChange: showTime
-               , onActivation: \_ _ _ _ -> pure Nothing
+               , onActivation: \_ _ _ -> pure Nothing
                }
 
 showTime :: String -> Config -> String -> (JQuery -> Effect Unit) -> Effect (Maybe JQuery)

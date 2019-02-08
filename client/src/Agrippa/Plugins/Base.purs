@@ -21,11 +21,9 @@ newtype Plugin =
                          -- output (might be overwritten by the callback function above)
                          -> Effect (Maybe JQuery)
 
-                         -- parameter types are the same as above - for some plugins we can use the same function
-         , onActivation  :: String
-                         -> Config
-                         -> String
-                         -> (JQuery -> Effect Unit)
+         , onActivation  :: String  -- task name
+                         -> Config  -- task config
+                         -> String  -- input
                          -> Effect (Maybe JQuery)
          }
 
