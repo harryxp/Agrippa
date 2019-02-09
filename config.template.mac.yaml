@@ -17,6 +17,7 @@ tasks:
     plugin: "Mortgage Calculator"
   a:
     name: "Launch Mac Apps"
+    keyTimeoutInMs: 800
     plugin: MacAppSearch
     paths:
       - "/Applications/"
@@ -25,6 +26,7 @@ tasks:
   e:
     name: "Launch Executables"
     plugin: UnixExecutableSearch
+    keyTimeoutInMs: 800
     paths:
       - "/bin/"
       - "/usr/bin/"
@@ -32,6 +34,7 @@ tasks:
   f:
     name: "Search for Files"
     plugin: MacFileSearch
+    keyTimeoutInMs: 800
     paths:
       - "/Users/<user>/Documents/"
       - "/Users/<user>/Downloads/"
@@ -54,7 +57,7 @@ tasks:
   ho:
     name: Home
     plugin: OnlineSearch
-    url: "http://peachful.space"
+    url: "http://unfetteredmind.us"
   pu:
     name: "Pursuit Search"
     plugin: OnlineSearch

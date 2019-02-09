@@ -18,10 +18,12 @@ tasks:
   e:
     name: "Launch Executables"
     plugin: WinExecutableSearch
+    keyTimeoutInMs: 800
     paths: []
   f:
     name: "Search for Files"
     plugin: WinFileSearch
+    keyTimeoutInMs: 800
     paths: []
   k:
     name: KeePass
@@ -42,7 +44,7 @@ tasks:
   ho:
     name: Home
     plugin: OnlineSearch
-    url: "http://peachful.space"
+    url: "http://unfetteredmind.us"
   pu:
     name: "Pursuit Search"
     plugin: OnlineSearch
