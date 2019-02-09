@@ -1,9 +1,9 @@
 module Agrippa.Plugins.Clock (clock) where
 
-import Prelude (map, pure, show, unit, (>>>), (>>=))
+import Prelude (map, pure, unit, (>>>), (>>=))
 import Data.Maybe (Maybe(..))
+import Data.JSDate (now, toString)
 import Effect (Effect)
-import Effect.Now (nowDateTime)
 import JQuery (JQuery)
 
 import Agrippa.Config (Config)
@@ -18,4 +18,4 @@ clock = Plugin { name: "Clock"
                }
 
 showTime :: String -> Config -> String -> Effect (Maybe JQuery)
-showTime _ _ _ = nowDateTime >>= (show >>> createTextNode >>> map Just)
+showTime _ _ _ = now >>= (toString >>> createTextNode >>> map Just)
