@@ -18,9 +18,9 @@ import Agrippa.Utils (createTextNode)
 
 mortgageCalc :: Plugin
 mortgageCalc = Plugin { name: "Mortgage Calculator"
-                      , onInputChange: showUsage
-                      , onInputChangeAfterTimeout: \_ _ _ _ -> pure unit
-                      , onActivation: calculateMortgage
+                      , prompt: showUsage
+                      , promptAfterKeyTimeout: \_ _ _ _ -> pure unit
+                      , activate: calculateMortgage
                       }
 
 showUsage :: String -> Config -> String -> Effect (Maybe JQuery)

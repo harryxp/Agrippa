@@ -1,6 +1,6 @@
 module Agrippa.Plugins.KeePass1 (keePass1) where
 
-import Prelude (Unit, bind, const, discard, flip, map, pure, show, unit, (*>), (>>=), (<=<), (<<<))
+import Prelude (Unit, bind, const, discard, flip, map, pure, show, unit, (>>=), (<=<), (<<<))
 import Affjax (post)
 import Affjax.RequestBody as RequestBody
 import Affjax.ResponseFormat (json)
@@ -23,9 +23,9 @@ import Agrippa.Utils (createTextNode, displayOutputText)
 
 keePass1 :: Plugin
 keePass1 = Plugin { name: "KeePass1"
-                  , onInputChange: \_ _ _ -> map Just (createTextNode "Searching...")
-                  , onInputChangeAfterTimeout: suggest
-                  , onActivation: \_ _ _ -> pure Nothing
+                  , prompt: \_ _ _ -> map Just (createTextNode "Searching...")
+                  , promptAfterKeyTimeout: suggest
+                  , activate: \_ _ _ -> pure Nothing
                   }
 
 suggest :: String -> Config -> String -> (JQuery -> Effect Unit) -> Effect Unit

@@ -1,6 +1,6 @@
 module Agrippa.Plugins.Clock (clock) where
 
-import Prelude (Unit, map, pure, show, unit, (>>>), (>>=))
+import Prelude (map, pure, show, unit, (>>>), (>>=))
 import Data.Maybe (Maybe(..))
 import Effect (Effect)
 import Effect.Now (nowDateTime)
@@ -12,9 +12,9 @@ import Agrippa.Utils (createTextNode)
 
 clock :: Plugin
 clock = Plugin { name: "Clock"
-               , onInputChange: showTime
-               , onInputChangeAfterTimeout: \_ _ _ _ -> pure unit
-               , onActivation: \_ _ _ -> pure Nothing
+               , prompt: showTime
+               , promptAfterKeyTimeout: \_ _ _ _ -> pure unit
+               , activate: \_ _ _ -> pure Nothing
                }
 
 showTime :: String -> Config -> String -> Effect (Maybe JQuery)

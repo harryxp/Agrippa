@@ -100,9 +100,9 @@ findDefaultTask config wholeInput = do
 
 execTask :: Task -> Int -> Ref (Maybe TimeoutId) -> Effect Unit
 execTask (Task { name: taskName
-               , plugin: (Plugin { onInputChange: prompt
-                                 , onInputChangeAfterTimeout: delayedPrompt
-                                 , onActivation: activate
+               , plugin: (Plugin { prompt: prompt
+                                 , promptAfterKeyTimeout: promptAfterKeyTimeout
+                                 , activate: activate
                                  })
                , input: taskInput
                , config: taskConfig
@@ -110,23 +110,28 @@ execTask (Task { name: taskName
          keyCode
          timeoutIdRefMb = do
   displayTask taskName
+  nodeMb <- case keyCode of
+    13 -> activate taskName taskConfig taskInput
+    _  -> do setupPromptAfterKeyTimeout taskConfig (promptAfterKeyTimeout taskName taskConfig taskInput displayOutput) timeoutIdRefMb
+             prompt taskName taskConfig taskInput
+  case nodeMb of
+    Just node -> displayOutput node
+    Nothing   -> pure unit
 
+setupPromptAfterKeyTimeout :: Config -> Effect Unit -> Ref (Maybe TimeoutId) -> Effect Unit
+setupPromptAfterKeyTimeout taskConfig promptAfterKeyTimeout timeoutIdRefMb = do
   timeoutIdMb <- read timeoutIdRefMb
   case timeoutIdMb of
     Just timeoutId -> clearTimeout timeoutId
     Nothing        -> pure unit
-  let taskKeyTimeoutE = getNumberVal "keyTimeoutInMs" taskConfig
-  case taskKeyTimeoutE of
-    Left  _              -> pure unit
-    Right taskKeyTimeout -> do
-      newTimeoutId <- setTimeout (ceil taskKeyTimeout) (delayedPrompt taskName taskConfig taskInput displayOutput)
-      write (Just newTimeoutId) timeoutIdRefMb
 
-  let immediateAction = if keyCode == 13 then activate else prompt
-  nodeMb <- immediateAction taskName taskConfig taskInput
-  case nodeMb of
-    Just node -> displayOutput node
-    Nothing   -> pure unit
+  let taskKeyTimeoutE = getNumberVal "keyTimeoutInMs" taskConfig
+      taskKeyTimeout = case taskKeyTimeoutE of
+        Left  _       -> 0
+        Right timeout -> ceil timeout
+
+  newTimeoutId <- setTimeout taskKeyTimeout promptAfterKeyTimeout
+  write (Just newTimeoutId) timeoutIdRefMb
 
 displayTask :: String -> Effect Unit
 displayTask t = select "#agrippa-task" >>= setText t

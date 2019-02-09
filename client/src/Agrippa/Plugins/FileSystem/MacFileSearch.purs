@@ -11,9 +11,9 @@ import Agrippa.Plugins.FileSystem.Commons as C
 
 macFileSearch :: Plugin
 macFileSearch = Plugin { name: "MacFileSearch"
-                       , onInputChange: C.prompt
-                       , onInputChangeAfterTimeout: suggest
-                       , onActivation: open
+                       , prompt: C.prompt
+                       , promptAfterKeyTimeout: suggest
+                       , activate: open
                        }
 
 suggest :: String -> Config -> String -> (JQuery -> Effect Unit) -> Effect Unit

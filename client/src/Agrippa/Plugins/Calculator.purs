@@ -1,6 +1,6 @@
 module Agrippa.Plugins.Calculator (calculator) where
 
-import Prelude (class Show, Unit, bind, map, identity, negate, pure, show, unit, ($>), (*), (+), (-), (/), (<<<), (<>))
+import Prelude (class Show, bind, map, identity, negate, pure, show, unit, ($>), (*), (+), (-), (/), (<<<), (<>))
 import Control.Alt ((<|>))
 import Data.Either (Either(..))
 import Data.List.NonEmpty (toUnfoldable)
@@ -21,9 +21,9 @@ import Agrippa.Utils (createTextNode)
 
 calculator :: Plugin
 calculator = Plugin { name: "Calculator"
-                    , onInputChange: calculate
-                    , onInputChangeAfterTimeout: \_ _ _ _ -> pure unit
-                    , onActivation: \_ _ _ -> pure Nothing
+                    , prompt: calculate
+                    , promptAfterKeyTimeout: \_ _ _ _ -> pure unit
+                    , activate: \_ _ _ -> pure Nothing
                     }
 
 calculate :: String -> Config -> String -> Effect (Maybe JQuery)

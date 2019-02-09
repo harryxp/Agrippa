@@ -11,9 +11,9 @@ import Agrippa.Plugins.FileSystem.Commons as C
 
 winFileSearch :: Plugin
 winFileSearch = Plugin { name: "WinFileSearch"
-                       , onInputChange: C.prompt
-                       , onInputChangeAfterTimeout: suggest
-                       , onActivation: open
+                       , prompt: C.prompt
+                       , promptAfterKeyTimeout: suggest
+                       , activate: open
                        }
 suggest :: String -> Config -> String -> (JQuery -> Effect Unit) -> Effect Unit
 suggest = C.suggest "/agrippa/win-file/suggest" "/agrippa/win-file/open"

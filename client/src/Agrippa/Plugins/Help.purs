@@ -18,9 +18,9 @@ import Agrippa.Utils (displayOutputText)
 
 help :: Plugin
 help = Plugin { name: "Help"
-              , onInputChange: showHelp
-              , onInputChangeAfterTimeout: \_ _ _ _ -> pure unit
-              , onActivation: \_ _ _ -> pure Nothing
+              , prompt: showHelp
+              , promptAfterKeyTimeout: \_ _ _ _ -> pure unit
+              , activate: \_ _ _ -> pure Nothing
               }
 
 showHelp :: String -> Config -> String -> Effect (Maybe JQuery)

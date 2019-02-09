@@ -1,6 +1,6 @@
 module Agrippa.Plugins.OnlineSearch (onlineSearch) where
 
-import Prelude (Unit, bind, map, pure, unit, (<>), (=<<), (<<<))
+import Prelude (bind, map, pure, unit, (<>), (=<<), (<<<))
 import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
 import Data.String (Pattern(..), Replacement(..), replace, trim)
@@ -16,9 +16,9 @@ import Agrippa.Utils (createTextNode)
 
 onlineSearch :: Plugin
 onlineSearch = Plugin { name: "OnlineSearch"
-                      , onInputChange: prompt
-                      , onInputChangeAfterTimeout: \_ _ _ _ -> pure unit
-                      , onActivation: search
+                      , prompt: prompt
+                      , promptAfterKeyTimeout: \_ _ _ _ -> pure unit
+                      , activate: search
                       }
 
 prompt :: String -> Config -> String -> Effect (Maybe JQuery)

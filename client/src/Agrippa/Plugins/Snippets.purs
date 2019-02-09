@@ -17,9 +17,9 @@ import Agrippa.Utils (addShortcutLabels, createTextNode)
 
 snippets :: Plugin
 snippets = Plugin { name: "Snippets"
-                  , onInputChange: suggest
-                  , onInputChangeAfterTimeout: \_ _ _ _ -> pure unit
-                  , onActivation: copy
+                  , prompt: suggest
+                  , promptAfterKeyTimeout: \_ _ _ _ -> pure unit
+                  , activate: copy
                   }
 
 suggest :: String -> Config -> String -> Effect (Maybe JQuery)

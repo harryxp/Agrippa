@@ -12,26 +12,31 @@ import Agrippa.Config (Config)
 newtype Plugin =
   Plugin { name          :: String
 
-         -- called each time there's new input
-         -- this function is expected to be fast enough to provide quick feedback to the user
-         , onInputChange             :: String  -- task name
-                                     -> Config  -- task config
-                                     -> String  -- input
-                                     -> Effect (Maybe JQuery)
+         {- Called each time there's new input.
 
-         -- called if keyTimeoutInMs (configurable per task) has passed since the last new input
-         -- this function provides a mechanism for the plugin to NOT react every single time the user types something
-         -- typically this function runs an Aff therefore it needs the callback parameter
-         , onInputChangeAfterTimeout :: String  -- task name
-                                     -> Config  -- task config
-                                     -> String  -- input
-                                     -> (JQuery -> Effect Unit)
-                                     -> Effect Unit
+            This function is expected to be fast enough to provide continuous feedback to the user.
+          -}
+         , prompt                :: String  -- task name
+                                 -> Config  -- task config
+                                 -> String  -- input
+                                 -> Effect (Maybe JQuery)
+
+         {- Called if keyTimeoutInMs has passed since the last new input.
+
+            This function provides a mechanism for the plugin to NOT react every single time the user types something.
+            Typically this function runs an Aff that involves some slow IO, therefore it needs the callback parameter
+            keyTimeoutInMs is configurable per task.  The default is 0.
+         -}
+         , promptAfterKeyTimeout :: String  -- task name
+                                 -> Config  -- task config
+                                 -> String  -- input
+                                 -> (JQuery -> Effect Unit) -- callback function
+                                 -> Effect Unit
 
          -- called when <enter> is pressed
-         , onActivation              :: String  -- task name
-                                     -> Config  -- task config
-                                     -> String  -- input
-                                     -> Effect (Maybe JQuery)
+         , activate              :: String  -- task name
+                                 -> Config  -- task config
+                                 -> String  -- input
+                                 -> Effect (Maybe JQuery)
          }
 
