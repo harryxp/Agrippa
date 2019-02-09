@@ -27,7 +27,7 @@ sub main {
 
         my $os_lc = lc($os);
         system("cp README.md $distdir/");
-        system("cp config.template.$os_lc.json $distdir/config.json");
+        system("cp config.template.$os_lc.yaml $distdir/config.yaml");
 
         chdir("client");
         system("pulp browserify -O --main Agrippa.Main --to web/agrippa.js");

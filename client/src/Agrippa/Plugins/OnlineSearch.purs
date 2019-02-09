@@ -25,13 +25,13 @@ prompt :: String -> Config -> String -> Effect (Maybe JQuery)
 prompt _ config input = (map Just <<< createTextNode)
   case getStringVal "url" config of
     Left  err -> err
-    Right url -> ("Keep typing the query.  Press <Enter> to visit " <> (completeUrl url input) <> ".")
+    Right url -> ("Keep typing the query.  Press <Enter> to visit " <> (buildUrlWithInput url input) <> ".")
 
 search :: String -> Config -> String -> Effect (Maybe JQuery)
 search _ config input = (map Just <<< createTextNode) =<<
   case getStringVal "url" config of
     Left  err -> pure err
-    Right url -> openUrl (completeUrl url input)
+    Right url -> openUrl (buildUrlWithInput url input)
 
 openUrl :: String -> Effect String
 openUrl url = do
@@ -41,6 +41,6 @@ openUrl url = do
     Nothing -> "I can't get a window object.  Something went really wrong..."
     Just _  -> "Opening..."
 
-completeUrl :: String -> String -> String
-completeUrl url input = replace (Pattern "${q}") ((Replacement <<< unsafeEncodeURIComponent <<< trim) input) url
+buildUrlWithInput :: String -> String -> String
+buildUrlWithInput url input = replace (Pattern "${q}") ((Replacement <<< unsafeEncodeURIComponent <<< trim) input) url
 

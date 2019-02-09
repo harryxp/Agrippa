@@ -4,7 +4,7 @@ the user perform various *task*s.
 Alongside the productivity boost, a creative user can use Agrippa to streamline
 his routines.
 
-*Task*s are configured in `config.json` and their features are implemented by
+*Task*s are configured in `config.yaml` and their features are implemented by
 [*plugin*s](https://github.com/harryxp/Agrippa/tree/master/client/src/Agrippa/Plugins).
 Multiple *task*s may be backed by the same *plugin*, usually with different
 configurations.
@@ -39,9 +39,9 @@ Current plugins and their features:
 - Windows: create directory `%APPDATA%/agrippa.d/` (typically
   `C:\Users\<user>\AppData\Roaming\agrippa.d`).
 
-4. Copy `<installation path>/config.template.<your OS>.json` to the directory
-   in step 3.  Rename it to `config.json`.
-5. Customize your `config.json` - at least replace all `<user>` values with
+4. Copy `<installation path>/config.template.<your OS>.yaml` to the directory
+   in step 3.  Rename it to `config.yaml`.
+5. Customize your `config.yaml` - at least replace all `<user>` values with
    your own user name.
 6. Run Agrippa Server:
 
@@ -57,10 +57,10 @@ Current plugins and their features:
 While `agrippad` is running, visit its web interface at
 [http://localhost:3000/agrippa/](http://localhost:3000/agrippa/).
 
-This address is also configurable in `config.json`.
+This address is also configurable in `config.yaml`.
 
 1. Please choose a task by typing a keyword, followed by a space.
-2. Or, when a keyword is absent, the default task configured in `config.json`
+2. Or, when a keyword is absent, the default task configured in `config.yaml`
    is chosen.
 3. As you type, follow the instructions and feedback.
 
