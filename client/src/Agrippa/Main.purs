@@ -9,7 +9,7 @@ import Control.Monad.Except (runExcept)
 import Data.Either (Either(..))
 import Data.Int (ceil)
 import Data.Map as Map
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), maybe')
 import Data.String (Pattern(..), indexOf, splitAt)
 import Effect (Effect)
 import Effect.Aff (runAff_)
@@ -114,16 +114,12 @@ execTask (Task { name: taskName
     13 -> activate taskName taskConfig taskInput
     _  -> do setupPromptAfterKeyTimeout taskConfig (promptAfterKeyTimeout taskName taskConfig taskInput displayOutput) timeoutIdRefMb
              prompt taskName taskConfig taskInput
-  case nodeMb of
-    Just node -> displayOutput node
-    Nothing   -> pure unit
+  maybe' pure displayOutput nodeMb
 
 setupPromptAfterKeyTimeout :: Config -> Effect Unit -> Ref (Maybe TimeoutId) -> Effect Unit
 setupPromptAfterKeyTimeout taskConfig promptAfterKeyTimeout timeoutIdRefMb = do
   timeoutIdMb <- read timeoutIdRefMb
-  case timeoutIdMb of
-    Just timeoutId -> clearTimeout timeoutId
-    Nothing        -> pure unit
+  maybe' pure clearTimeout timeoutIdMb
 
   let taskKeyTimeoutE = getNumberVal "keyTimeoutInMs" taskConfig
       taskKeyTimeout = case taskKeyTimeoutE of

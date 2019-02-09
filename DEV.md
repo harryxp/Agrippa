@@ -73,16 +73,14 @@ client on a Unix-like system, and also create the archive there.
 - Installation utility?
 - Top level suggestion
 - Better error handling
-    - Check runAff response status code
-    - Error handler for runAff
     - Backend: readFile catch exception?
-    - Every Nothing
 - Formatted string instead of <> (Text.Formatting?)
 - Learn Except
 
 ## KeePass plugin
 - A bunch of TODOs in the code
 - Encrypt password in memory?
+- Handle wrong master key case
 - Master key file?
 - Shortcuts
 

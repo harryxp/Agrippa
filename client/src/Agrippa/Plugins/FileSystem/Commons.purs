@@ -1,11 +1,11 @@
 module Agrippa.Plugins.FileSystem.Commons (open, prompt, suggest) where
 
-import Prelude (Unit, bind, const, discard, flip, map, pure, show, unit, (<$), (<>), (>>=), (<=<), (<<<))
+import Prelude (Unit, bind, const, discard, flip, map, pure, show, unit, ($>), (<>), (>>=), (<=<), (<<<))
 import Affjax (get, post)
 import Affjax.RequestBody as RequestBody
 import Affjax.ResponseFormat (json)
 import Affjax.StatusCode (StatusCode(..))
-import Effect.Aff (runAff, runAff_)
+import Effect.Aff (runAff_)
 import Control.Monad.Except (runExcept)
 import Data.Argonaut.Core (Json, fromObject, fromString, toArray, toString)
 import Data.Either (Either(..))
@@ -19,7 +19,7 @@ import Global.Unsafe (unsafeEncodeURIComponent)
 import JQuery (JQuery, JQueryEvent, append, body, create, getProp, on, select, setProp, setText)
 
 import Agrippa.Config (Config)
-import Agrippa.Utils (addShortcutLabels, createTextNode)
+import Agrippa.Utils (addShortcutLabels, createTextNode, displayOutputText)
 
 suggest :: String -> String -> String -> Config -> String -> (JQuery -> Effect Unit) -> Effect Unit
 suggest suggestUrl openUrl taskName config input displayOutput =
@@ -27,7 +27,7 @@ suggest suggestUrl openUrl taskName config input displayOutput =
   where affHandler (Right { status: (StatusCode 200)
                           , body:   (Right resp)
                           }) = buildOutput openUrl resp >>= displayOutput
-        affHandler _         = pure unit
+        affHandler _         = displayOutputText "Failed to retrieve data from server."
 
 buildSuggestReq :: String -> String -> Json
 buildSuggestReq taskName term = (fromObject <<<
@@ -65,8 +65,7 @@ open openUrl _ _ _ = do
   foreignUrl <- getProp "href" link
   case runExcept (readString foreignUrl) of
     Left  err -> (map Just <<< createTextNode <<< show) err
-    Right url -> Nothing <$
-      runAff (const (pure unit)) (get json url)
+    Right url -> runAff_ (const (pure unit)) (get json url) $> Nothing
 
 foreign import shortcutListener :: String -> JQueryEvent -> JQuery -> Effect Unit
 

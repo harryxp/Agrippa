@@ -38,8 +38,8 @@ openUrl url = do
   w <- window
   newWindowMb <- open url "_self" "" w
   pure case newWindowMb of
-        Nothing -> "I can't get a window object.  Something went really wrong..."
-        Just _  -> "Opening..."
+    Nothing -> "I can't get a window object.  Something went really wrong..."
+    Just _  -> "Opening..."
 
 completeUrl :: String -> String -> String
 completeUrl url input = replace (Pattern "${q}") ((Replacement <<< unsafeEncodeURIComponent <<< trim) input) url

@@ -3,7 +3,7 @@ module Agrippa.Utils (addShortcutLabels, createTextNode, displayOutput, displayO
 import Prelude (Unit, bind, discard, pure, show, unit, (<>), (>>=), (<$>))
 import Data.Array (uncons, zipWith, (..))
 import Data.Either (Either(..))
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), maybe)
 import Data.Traversable (sequence_)
 import Effect (Effect)
 import JQuery (JQuery, addClass, append, clear, create, select, setText)
@@ -46,5 +46,4 @@ appendShortcutLabel htmlTag label parent = do
   append span parent
 
 mToE :: forall a e. e -> Maybe a -> Either e a
-mToE err Nothing = Left  err
-mToE _ (Just x)  = Right x
+mToE err mb = maybe (Left err) (Right) mb

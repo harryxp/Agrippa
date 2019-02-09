@@ -1,9 +1,9 @@
 module Agrippa.Plugins.Snippets (snippets) where
 
-import Prelude (Unit, bind, discard, flip, map, pure, unit, (<<<), (>>=), (*>))
+import Prelude (Unit, bind, discard, flip, identity, map, pure, unit, (<<<), (>>=), (*>), ($>))
 import Data.Argonaut.Core (toString)
 import Data.Either (Either(..))
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), maybe)
 import Data.String (toLower, trim)
 import Data.String.Utils (includes)
 import Data.Traversable (sequence, traverse_)
@@ -42,9 +42,7 @@ buildTable candidates = do
 
 buildTableRow :: String -> Config -> Effect JQuery
 buildTableRow key value =
-  let val = case toString value of
-              Nothing -> "Error: snippets must be strings."
-              Just s  -> s
+  let val = maybe "Error: snippets must be strings." identity (toString value)
   in do
     keyCell <- create "<td>"
     setText key keyCell
@@ -73,6 +71,6 @@ foreign import shortcutListener :: JQueryEvent -> JQuery -> Effect Unit
 foreign import copyButtonListener :: JQueryEvent -> JQuery -> Effect Unit
 
 copy :: String -> Config -> String -> Effect (Maybe JQuery)
-copy _ _ _ = (body >>= on "keyup" shortcutListener) *> clickFirstCopyButton *> pure Nothing
+copy _ _ _ = (body >>= on "keyup" shortcutListener) *> clickFirstCopyButton $> Nothing
 
 foreign import clickFirstCopyButton :: Effect Unit

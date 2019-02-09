@@ -34,7 +34,7 @@ suggest _ _ input displayOutput =
   where affHandler (Right { status: (StatusCode 200)
                           , body:   (Right resp)
                           }) = buildOutput resp >>= displayOutput
-        affHandler _         = pure unit
+        affHandler _       = displayOutputText "Failed to retrieve data from server."
 
 buildOutput :: Json -> Effect JQuery
 buildOutput contents = do
