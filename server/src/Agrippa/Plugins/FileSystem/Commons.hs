@@ -23,9 +23,7 @@ registerHandlers open taskNamesToItems suggestUrl openUrl = do
           taskName <- lookupJSON "taskName" params :: Maybe String
           term     <- lookupJSON "term"     params :: Maybe String
           findItems taskNamesToItems taskName term
-    case maybeItems of
-      Just items -> json items
-      Nothing    -> json ([] :: [T.Text])
+    maybe (json ([] :: [T.Text])) json maybeItems
 
   get openUrl $ do
     item <- param "item" :: ActionM String

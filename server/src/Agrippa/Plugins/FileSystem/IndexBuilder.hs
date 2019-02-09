@@ -48,9 +48,8 @@ buildSearchIndex (Object o) =
         plugin   <- lookupJSON "plugin" o :: Maybe String
         paths    <- lookupJSON "paths"  o :: Maybe [String]
         Just (buildSearchIndex' taskName plugin paths)
-  in case maybeAction of
-      Just action -> action
-      Nothing     -> error "Can't find 'name', 'plugin', or 'paths' when building indices."
+  in maybe (error "Can't find 'name', 'plugin', or 'paths' when building indices.") id maybeAction
+
 buildSearchIndex _ = error "Task values must be JSON objects."
 
 buildSearchIndex' :: TaskName -> String -> [String] -> IO (TaskName, [T.Text])

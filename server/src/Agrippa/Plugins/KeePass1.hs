@@ -36,9 +36,7 @@ registerHandlers agrippaConfig suggestUrl unlockUrl passwordBox = do
           pwd      <- password
           term     <- lookupJSON "term" params
           Just (liftAndCatchIO (getKeePass1Entries filePath pwd term))
-    case maybeEntriesActionM of
-      Just entriesActionM -> entriesActionM >>= json
-      Nothing             -> json Null
+    maybe (json Null) (>>= json) maybeEntriesActionM
 
   post unlockUrl $ do
     params   <- jsonData :: ActionM Object
@@ -47,9 +45,7 @@ registerHandlers agrippaConfig suggestUrl unlockUrl passwordBox = do
       Nothing       -> json ("Incorrect parameter." :: String)
 
 usesKeePass1Plugin :: Value -> Bool
-usesKeePass1Plugin (Object o) = case lookupJSON "plugin" o :: Maybe String of
-  Just plugin -> plugin == "KeePass1"
-  Nothing     -> False
+usesKeePass1Plugin (Object o) = maybe False (== "KeePass1") (lookupJSON "plugin" o :: Maybe String)
 usesKeePass1Plugin _          = False
 
 getKeePass1Entries :: String -> String -> String -> IO [Entry]
