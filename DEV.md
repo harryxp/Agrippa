@@ -78,6 +78,7 @@ client on a Unix-like system, and also create the archive there.
 - Learn Except
 
 ## KeePass plugin
+
 - A bunch of TODOs in the code
 - Encrypt password in memory?
 - Handle wrong master key case
@@ -91,7 +92,6 @@ client on a Unix-like system, and also create the archive there.
 
 ## File System plugins
 
-- Press <Enter> when "Searching..." would trigger a bug
 - Still slow on the backend side - arrays in IndexBuilder?  trie?
 - It does not detect new items automatically.
 - Frontend max recursion level exceeded if too many items.
@@ -102,4 +102,3 @@ client on a Unix-like system, and also create the archive there.
 - Query using a template library?  Text.Formatting?
 - Only one query parameter is allowed now
 - Allow sending one query to multiple websites?
-

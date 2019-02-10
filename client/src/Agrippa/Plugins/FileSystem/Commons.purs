@@ -1,6 +1,6 @@
 module Agrippa.Plugins.FileSystem.Commons (open, prompt, suggest) where
 
-import Prelude (Unit, bind, const, discard, flip, map, pure, show, unit, ($>), (<>), (>>=), (<=<), (<<<))
+import Prelude (Unit, bind, const, discard, flip, map, pure, unit, ($>), (<>), (>>=), (<=<), (<<<))
 import Affjax (get, post)
 import Affjax.RequestBody as RequestBody
 import Affjax.ResponseFormat (json)
@@ -60,11 +60,12 @@ prompt _ _ _ = map Just (createTextNode "Searching...")
 
 open :: String -> String -> Config -> String -> Effect (Maybe JQuery)
 open openUrl _ _ _ = do
-  body >>= on "keyup" (shortcutListener openUrl)
   link <- select "#agrippa-output > div > div:first > a"
   foreignUrl <- getProp "href" link
   case runExcept (readString foreignUrl) of
-    Left  err -> (map Just <<< createTextNode <<< show) err
+    -- typically error happens when the user presses enter
+    -- when the link's not ready
+    Left  err -> (map Just <<< createTextNode) "Got nothing here."
     Right url -> runAff_ (const (pure unit)) (get json url) $> Nothing
 
 foreign import shortcutListener :: String -> JQueryEvent -> JQuery -> Effect Unit
