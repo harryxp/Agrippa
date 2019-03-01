@@ -1,45 +1,46 @@
 module Agrippa.Main (main) where
 
-import Prelude (Unit, bind, discard, pure, show, unit, (==), (/=), (*>), (>>=), (<>), (&&))
+import Prelude (Unit, bind, discard, pure, show, unit, (==), (/=), (>>=), (<>), (&&))
 import Affjax (get)
 import Affjax.ResponseFormat (ignore, json)
 import Affjax.StatusCode (StatusCode(..))
-import Control.Alt ((<|>))
 import Control.Monad.Except (runExcept)
-import Data.Either (Either(..))
+import Data.Either (Either(..), hush)
 import Data.Int (ceil)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), maybe')
 import Data.String (Pattern(..), indexOf, splitAt)
+import Data.String.Utils (startsWith)
 import Effect (Effect)
 import Effect.Aff (runAff_)
 import Effect.Ref (Ref, new, read, write)
 import Effect.Timer (TimeoutId, clearTimeout, setTimeout)
 import Foreign (readString)
 import Foreign.Object (lookup)
-import JQuery (JQuery, JQueryEvent, body, getWhich, getValue, off, on, ready, select, setText)
+import JQuery (JQuery, JQueryEvent, body, create, getWhich, getValue, off, on, ready, select, setText)
 
 import Agrippa.Config (Config, getNumberVal, getObjectVal, getStringVal, lookupConfigVal)
-import Agrippa.Help (buildHelp)
+import Agrippa.Help (createHelp, createTaskTableData, createTaskTableRow)
 import Agrippa.Plugins.PluginType (Plugin(..))
 import Agrippa.Plugins.Registry (namesToPlugins)
-import Agrippa.Utils (displayOutput, displayOutputText, mToE)
+import Agrippa.Utils (displayOutput, displayOutputText)
 
 main :: Effect Unit
 main = ready (runAff_ affHandler (get json "/agrippa/config/"))
   where affHandler (Right { status: (StatusCode 200)
                           , body:   (Right config)
                           }) = do
-          buildHelp config
-          installInputListener config
+          createHelp config
+          timeoutIdRefMb <- new Nothing
+          installInputListener config timeoutIdRefMb
           installRestartServerListener
+          handleNoSelectedTask config Nothing "" timeoutIdRefMb
         affHandler _         = displayOutputText "Failed to retrieve config from server."
 
-installInputListener :: Config -> Effect Unit
-installInputListener config = do
+installInputListener :: Config -> Ref (Maybe TimeoutId) -> Effect Unit
+installInputListener config timeoutIdRefMb = do
   inputField   <- select "#agrippa-input"
   prevInputRef <- new ""
-  timeoutIdRefMb <- new Nothing
   on "keyup" (inputListener config prevInputRef timeoutIdRefMb) inputField
 
 installRestartServerListener :: Effect Unit
@@ -63,6 +64,8 @@ inputListener config prevInputRef timeoutIdRefMb event inputField = do
       prevInput <- read prevInputRef
       write wholeInput prevInputRef
       if prevInput == wholeInput && keyCode /= 13
+        -- do nothing if the input remained the same
+        -- and the key pressed was not enter
         then pure unit
         else dispatchToTask config keyCode wholeInput timeoutIdRefMb
 
@@ -73,30 +76,44 @@ data Task = Task { name   :: String
                  }
 
 dispatchToTask :: Config -> Int -> String -> Ref (Maybe TimeoutId) -> Effect Unit
-dispatchToTask config keyCode wholeInput timeoutIdRefMb =
-  case findTask config wholeInput <|> findDefaultTask config wholeInput of
-    Left  err  -> displayOutputText err
-    Right task -> (body >>= off "keyup") *> execTask task keyCode timeoutIdRefMb
+dispatchToTask config keyCode wholeInput timeoutIdRefMb = do
+  -- clear keyup event listeners on body placed by plugins, if any
+  body >>= off "keyup"
+  case findTask config wholeInput of
+    Just task@Task { name: taskName } -> do
+      displaySelectedTask taskName
+      execTask task keyCode timeoutIdRefMb
+    Nothing                           -> handleNoSelectedTask config (Just keyCode) wholeInput timeoutIdRefMb
 
-findTask :: Config -> String -> Either String Task
+findTask :: Config -> String -> Maybe Task
 findTask config wholeInput = do
-  index                                 <- mToE "No keyword found in input."                            (indexOf (Pattern " ") wholeInput)
-  { before: keyword, after: taskInput } <- pure                                                         (splitAt index wholeInput)
-  keywordsToTaskConfigs                 <- getObjectVal "tasks" config
-  taskConfig                            <- mToE ("Keyword '" <> keyword <> "' not found in config.")    (lookup keyword keywordsToTaskConfigs)
-  taskName                              <- getStringVal "name" taskConfig
-  pluginName                            <- getStringVal "plugin" taskConfig
-  plugin                                <- mToE ("Can't find plugin with name '" <> pluginName <> "'.") (Map.lookup pluginName namesToPlugins)
-  pure (Task { name: taskName, plugin: plugin, input: taskInput, config: taskConfig })
+  index                                 <- indexOf (Pattern " ") wholeInput
+  { before: keyword, after: taskInput } <- Just (splitAt index wholeInput)
+  keywordsToTaskConfigs                 <- hush (getObjectVal "tasks" config)
+  taskConfig                            <- lookup keyword keywordsToTaskConfigs
+  taskName                              <- hush (getStringVal "name" taskConfig)
+  pluginName                            <- hush (getStringVal "plugin" taskConfig)
+  plugin                                <- Map.lookup pluginName namesToPlugins
+  Just (Task { name: taskName, plugin: plugin, input: taskInput, config: taskConfig })
 
-findDefaultTask :: Config -> String -> Either String Task
-findDefaultTask config wholeInput = do
-  prefs             <- lookupConfigVal "preferences" config
-  defaultTaskConfig <- lookupConfigVal "defaultTask" prefs
-  taskName          <- getStringVal    "name"        defaultTaskConfig
-  pluginName        <- getStringVal    "plugin"      defaultTaskConfig
-  plugin            <- mToE ("Can't find plugin with name '" <> pluginName <> "'.") (Map.lookup pluginName namesToPlugins)
-  pure (Task { name: taskName, plugin: plugin, input: wholeInput, config: defaultTaskConfig })
+handleNoSelectedTask :: Config -> Maybe Int -> String -> Ref (Maybe TimeoutId) -> Effect Unit
+handleNoSelectedTask config keyCodeMb wholeInput timeoutIdRefMb =
+  case findDefaultTask of
+    Just defaultTask@Task { name: taskName } -> do
+      displayTaskCandidates config wholeInput ("  Press <ENTER> to use the default task - " <> taskName <> ".")
+      maybe' pure (execTaskIfEnter defaultTask) keyCodeMb
+    Nothing                                  -> displayTaskCandidates config wholeInput ""
+  where
+  findDefaultTask :: Maybe Task
+  findDefaultTask = do
+    prefs             <- hush (lookupConfigVal "preferences" config)
+    defaultTaskConfig <- hush (lookupConfigVal "defaultTask" prefs)
+    taskName          <- hush (getStringVal    "name"        defaultTaskConfig)
+    pluginName        <- hush (getStringVal    "plugin"      defaultTaskConfig)
+    plugin            <- Map.lookup pluginName namesToPlugins
+    Just (Task { name: taskName, plugin: plugin, input: wholeInput, config: defaultTaskConfig })
+  execTaskIfEnter task 13 = execTask task 13 timeoutIdRefMb
+  execTaskIfEnter _    _  = pure unit
 
 execTask :: Task -> Int -> Ref (Maybe TimeoutId) -> Effect Unit
 execTask (Task { name: taskName
@@ -109,7 +126,6 @@ execTask (Task { name: taskName
                })
          keyCode
          timeoutIdRefMb = do
-  displayTask taskName
   nodeMb <- case keyCode of
     13 -> activate taskName taskConfig taskInput
     _  -> do setupPromptAfterKeyTimeout taskConfig (promptAfterKeyTimeout taskName taskConfig taskInput displayOutput) timeoutIdRefMb
@@ -129,5 +145,13 @@ setupPromptAfterKeyTimeout taskConfig promptAfterKeyTimeout timeoutIdRefMb = do
   newTimeoutId <- setTimeout taskKeyTimeout promptAfterKeyTimeout
   write (Just newTimeoutId) timeoutIdRefMb
 
-displayTask :: String -> Effect Unit
-displayTask t = select "#agrippa-task" >>= setText t
+displayTaskCandidates :: Config -> String -> String -> Effect Unit
+displayTaskCandidates config wholeInput taskPromptTail = do
+  candidateTable <- create "<table>"
+  createTaskTableRow "<th>" "Keyword (followed by <SPACE>)" "Task" candidateTable
+  createTaskTableData config candidateTable (\key -> startsWith wholeInput key)
+  displayOutput candidateTable
+  displaySelectedTask ("Showing task candidates." <> taskPromptTail)
+
+displaySelectedTask :: String -> Effect Unit
+displaySelectedTask t = select "#agrippa-task" >>= setText t
