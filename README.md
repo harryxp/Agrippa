@@ -17,6 +17,7 @@ Current plugins and their features:
 - MortgageCalc: compute your monthly payment and amortization.
 - OnlineSearch: web at your fingertips.
 - Snippets: search \& recall pieces of text.
+- TaskList: list currently configured tasks and their keywords.
 - [File System plugins]
     - LinuxFileSearch: search \& open files on Linux.
     - MacAppSearch: search \& open applications on Mac.
@@ -70,7 +71,7 @@ Agrippa is designed to be used with a global hotkey.  The following software is
 used by the author to set that up.
 
 - Linux: [XBindKeys](http://www.nongnu.org/xbindkeys/)
-- Mac: [BetterTouchTool](https://www.boastr.net/)
+- Mac: [skhd](https://github.com/koekeishiya/skhd) or [BetterTouchTool](https://www.boastr.net/)
 - Windows: [AutoHotKey](https://autohotkey.com/)
 
 # History

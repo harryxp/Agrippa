@@ -7,8 +7,8 @@ preferences:
     url: "https://www.google.com/search?q=${q}"
 tasks:
   "?":
-    name: Help
-    plugin: Help
+    name: TaskList
+    plugin: TaskList
   "=":
     name: Calculator
     plugin: Calculator
