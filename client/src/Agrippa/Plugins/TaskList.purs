@@ -12,9 +12,8 @@ import Effect.Aff (runAff_)
 import JQuery (JQuery, create)
 
 import Agrippa.Config (Config)
-import Agrippa.Help (createTaskTableData, createTaskTableRow)
 import Agrippa.Plugins.PluginType (Plugin(..))
-import Agrippa.Utils (displayOutputText)
+import Agrippa.Utils (createTaskTableData, createTaskTableRow, displayOutputText)
 
 taskList :: Plugin
 taskList = Plugin { name: "TaskList"

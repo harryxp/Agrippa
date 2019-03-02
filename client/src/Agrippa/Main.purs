@@ -20,10 +20,10 @@ import Foreign.Object (lookup)
 import JQuery (JQuery, JQueryEvent, body, create, getWhich, getValue, off, on, ready, select, setText)
 
 import Agrippa.Config (Config, getNumberVal, getObjectVal, getStringVal, lookupConfigVal)
-import Agrippa.Help (createHelp, createTaskTableData, createTaskTableRow)
+import Agrippa.Help (createHelp)
 import Agrippa.Plugins.PluginType (Plugin(..))
 import Agrippa.Plugins.Registry (namesToPlugins)
-import Agrippa.Utils (displayOutput, displayOutputText)
+import Agrippa.Utils (createTaskTableData, createTaskTableRow, displayOutput, displayOutputText)
 
 main :: Effect Unit
 main = ready (runAff_ affHandler (get json "/agrippa/config/"))

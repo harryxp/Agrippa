@@ -1,16 +1,11 @@
-module Agrippa.Help (createHelp, createTaskTableData, createTaskTableRow) where
+module Agrippa.Help (createHelp) where
 
-import Prelude (Unit, bind, const, discard, (==), (<>))
-import Data.Either (Either(..))
-import Data.Foldable (traverse_)
-import Data.Traversable (traverse)
-import Data.Tuple (Tuple, fst, snd)
+import Prelude (Unit, bind, const, discard, (==))
 import Effect (Effect)
-import Foreign.Object (Object, filterKeys, toAscUnfoldable)
-import JQuery (JQuery, JQueryEvent, append, create, getText, on, select, setText, toggle)
+import JQuery (JQuery, JQueryEvent, getText, on, select, setText, toggle)
 
-import Agrippa.Config (Config, getObjectVal, getStringVal)
-import Agrippa.Utils (displayOutputText)
+import Agrippa.Config (Config)
+import Agrippa.Utils (createTaskTableData, createTaskTableRow)
 
 createHelp :: Config -> Effect Unit
 createHelp config = do
@@ -33,27 +28,3 @@ createHelp config = do
       if text == "What do I do?"
         then setText "Got it!" helpButton
         else setText "What do I do?" helpButton
-
-createTaskTableData :: Config -> JQuery -> (String -> Boolean) -> Effect Unit
-createTaskTableData config tableElement keywordFilter =
-  case getKeywordsToTaskNames of
-    Left  err -> displayOutputText err
-    Right obj -> traverse_
-                   (\tp -> createTaskTableRow "<td>" ((fst tp) <> "<SPACE>") (snd tp) tableElement)
-                   (toAscUnfoldable obj :: Array (Tuple String String))
-  where
-    getKeywordsToTaskNames :: Either String (Object String)
-    getKeywordsToTaskNames = do
-      keywordsToTaskConfigs <- getObjectVal "tasks" config
-      traverse (getStringVal "name") (filterKeys keywordFilter keywordsToTaskConfigs)
-
-createTaskTableRow :: String -> String -> String -> JQuery -> Effect Unit
-createTaskTableRow cellType cellData1 cellData2 tableElement = do
-  tr <- create "<tr>"
-  createTaskTableCell cellData1 tr
-  createTaskTableCell cellData2 tr
-  append tr tableElement
-  where createTaskTableCell contents tr = do
-          cell <- create cellType
-          setText contents cell
-          append cell tr

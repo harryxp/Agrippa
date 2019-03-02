@@ -2,12 +2,10 @@ module Agrippa.Config (Config, getBooleanVal, getNumberVal, getObjectVal, getStr
 
 import Prelude (bind, (>=>), (<>))
 import Data.Argonaut.Core (Json, toArray, toBoolean, toNumber, toObject, toString)
-import Data.Either (Either)
-import Data.Maybe (Maybe)
+import Data.Either (Either(..))
+import Data.Maybe (Maybe, maybe)
 import Data.Traversable (traverse)
 import Foreign.Object (Object, lookup)
-
-import Agrippa.Utils (mToE)
 
 type Config = Json
 
@@ -35,3 +33,6 @@ lookupConfigVal :: String -> Config -> Either String Config
 lookupConfigVal key config = do
   jObject <- mToE  "Config Error: expect JSON object."                                (toObject config)
   mToE            ("Config Error: expect JSON object with a(n) '" <> key <> "' key.") (lookup key jObject)
+
+mToE :: forall a e. e -> Maybe a -> Either e a
+mToE err mb = maybe (Left err) (Right) mb
