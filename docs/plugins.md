@@ -2,6 +2,8 @@
 
 ## Common Options
 
+   All tasks may a `keyTimeoutInMs` option.
+
 ## Calculator
 
 
@@ -10,7 +12,7 @@
 - MortgageCalc: compute your monthly payment and amortization.
 - OnlineSearch: web at your fingertips.
 - Snippets: search \& recall pieces of text.
-- TaskList: list currently configured tasks and their keywords.
+- TaskSearch: search currently configured tasks by task names
 - [File System plugins]
     - LinuxFileSearch: search \& open files on Linux.
     - MacAppSearch: search \& open applications on Mac.

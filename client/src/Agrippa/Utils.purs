@@ -1,6 +1,7 @@
 module Agrippa.Utils (addShortcutLabels, createTextNode, createTaskTableData, createTaskTableRow, displayOutput, displayOutputText) where
 
 import Prelude (Unit, bind, discard, pure, show, unit, (<>), (>>=), (<$>))
+import Data.Argonaut.Core (Json)
 import Data.Array (uncons, zipWith, (..))
 import Data.Maybe (Maybe(..))
 import Data.Either (Either(..))
@@ -8,7 +9,7 @@ import Data.Traversable (sequence_, traverse, traverse_)
 import Data.Tuple (Tuple, fst, snd)
 import Effect (Effect)
 import JQuery (JQuery, addClass, append, clear, create, select, setText)
-import Foreign.Object (Object, filterKeys, toAscUnfoldable)
+import Foreign.Object (Object, filter, filterKeys, toAscUnfoldable)
 
 import Agrippa.Config (Config, getObjectVal, getStringVal)
 
@@ -49,8 +50,8 @@ appendShortcutLabel htmlTag label parent = do
   setText label span
   append span parent
 
-createTaskTableData :: Config -> JQuery -> (String -> Boolean) -> Effect Unit
-createTaskTableData config tableElement keywordFilter =
+createTaskTableData :: Config -> JQuery -> (String -> Boolean) -> (String -> Boolean) -> Effect Unit
+createTaskTableData config tableElement keywordFilter taskNameFilter =
   case getKeywordsToTaskNames of
     Left  err -> displayOutputText err
     Right obj -> traverse_
@@ -59,8 +60,9 @@ createTaskTableData config tableElement keywordFilter =
   where
     getKeywordsToTaskNames :: Either String (Object String)
     getKeywordsToTaskNames = do
-      keywordsToTaskConfigs <- getObjectVal "tasks" config
-      traverse (getStringVal "name") (filterKeys keywordFilter keywordsToTaskConfigs)
+      keywordsToTaskConfigs <- getObjectVal "tasks" config :: Either String (Object Json)
+      keywordsToTaskNames   <- traverse (getStringVal "name") (filterKeys keywordFilter keywordsToTaskConfigs)
+      Right (filter taskNameFilter keywordsToTaskNames)
 
 createTaskTableRow :: String -> String -> String -> JQuery -> Effect Unit
 createTaskTableRow cellType cellData1 cellData2 tableElement = do

@@ -68,6 +68,7 @@ client on a Unix-like system, and also create the archive there.
 
 ## General
 
+- A delayed async output could wipe out what a user expects to see.
 - https
 - Better documentation - document each plugin, hotkey setup.
 - Installation utility?
@@ -82,6 +83,7 @@ client on a Unix-like system, and also create the archive there.
 - Encrypt password in memory?
 - Handle wrong master key case
 - Master key file?
+- Decrypt only once?
 - Shortcuts
 
 ## Calculator plugin

@@ -1,4 +1,4 @@
-module Agrippa.Plugins.TaskList (taskList) where
+module Agrippa.Plugins.TaskSearch (taskSearch) where
 
 import Prelude (bind, const, discard, pure, unit)
 
@@ -7,6 +7,8 @@ import Affjax.ResponseFormat (json)
 import Affjax.StatusCode (StatusCode(..))
 import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
+import Data.String (toLower, trim)
+import Data.String.Utils (includes)
 import Effect (Effect)
 import Effect.Aff (runAff_)
 import JQuery (JQuery, create)
@@ -15,20 +17,24 @@ import Agrippa.Config (Config)
 import Agrippa.Plugins.PluginType (Plugin(..))
 import Agrippa.Utils (createTaskTableData, createTaskTableRow, displayOutputText)
 
-taskList :: Plugin
-taskList = Plugin { name: "TaskList"
-                  , prompt: showTaskTable
-                  , promptAfterKeyTimeout: \_ _ _ _ -> pure unit
-                  , activate: \_ _ _ -> pure Nothing
-                  }
+taskSearch :: Plugin
+taskSearch = Plugin { name: "TaskSearch"
+                    , prompt: showTaskTable
+                    , promptAfterKeyTimeout: \_ _ _ _ -> pure unit
+                    , activate: \_ _ _ -> pure Nothing
+                    }
 
 showTaskTable :: String -> Config -> String -> Effect (Maybe JQuery)
-showTaskTable _ _ _ = do
+showTaskTable _ _ input = do
   taskTable <- create "<table>"
   createTaskTableRow "<th>" "Keyword (followed by <SPACE>)" "Task" taskTable
   runAff_ (affHandler taskTable) (get json "/agrippa/config/")
   pure (Just taskTable)
   where affHandler taskTable (Right { status: (StatusCode 200)
                                     , body:   (Right config)
-                                    }) = createTaskTableData config taskTable (const true)
+                                    }) = createTaskTableData
+                                           config
+                                           taskTable
+                                           (const true)
+                                           (\taskName -> includes (toLower (trim input)) (toLower taskName))
         affHandler _         _         = displayOutputText "Failed to retrieve config from server."

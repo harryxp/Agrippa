@@ -13,7 +13,7 @@ import Agrippa.Plugins.FileSystem.MacFileSearch (macFileSearch)
 import Agrippa.Plugins.FileSystem.UnixExecutableSearch (unixExecutableSearch)
 import Agrippa.Plugins.FileSystem.WinExecutableSearch (winExecutableSearch)
 import Agrippa.Plugins.FileSystem.WinFileSearch (winFileSearch)
-import Agrippa.Plugins.TaskList (taskList)
+import Agrippa.Plugins.TaskSearch (taskSearch)
 import Agrippa.Plugins.KeePass1 (keePass1)
 import Agrippa.Plugins.MortgageCalc (mortgageCalc)
 import Agrippa.Plugins.OnlineSearch (onlineSearch)
@@ -24,7 +24,7 @@ import Agrippa.Plugins.Snippets (snippets)
 plugins :: Array Plugin
 plugins = [ calculator
           , clock
-          , taskList
+          , taskSearch
           , mortgageCalc
           , onlineSearch
           , snippets

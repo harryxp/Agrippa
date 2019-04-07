@@ -11,7 +11,7 @@ createHelp :: Config -> Effect Unit
 createHelp config = do
   helpTable <- select "#agrippa-help-table"
   createTaskTableRow "<th>" "Keyword (followed by <SPACE>)" "Task" helpTable
-  createTaskTableData config helpTable (const true)
+  createTaskTableData config helpTable (const true) (const true)
 
   helpContent <- select "#agrippa-help-content"
   helpButton  <- select "#agrippa-help-button"

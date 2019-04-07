@@ -1,6 +1,6 @@
 module Agrippa.Main (main) where
 
-import Prelude (Unit, bind, discard, pure, show, unit, (==), (/=), (>>=), (<>), (&&))
+import Prelude (Unit, bind, const, discard, pure, show, unit, (==), (/=), (>>=), (<>), (&&))
 import Affjax (get)
 import Affjax.ResponseFormat (ignore, json)
 import Affjax.StatusCode (StatusCode(..))
@@ -149,7 +149,7 @@ displayTaskCandidates :: Config -> String -> String -> Effect Unit
 displayTaskCandidates config wholeInput taskPromptTail = do
   candidateTable <- create "<table>"
   createTaskTableRow "<th>" "Keyword (followed by <SPACE>)" "Task" candidateTable
-  createTaskTableData config candidateTable (\key -> startsWith wholeInput key)
+  createTaskTableData config candidateTable (\key -> startsWith wholeInput key) (const true)
   displayOutput candidateTable
   displaySelectedTask ("Showing task candidates." <> taskPromptTail)
 
