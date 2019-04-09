@@ -55,7 +55,7 @@ createTaskTableData config tableElement keywordFilter taskNameFilter =
   case getKeywordsToTaskNames of
     Left  err -> displayOutputText err
     Right obj -> traverse_
-                   (\tp -> createTaskTableRow "<td>" ((fst tp) <> "<SPACE>") (snd tp) tableElement)
+                   (\tp -> createTaskTableRow "<td>" (fst tp) (snd tp) tableElement)
                    (toAscUnfoldable obj :: Array (Tuple String String))
   where
     getKeywordsToTaskNames :: Either String (Object String)

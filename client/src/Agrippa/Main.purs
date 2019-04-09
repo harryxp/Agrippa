@@ -148,7 +148,7 @@ setupPromptAfterKeyTimeout taskConfig promptAfterKeyTimeout timeoutIdRefMb = do
 displayTaskCandidates :: Config -> String -> String -> Effect Unit
 displayTaskCandidates config wholeInput taskPromptTail = do
   candidateTable <- create "<table>"
-  createTaskTableRow "<th>" "Keyword (followed by <SPACE>)" "Task" candidateTable
+  createTaskTableRow "<th>" "Keyword" "Task" candidateTable
   createTaskTableData config candidateTable (\key -> startsWith wholeInput key) (const true)
   displayOutput candidateTable
   displaySelectedTask ("Showing task candidates." <> taskPromptTail)

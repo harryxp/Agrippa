@@ -10,7 +10,7 @@ import Agrippa.Utils (createTaskTableData, createTaskTableRow)
 createHelp :: Config -> Effect Unit
 createHelp config = do
   helpTable <- select "#agrippa-help-table"
-  createTaskTableRow "<th>" "Keyword (followed by <SPACE>)" "Task" helpTable
+  createTaskTableRow "<th>" "Keyword" "Task" helpTable
   createTaskTableData config helpTable (const true) (const true)
 
   helpContent <- select "#agrippa-help-content"
