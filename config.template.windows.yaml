@@ -18,17 +18,17 @@ tasks:
   e:
     name: "Launch Executables"
     plugin: WinExecutableSearch
-    keyTimeoutInMs: 800
+    keyTimeoutInMs: 500
     paths: []
   f:
     name: "Search for Files"
     plugin: WinFileSearch
-    keyTimeoutInMs: 800
+    keyTimeoutInMs: 500
     paths: []
-  k:
-    name: KeePass
-    plugin: KeePass1
-    databaseFilePath: "<database file location>"
+  # k:
+  #   name: KeePass
+  #   plugin: KeePass1
+  #   databaseFilePath: "<database file location>"
   d:
     name: Dictionary
     plugin: OnlineSearch
@@ -57,10 +57,6 @@ tasks:
     name: "USPS Tracking"
     plugin: OnlineSearch
     url: "https://tools.usps.com/go/TrackConfirmAction?tLabels=${q}"
-  v:
-    name: "Visa Bulletin"
-    plugin: OnlineSearch
-    url: "https://travel.state.gov/content/travel/en/legal/visa-law0/visa-bulletin.html"
   w:
     name: "Wikipedia Search"
     plugin: OnlineSearch
@@ -68,7 +64,7 @@ tasks:
   y:
     name: "YouTube Search"
     plugin: OnlineSearch
-    url: "http://www.youtube.com/results?search_query=${q}"
+    url: "https://www.youtube.com/results?search_query=${q}"
   z:
     name: "Amazon Search"
     plugin: OnlineSearch
@@ -87,5 +83,8 @@ tasks:
       "Postgres information_schema.columns": "select table_name, column_name, data_type from information_schema.columns where column_name ~* '';"
       "Postgres locks": "select * from pg_locks;"
       "Postgres table size": "select pg_size_pretty(pg_total_relation_size('SOME_TABLE')) as total, pg_size_pretty(pg_table_size('SOME_TABLE')) as table;"
+      "python HTTP server": "python -m SimpleHTTPServer 9090"
+      "tmux move window to the left": "swap-window -t -1"
+      "tmux move window to the right": "swap-window -t +1"
       "wget directory": "wget -r -k -np -nH --cut-dirs=3 http://HOST/~USER/some-dir/"
       "zsh for loop": "for n in {1..5}; do echo $n; done"

@@ -1,11 +1,14 @@
-# Environment setup
+Environment setup
+=================
 
-1. Install PureScript stuff (purescript, pulp, bower).
+1. Install PureScript stuff - purescript, pulp, bower.  Pulp might need npm.
 2. Install Haskell stuff (Stack).
 
-# Development
+Development
+===========
 
-## Client
+Client
+------
 
 1. Dependencies are in `bower.json`.
 
@@ -24,9 +27,12 @@
 
         import Unsafe.Coerce (unsafeCoerce)
 
-See [Differences from Haskell](https://github.com/purescript/documentation/blob/master/language/Differences-from-Haskell.md).
+See [Differences from
+Haskell](https://github.com/purescript/documentation/blob/master/language/Differences-from-Haskell.md).
+There's also a purescript-undefined package but I've never tried it.
 
-## Server
+Server
+------
 
 1. Dependencies are in `agrippa-server.cabal`.
 
@@ -37,9 +43,11 @@ See [Differences from Haskell](https://github.com/purescript/documentation/blob/
         $ stack ghci
         $ stack exec agrippad -- ../client/     # run the server and use ../client/ as server root
 
-# Release
+Release
+=======
 
-## Tag the commit
+Tag the commit
+--------------
 
         $ git tag -a v<version> -m 'Version <version>'
         $ git push --tags
@@ -49,11 +57,13 @@ If you made a mistake
         $ git tag --delete v<version>
         $ git push --delete origin v<version>
 
-## Linux and Mac
+Linux and Mac
+-------------
 
         $ ./dist.pl <version> <os>  # run it under the project directory
 
-## Windows
+Windows
+-------
 
 The current process is that we build the server binary on Windows but build the
 client on a Unix-like system, and also create the archive there.
@@ -64,10 +74,13 @@ client on a Unix-like system, and also create the archive there.
    the project directory.
 3. Then run on Mac or Linux: `./dist.pl <version> Windows`.
 
-# TODO
+TODO
+====
 
-## General
+General
+-------
 
+- Config validation.
 - A delayed async output could wipe out what a user expects to see.
 - https
 - Better documentation - document each plugin, hotkey setup.
@@ -77,28 +90,45 @@ client on a Unix-like system, and also create the archive there.
 - Formatted string instead of <> (Text.Formatting?)
 - Learn Except
 
-## KeePass plugin
+TaskSearch plugin
+-----------------
+
+- Add more tips, espectially for activation.
+
+KeePass plugin
+--------------
 
 - A bunch of TODOs in the code
+- Present URLs as clickable links
 - Encrypt password in memory?
 - Handle wrong master key case
 - Master key file?
 - Decrypt only once?
 - Shortcuts
 
-## Calculator plugin
+Clock plugin
+------------
+
+- Support different time zones
+
+Calculator plugin
+-----------------
 
 - Support power.  See purescript-math's Math.pow
 - `fix`
 
-## File System plugins
+File System plugins
+-------------------
 
 - Still slow on the backend side - arrays in IndexBuilder?  trie?
 - It does not detect new items automatically.
 - Frontend max recursion level exceeded if too many items.
 - Highlight keyword.
+- On Linux when a child process is not reaped, it becomes a zombie after
+  termination. On Mac this is not a problem because `open` handles it properly.
 
-## Online Search plugin
+Online Search plugin
+--------------------
 
 - Query using a template library?  Text.Formatting?
 - Only one query parameter is allowed now

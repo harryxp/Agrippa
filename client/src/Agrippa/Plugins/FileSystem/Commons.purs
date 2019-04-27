@@ -60,11 +60,12 @@ prompt _ _ _ = map Just (createTextNode "Searching...")
 
 open :: String -> String -> Config -> String -> Effect (Maybe JQuery)
 open openUrl _ _ _ = do
-  link <- select "#agrippa-output > div > div:first > a"
+  link       <- select "#agrippa-output > div > div:first > a"
   foreignUrl <- getProp "href" link
   case runExcept (readString foreignUrl) of
-    -- typically error happens when the user presses enter
-    -- when the link's not ready
+    -- typically error happens when the user presses enter but
+    -- 1) the link's not ready, or
+    -- 2) there's no candidate at all
     Left  err -> (map Just <<< createTextNode) "Got nothing here."
     Right url -> runAff_ (const (pure unit)) (get json url) $> Nothing
 

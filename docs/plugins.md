@@ -1,10 +1,11 @@
-# Agrippa Plugins
+Agrippa Plugins
+===============
 
-## Common Options
+Agrippa's functionalities are provided by *tasks*s, which are essentially
+configured *plugin*s.
 
-   All tasks may a `keyTimeoutInMs` option.
-
-## Calculator
+Calculator
+----------
 
 
 - Clock
@@ -20,3 +21,8 @@
     - UnixExecutableSearch: search \& open executables on Unix-like systems.
     - WinExecutableSearch: search \& open executables on Windows.
     - WinFileSearch: search \& open files on Windows.
+
+Other Task Options
+------------------
+
+   All tasks may have a `keyTimeoutInMs` option.
