@@ -76,7 +76,7 @@ buildEntryUI :: Object Json -> Effect JQuery
 buildEntryUI entry = do
   entryDiv <- create "<div>"
   appendDiv "Title" entryDiv
-  appendDiv "URL"   entryDiv
+  appendLink "URL" entryDiv
   _        <- appendTextField "UserName" entryDiv
   pwdField <- appendTextField "Password" entryDiv
   setClass "agrippa-keepass1-password" true pwdField
@@ -88,6 +88,17 @@ buildEntryUI entry = do
     appendDiv fieldName entryDiv =
       case lookup fieldName entry >>= toString of
         Just fieldValue -> createTextNode fieldValue >>= flip append entryDiv
+        Nothing         -> pure unit
+
+    appendLink fieldName entryDiv =
+      case lookup fieldName entry >>= toString of
+        Just url -> do
+          link <- create "<a>"
+          setText url link
+          setProp "href" url link
+          div  <- create "<div>"
+          append link div
+          append div entryDiv
         Nothing         -> pure unit
 
     appendTextField fieldName entryDiv = do

@@ -99,7 +99,6 @@ KeePass plugin
 --------------
 
 - A bunch of TODOs in the code
-- Present URLs as clickable links
 - Encrypt password in memory?
 - Handle wrong master key case
 - Master key file?
