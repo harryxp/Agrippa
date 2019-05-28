@@ -76,6 +76,9 @@
 #agrippa-help-table td {
     border: 1px solid;
 }
+.agrippa-highlighted-text {
+    background-color: yellow;
+}
 .agrippa-shortcut-prompt {
     font-size: 0.8em;
     font-style: italic;

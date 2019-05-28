@@ -1,4 +1,4 @@
-module Agrippa.Utils (addShortcutLabels, createTextNode, createTaskTableRows, createTaskTableRow, displayOutput, displayOutputText) where
+module Agrippa.Utils (addShortcutLabels, createTextNode, createTaskTableRows, createTaskTableRow, createTuple3, displayOutput, displayOutputText) where
 
 import Prelude (Unit, bind, discard, pure, show, unit, (<>), (>>=), (<$>))
 import Data.Argonaut.Core (Json)
@@ -7,8 +7,9 @@ import Data.Maybe (Maybe(..))
 import Data.Either (Either(..))
 import Data.Traversable (sequence_, traverse, traverse_)
 import Data.Tuple (Tuple, fst, snd)
+import Data.Tuple.Nested (Tuple3, get1, get2, get3, tuple3)
 import Effect (Effect)
-import JQuery (JQuery, addClass, append, clear, create, select, setText)
+import JQuery (JQuery, addClass, append, appendText, clear, create, select, setText)
 import Foreign.Object (Object, filter, filterKeys, toAscUnfoldable)
 
 import Agrippa.Config (Config, getObjectVal, getStringVal)
@@ -50,12 +51,18 @@ appendShortcutLabel htmlTag label parent = do
   setText label span
   append span parent
 
-createTaskTableRows :: Config -> JQuery -> (String -> Boolean) -> (String -> Boolean) -> Effect Unit
-createTaskTableRows config tableElement keywordFilter taskNameFilter =
+createTaskTableRows :: Config
+                    -> JQuery
+                    -> (String -> Boolean)
+                    -> (String -> Boolean)
+                    -> (String -> Tuple3 String String String)
+                    -> (String -> Tuple3 String String String)
+                    -> Effect Unit
+createTaskTableRows config tableElement keywordFilter taskNameFilter keywordSplitter taskNameSplitter =
   case getKeywordsToTaskNames of
     Left  err -> displayOutputText err
     Right obj -> traverse_
-                   (\tp -> createTaskTableRow "<td>" (fst tp) (snd tp) tableElement)
+                   (\tp -> createTaskTableRow "<td>" (fst tp) (snd tp) keywordSplitter taskNameSplitter tableElement)
                    (toAscUnfoldable obj :: Array (Tuple String String))
   where
     getKeywordsToTaskNames :: Either String (Object String)
@@ -64,13 +71,28 @@ createTaskTableRows config tableElement keywordFilter taskNameFilter =
       keywordsToTaskNames   <- traverse (getStringVal "name") (filterKeys keywordFilter keywordsToTaskConfigs)
       Right (filter taskNameFilter keywordsToTaskNames)
 
-createTaskTableRow :: String -> String -> String -> JQuery -> Effect Unit
-createTaskTableRow cellType cellData1 cellData2 tableElement = do
+createTaskTableRow :: String
+                   -> String
+                   -> String
+                   -> (String -> Tuple3 String String String)
+                   -> (String -> Tuple3 String String String)
+                   -> JQuery
+                   -> Effect Unit
+createTaskTableRow cellType cellData1 cellData2 splitter1 splitter2 tableElement = do
   tr <- create "<tr>"
-  createTaskTableCell cellData1 tr
-  createTaskTableCell cellData2 tr
+  createTaskTableCell cellData1 splitter1 tr
+  createTaskTableCell cellData2 splitter2 tr
   append tr tableElement
-  where createTaskTableCell contents tr = do
+  where createTaskTableCell contents splitter tr = do
           cell <- create cellType
-          setText contents cell
+          let tp3 = splitter contents
+          appendText (get1 tp3) cell
+          span <- create "<span>"
+          setText (get2 tp3) span
+          addClass "agrippa-highlighted-text" span
+          append span cell
+          appendText (get3 tp3) cell
           append cell tr
+
+createTuple3 :: String -> Tuple3 String String String
+createTuple3 s = tuple3 "" "" s
