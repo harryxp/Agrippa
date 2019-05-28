@@ -23,7 +23,7 @@ import Agrippa.Config (Config, getNumberVal, getObjectVal, getStringVal, lookupC
 import Agrippa.Help (createHelp)
 import Agrippa.Plugins.PluginType (Plugin(..))
 import Agrippa.Plugins.Registry (namesToPlugins)
-import Agrippa.Utils (createTaskTableData, createTaskTableRow, displayOutput, displayOutputText)
+import Agrippa.Utils (createTaskTableRows, createTaskTableRow, displayOutput, displayOutputText)
 
 main :: Effect Unit
 main = ready (runAff_ affHandler (get json "/agrippa/config/"))
@@ -67,7 +67,7 @@ inputListener config prevInputRef timeoutIdRefMb event inputField = do
         -- do nothing if the input remained the same
         -- and the key pressed was not enter
         then pure unit
-        else dispatchToTask config keyCode wholeInput timeoutIdRefMb
+        else handleInput config keyCode wholeInput timeoutIdRefMb
 
 data Task = Task { name   :: String
                  , plugin :: Plugin
@@ -75,8 +75,8 @@ data Task = Task { name   :: String
                  , config :: Config
                  }
 
-dispatchToTask :: Config -> Int -> String -> Ref (Maybe TimeoutId) -> Effect Unit
-dispatchToTask config keyCode wholeInput timeoutIdRefMb = do
+handleInput :: Config -> Int -> String -> Ref (Maybe TimeoutId) -> Effect Unit
+handleInput config keyCode wholeInput timeoutIdRefMb = do
   -- clear keyup event listeners on body placed by plugins, if any
   body >>= off "keyup"
   case findTask config wholeInput of
@@ -85,6 +85,7 @@ dispatchToTask config keyCode wholeInput timeoutIdRefMb = do
       execTask task keyCode timeoutIdRefMb
     Nothing                           -> handleNoSelectedTask config (Just keyCode) wholeInput timeoutIdRefMb
 
+-- Extract keyword from input then find task based on that.
 findTask :: Config -> String -> Maybe Task
 findTask config wholeInput = do
   index                                 <- indexOf (Pattern " ") wholeInput
@@ -100,8 +101,10 @@ handleNoSelectedTask :: Config -> Maybe Int -> String -> Ref (Maybe TimeoutId) -
 handleNoSelectedTask config keyCodeMb wholeInput timeoutIdRefMb =
   case findDefaultTask of
     Just defaultTask@Task { name: taskName } -> do
-      displayTaskCandidates config wholeInput ("  Press <ENTER> to use the default task - " <> taskName <> ".")
-      maybe' pure (execTaskIfEnter defaultTask) keyCodeMb
+      displayTaskCandidates config wholeInput ("  Press <ENTER> to activate the default task - " <> taskName <> ".")
+      case keyCodeMb of
+        Just 13 -> execTask defaultTask 13 timeoutIdRefMb
+        _       -> pure unit
     Nothing                                  -> displayTaskCandidates config wholeInput ""
   where
   findDefaultTask :: Maybe Task
@@ -112,8 +115,6 @@ handleNoSelectedTask config keyCodeMb wholeInput timeoutIdRefMb =
     pluginName        <- hush (getStringVal    "plugin"      defaultTaskConfig)
     plugin            <- Map.lookup pluginName namesToPlugins
     Just (Task { name: taskName, plugin: plugin, input: wholeInput, config: defaultTaskConfig })
-  execTaskIfEnter task 13 = execTask task 13 timeoutIdRefMb
-  execTaskIfEnter _    _  = pure unit
 
 execTask :: Task -> Int -> Ref (Maybe TimeoutId) -> Effect Unit
 execTask (Task { name: taskName
@@ -149,7 +150,7 @@ displayTaskCandidates :: Config -> String -> String -> Effect Unit
 displayTaskCandidates config wholeInput taskPromptTail = do
   candidateTable <- create "<table>"
   createTaskTableRow "<th>" "Keyword" "Task" candidateTable
-  createTaskTableData config candidateTable (\key -> startsWith wholeInput key) (const true)
+  createTaskTableRows config candidateTable (\key -> startsWith wholeInput key) (const true)
   displayOutput candidateTable
   displaySelectedTask ("Showing task candidates." <> taskPromptTail)
 

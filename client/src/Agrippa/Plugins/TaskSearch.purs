@@ -16,7 +16,7 @@ import JQuery (JQuery, create, getHtml, select, setValue, toArray)
 
 import Agrippa.Config (Config)
 import Agrippa.Plugins.PluginType (Plugin(..))
-import Agrippa.Utils (createTaskTableData, createTaskTableRow, displayOutputText)
+import Agrippa.Utils (createTaskTableRows, createTaskTableRow, displayOutputText)
 
 taskSearch :: Plugin
 taskSearch = Plugin { name: "TaskSearch"
@@ -33,7 +33,7 @@ showTaskTable _ _ input = do
   pure (Just taskTable)
   where affHandler taskTable (Right { status: (StatusCode 200)
                                     , body:   (Right config)
-                                    }) = createTaskTableData
+                                    }) = createTaskTableRows
                                            config
                                            taskTable
                                            (const true)

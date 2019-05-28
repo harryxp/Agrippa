@@ -1,4 +1,4 @@
-module Agrippa.Utils (addShortcutLabels, createTextNode, createTaskTableData, createTaskTableRow, displayOutput, displayOutputText) where
+module Agrippa.Utils (addShortcutLabels, createTextNode, createTaskTableRows, createTaskTableRow, displayOutput, displayOutputText) where
 
 import Prelude (Unit, bind, discard, pure, show, unit, (<>), (>>=), (<$>))
 import Data.Argonaut.Core (Json)
@@ -50,8 +50,8 @@ appendShortcutLabel htmlTag label parent = do
   setText label span
   append span parent
 
-createTaskTableData :: Config -> JQuery -> (String -> Boolean) -> (String -> Boolean) -> Effect Unit
-createTaskTableData config tableElement keywordFilter taskNameFilter =
+createTaskTableRows :: Config -> JQuery -> (String -> Boolean) -> (String -> Boolean) -> Effect Unit
+createTaskTableRows config tableElement keywordFilter taskNameFilter =
   case getKeywordsToTaskNames of
     Left  err -> displayOutputText err
     Right obj -> traverse_
