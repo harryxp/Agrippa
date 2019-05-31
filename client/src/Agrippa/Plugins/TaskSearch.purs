@@ -41,14 +41,13 @@ showTaskTable _ _ input = do
                                            (\taskName -> includes (toLower (trim input)) (toLower taskName))
                                            createTuple3
                                            (\taskName ->
-                                             let inputLC    = toLower (trim input)
-                                                 taskNameLC = toLower taskName
-                                                 idxMb      = indexOf (Pattern inputLC) taskNameLC
+                                             let trimmedInput = trim input
+                                                 idxMb        = indexOf (Pattern (toLower trimmedInput)) (toLower taskName)
                                              in case idxMb of
                                                Nothing  -> createTuple3 taskName
                                                Just idx -> let before = take idx taskName
-                                                               middle = take (length input) (drop idx taskName)
-                                                               after  = drop (idx + length input) taskName
+                                                               middle = take (length trimmedInput) (drop idx taskName)
+                                                               after  = drop (idx + length trimmedInput) taskName
                                                            in tuple3 before middle after
                                            )
         affHandler _         _         = displayOutputText "Failed to retrieve config from server."
