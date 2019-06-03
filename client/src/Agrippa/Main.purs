@@ -23,7 +23,7 @@ import Agrippa.Config (Config, getNumberVal, getObjectVal, getStringVal, lookupC
 import Agrippa.Help (createHelp)
 import Agrippa.Plugins.PluginType (Plugin(..))
 import Agrippa.Plugins.Registry (namesToPlugins)
-import Agrippa.Utils (createTaskTableRows, createTaskTableRow, createTuple3, displayOutput, displayOutputText)
+import Agrippa.Utils (createTaskTableRows, createTaskTableRow, createTuple3Highlighted, createTuple3Plain, displayOutput, displayOutputText)
 
 main :: Effect Unit
 main = ready (runAff_ affHandler (get json "/agrippa/config/"))
@@ -115,7 +115,7 @@ handleNoSelectedTask config keyCodeMb wholeInput timeoutIdRefMb =
       pluginName        <- hush (getStringVal    "plugin"      defaultTaskConfig)
       plugin            <- Map.lookup pluginName namesToPlugins
       Just (Task { name: taskName, plugin: plugin, input: wholeInput, config: defaultTaskConfig })
-  
+
 execTask :: Task -> Int -> Ref (Maybe TimeoutId) -> Effect Unit
 execTask (Task { name: taskName
                , plugin: (Plugin { prompt: prompt
@@ -149,14 +149,14 @@ setupPromptAfterKeyTimeout taskConfig promptAfterKeyTimeout timeoutIdRefMb = do
 displayTaskCandidates :: Config -> String -> String -> Effect Unit
 displayTaskCandidates config wholeInput taskPromptTail = do
   candidateTable <- create "<table>"
-  createTaskTableRow "<th>" "Keyword" "Task" createTuple3 createTuple3 candidateTable
+  createTaskTableRow "<th>" "Keyword" "Task" createTuple3Plain createTuple3Plain candidateTable
   createTaskTableRows
     config
     candidateTable
     (\keyword -> startsWith wholeInput keyword)
     (const true)
-    createTuple3
-    createTuple3
+    (createTuple3Highlighted wholeInput)
+    createTuple3Plain
   displayOutput candidateTable
   displaySelectedTask ("Showing task candidates." <> taskPromptTail)
 

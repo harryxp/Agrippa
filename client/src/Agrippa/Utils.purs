@@ -1,6 +1,6 @@
-module Agrippa.Utils (addShortcutLabels, createTextNode, createTaskTableRows, createTaskTableRow, createTuple3, displayOutput, displayOutputText) where
+module Agrippa.Utils (addShortcutLabels, createTextNode, createTaskTableRows, createTaskTableRow, createTuple3Highlighted, createTuple3Plain, displayOutput, displayOutputText) where
 
-import Prelude (Unit, bind, discard, pure, show, unit, (<>), (>>=), (<$>))
+import Prelude (Unit, bind, discard, pure, show, unit, (+), (<>), (>>=), (<$>))
 import Data.Argonaut.Core (Json)
 import Data.Array (uncons, zipWith, (..))
 import Data.Maybe (Maybe(..))
@@ -8,6 +8,7 @@ import Data.Either (Either(..))
 import Data.Traversable (sequence_, traverse, traverse_)
 import Data.Tuple (Tuple, fst, snd)
 import Data.Tuple.Nested (Tuple3, get1, get2, get3, tuple3)
+import Data.String (Pattern(..), drop, indexOf, length, take, toLower, trim)
 import Effect (Effect)
 import JQuery (JQuery, addClass, append, appendText, clear, create, select, setText)
 import Foreign.Object (Object, filter, filterKeys, toAscUnfoldable)
@@ -94,5 +95,16 @@ createTaskTableRow cellType cellData1 cellData2 splitter1 splitter2 tableElement
           appendText (get3 tp3) cell
           append cell tr
 
-createTuple3 :: String -> Tuple3 String String String
-createTuple3 s = tuple3 "" "" s
+createTuple3Plain :: String -> Tuple3 String String String
+createTuple3Plain s = tuple3 "" "" s
+
+createTuple3Highlighted :: String -> String -> Tuple3 String String String
+createTuple3Highlighted shortStr longStr =
+  let trimmedShortStr = trim shortStr
+      idxMb           = indexOf (Pattern (toLower trimmedShortStr)) (toLower longStr)
+  in case idxMb of
+      Nothing  -> createTuple3Plain longStr
+      Just idx -> let before = take idx longStr
+                      middle = take (length trimmedShortStr) (drop idx longStr)
+                      after  = drop (idx + length trimmedShortStr) longStr
+                  in tuple3 before middle after

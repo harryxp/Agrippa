@@ -5,13 +5,13 @@ import Effect (Effect)
 import JQuery (JQuery, JQueryEvent, getText, on, select, setText, toggle)
 
 import Agrippa.Config (Config)
-import Agrippa.Utils (createTaskTableRows, createTaskTableRow, createTuple3)
+import Agrippa.Utils (createTaskTableRows, createTaskTableRow, createTuple3Plain)
 
 createHelp :: Config -> Effect Unit
 createHelp config = do
   helpTable <- select "#agrippa-help-table"
-  createTaskTableRow "<th>" "Keyword" "Task" createTuple3 createTuple3 helpTable
-  createTaskTableRows config helpTable (const true) (const true) createTuple3 createTuple3
+  createTaskTableRow "<th>" "Keyword" "Task" createTuple3Plain createTuple3Plain helpTable
+  createTaskTableRows config helpTable (const true) (const true) createTuple3Plain createTuple3Plain
 
   helpContent <- select "#agrippa-help-content"
   helpButton  <- select "#agrippa-help-button"
