@@ -76,8 +76,11 @@
 #agrippa-help-table td {
     border: 1px solid;
 }
-.agrippa-highlighted-text {
+.agrippa-highlighted-text:not(:empty) {
     background-color: yellow;
+    color: #d33682;             /* magenta */
+    font-weight: bold;
+    border: 1px solid;
 }
 .agrippa-shortcut-prompt {
     font-size: 0.8em;
