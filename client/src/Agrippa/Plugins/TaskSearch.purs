@@ -12,7 +12,7 @@ import Data.String (toLower, trim)
 import Data.String.Utils (includes)
 import Effect (Effect)
 import Effect.Aff (runAff_)
-import JQuery (JQuery, create, getHtml, select, setValue, toArray)
+import JQuery (JQuery, create, getText, select, setValue, toArray)
 
 import Agrippa.Config (Config)
 import Agrippa.Plugins.PluginType (Plugin(..))
@@ -48,7 +48,7 @@ chooseFirstTask taskName config _ = do
   arr     <- toArray firstTd
   if A.length arr == 1
      then do
-       firstTaskKeyword <- getHtml firstTd
+       firstTaskKeyword <- getText firstTd
        inputField       <- select "#agrippa-input"
        setValue (firstTaskKeyword <> " ") inputField
        -- manually trigger a keyup event
