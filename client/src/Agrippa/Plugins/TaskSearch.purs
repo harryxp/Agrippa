@@ -12,11 +12,11 @@ import Data.String (toLower, trim)
 import Data.String.Utils (includes)
 import Effect (Effect)
 import Effect.Aff (runAff_)
-import JQuery (JQuery, create, getText, select, setValue, toArray)
+import JQuery (JQuery, append, create, getText, select, setValue, toArray)
 
 import Agrippa.Config (Config)
 import Agrippa.Plugins.PluginType (Plugin(..))
-import Agrippa.Utils (createTaskTableRows, createTaskTableRow, createTuple3Highlighted, createTuple3Plain, displayOutputText)
+import Agrippa.Utils (createTaskTableRows, createTaskTableRow, createTextNode, createTuple3Highlighted, createTuple3Plain, displayOutputText)
 
 taskSearch :: Plugin
 taskSearch = Plugin { name: "TaskSearch"
@@ -30,7 +30,12 @@ showTaskTable _ _ input = do
   taskTable <- create "<table>"
   createTaskTableRow "<th>" "Keyword" "Task" createTuple3Plain createTuple3Plain taskTable
   runAff_ (affHandler taskTable) (get json "/agrippa/config/")
-  pure (Just taskTable)
+
+  helpText <- createTextNode "Press <Enter> to select first task."
+  container <- create "<div>"
+  append helpText container
+  append taskTable container
+  pure (Just container)
   where affHandler taskTable (Right { status: (StatusCode 200)
                                     , body:   (Right config)
                                     }) = createTaskTableRows
@@ -44,7 +49,7 @@ showTaskTable _ _ input = do
 
 chooseFirstTask :: String -> Config -> String -> Effect (Maybe JQuery)
 chooseFirstTask taskName config _ = do
-  firstTd <- select "#agrippa-output > table > tr > td:first"
+  firstTd <- select "#agrippa-output > div > table > tr > td:first"
   arr     <- toArray firstTd
   if A.length arr == 1
      then do

@@ -101,7 +101,7 @@ handleNoSelectedTask :: Config -> Maybe Int -> String -> Ref (Maybe TimeoutId) -
 handleNoSelectedTask config keyCodeMb wholeInput timeoutIdRefMb =
   case findDefaultTask of
     Just defaultTask@Task { name: taskName } -> do
-      displayTaskCandidates config wholeInput ("  Press <ENTER> to activate the default task - " <> taskName <> ".")
+      displayTaskCandidates config wholeInput ("  Press <Enter> to activate the default task (" <> taskName <> ").")
       case keyCodeMb of
         Just 13 -> execTask defaultTask 13 timeoutIdRefMb
         _       -> pure unit

@@ -70,7 +70,7 @@ table = [ [Prefix (string "-" $> ExprNeg), Prefix (string "+" $> identity)]
         ]
 
 evalExpr :: Either ParseError Expr -> String
-evalExpr (Left (ParseError _)) = "Invalid expression."
+evalExpr (Left (ParseError _)) = "Invalid expression.  Please correct the input."
 evalExpr (Right e) = show (evalExpr' e)
 
 evalExpr' :: Expr -> Number

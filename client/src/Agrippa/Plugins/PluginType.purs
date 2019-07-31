@@ -26,7 +26,7 @@ newtype Plugin =
             This function provides a mechanism for the plugin to NOT react every single time the user types something.
             Typically this function runs an Aff that involves some slow IO, therefore it needs the callback parameter
             keyTimeoutInMs is configurable per task.  The default is 0.
-         -}
+          -}
          , promptAfterKeyTimeout :: String  -- task name
                                  -> Config  -- task config
                                  -> String  -- input
