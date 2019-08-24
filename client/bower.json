@@ -6,19 +6,19 @@
     "bower_components",
     "output"
   ],
-  "dependencies": { "purescript-prelude": "^4.1.0"
-                  , "purescript-aff": "^5.1.0"
-                  , "purescript-affjax": "^7.0.0"
-                  , "purescript-argonaut-core": "^4.0.1"
-                  , "purescript-jquery": "^5.0.0"
-                  , "purescript-js-date": "^6.0.0"
-                  , "purescript-js-timers": "^4.0.1"
-                  , "purescript-numbers": "^6.0.0"
-                  , "purescript-string-parsers": "^5.0.0"
-                  , "purescript-stringutils": "^0.0.8"
-                  , "purescript-web-html": "^1.2.0"
+  "dependencies": { "purescript-prelude": "4.1.0"
+                  , "purescript-aff": "5.1.0"
+                  , "purescript-affjax": "7.0.2"
+                  , "purescript-argonaut-core": "4.0.1"
+                  , "purescript-jquery": "5.0.0"
+                  , "purescript-js-date": "6.0.0"
+                  , "purescript-js-timers": "4.0.1"
+                  , "purescript-numbers": "6.0.0"
+                  , "purescript-string-parsers": "5.0.0"
+                  , "purescript-stringutils": "0.0.8"
+                  , "purescript-web-html": "1.2.0"
                   },
   "devDependencies": {
-    "purescript-psci-support": "^4.0.0"
+    "purescript-psci-support": "4.0.0"
   }
 }

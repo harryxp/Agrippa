@@ -10,12 +10,15 @@ Development
 Client
 ------
 
-1. Dependencies are in `bower.json`.
+1. Note that though PureScript packages in bower.json have fixed versions, they
+   only work with certain versions of the PureScript compiler - 0.12.* as of now.
+
+2. Dependencies are in `bower.json`.
 
         $ cd client/
         $ bower update
 
-2. Some useful commands during development (to see more try `pulp`):
+3. Some useful commands during development (to see more try `pulp`):
 
         $ pulp browserify -O --main Agrippa.Main --to web/agrippa.js    # generate
 
@@ -23,7 +26,7 @@ Client
         $ pulp psci             # or `pulp repl`
         > import Agrippa.Main
 
-3. Haskell's `undefined` can be mimiced by `unsafeCoerce unit`.
+4. Haskell's `undefined` can be mimiced by `unsafeCoerce unit`.
 
         import Unsafe.Coerce (unsafeCoerce)
 
