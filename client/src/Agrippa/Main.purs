@@ -17,7 +17,7 @@ import Effect.Ref (Ref, new, read, write)
 import Effect.Timer (TimeoutId, clearTimeout, setTimeout)
 import Foreign (readString)
 import Foreign.Object (lookup)
-import JQuery (JQuery, JQueryEvent, body, create, getWhich, getValue, off, on, ready, select, setText)
+import JQuery (JQuery, JQueryEvent, addClass, body, create, getWhich, getValue, off, on, ready, select, setText)
 
 import Agrippa.Config (Config, getNumberVal, getObjectVal, getStringVal, lookupConfigVal)
 import Agrippa.Help (createHelp)
@@ -30,12 +30,21 @@ main = ready (runAff_ affHandler (get json "/agrippa/config/"))
   where affHandler (Right { status: (StatusCode 200)
                           , body:   (Right config)
                           }) = do
+          setTheme config
           createHelp config
           timeoutIdRefMb <- new Nothing
           installInputListener config timeoutIdRefMb
           installRestartServerListener
           handleNoSelectedTask config Nothing "" timeoutIdRefMb
         affHandler _         = displayOutputText "Failed to retrieve config from server."
+
+setTheme :: Config -> Effect Unit
+setTheme config = case lookupConfigVal "preferences" config >>= getStringVal "theme" of
+  Right "minimal" -> do
+    body >>= addClass "minimal"
+    select "#agrippa-task" >>= addClass "minimal"
+    select "#agrippa-contact" >>= addClass "minimal"
+  _               -> pure unit
 
 installInputListener :: Config -> Ref (Maybe TimeoutId) -> Effect Unit
 installInputListener config timeoutIdRefMb = do

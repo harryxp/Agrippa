@@ -83,6 +83,8 @@ TODO
 General
 -------
 
+- Move config file to .config/Agrippa.
+- Make KeePass plugin more secure.
 - Config validation.
 - A delayed async output could wipe out what a user expects to see.
 - https
