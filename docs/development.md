@@ -83,17 +83,21 @@ TODO
 General
 -------
 
+- Make the minimal theme default?
+- Replace PureScript with GHCJS?
 - Move config file to .config/Agrippa.
 - Make KeePass plugin more secure.
+  - Look at how ssh agent stores private keys.
 - Config validation.
 - A delayed async output could wipe out what a user expects to see.
 - https
 - Better documentation - document each plugin, hotkey setup.
 - Installation utility?
 - Better error handling
-    - Backend: readFile catch exception?
+  - Backend: readFile catch exception?
 - Formatted string instead of <> (Text.Formatting?)
 - Learn Except
+- Make backend RESTful
 
 TaskSearch plugin
 -----------------
