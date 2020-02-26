@@ -76,7 +76,7 @@ Agrippa is designed to be used with a global hotkey.  The following software is
 used by the author to set that up.
 
 - Linux: [XBindKeys](http://www.nongnu.org/xbindkeys/)
-- Mac: [skhd](https://github.com/koekeishiya/skhd) or [BetterTouchTool](https://www.boastr.net/)
+- Mac: [skhd](https://github.com/koekeishiya/skhd), [Karabiner-Elements](https://pqrs.org/osx/karabiner/) or [BetterTouchTool](https://www.boastr.net/)
 - Windows: [AutoHotKey](https://autohotkey.com/)
 
 History
