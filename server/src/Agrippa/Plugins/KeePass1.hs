@@ -4,7 +4,7 @@ module Agrippa.Plugins.KeePass1 (registerHandlers) where
 -- 1. KeePass-1.35-Src/KeePassLibCpp/Details/PwFileImpl.cpp
 -- 2. https://searchcode.com/codesearch/view/19368318/ (source downloadable at https://www.keepassx.org/downloads/0-4)
 
-import Control.Exception (Exception, throw, try)
+import Control.Exception (Exception, throw)
 import Data.Aeson (Object, ToJSON(toJSON), Value(Null, Object, String))
 import Data.Bits (shiftL, (.&.))
 import Data.IORef (IORef, readIORef, writeIORef)
@@ -36,7 +36,7 @@ registerHandlers agrippaConfig suggestUrl unlockUrl passwordBox = do
             _        -> Nothing
           pwd      <- password
           term     <- lookupJSON "term" params
-          Just (liftAndCatchIO (getKeePass1Entries filePath pwd term))
+          Just $ liftAndCatchIO $ getKeePass1Entries filePath pwd term
     maybe (json Null) (>>= json) maybeEntriesActionM
 
   post unlockUrl $ do
@@ -49,12 +49,10 @@ usesKeePass1Plugin :: Value -> Bool
 usesKeePass1Plugin (Object o) = maybe False (== "KeePass1") (lookupJSON "plugin" o :: Maybe String)
 usesKeePass1Plugin _          = False
 
-getKeePass1Entries :: String -> String -> String -> IO (Maybe [Entry])
+getKeePass1Entries :: String -> String -> String -> IO [Entry]
 getKeePass1Entries filePath password term = do
-   eitherGroupsAndEntries <- try $ readKeePass1File filePath password :: IO (Either DecryptionException ([Group], [Entry]))
-   case eitherGroupsAndEntries of
-     Left  _                 -> return Nothing
-     Right (groups, entries) -> return $ Just $ findItems (keepNonBackupEntries groups entries) term
+   (groups, entries) <- readKeePass1File filePath password :: IO ([Group], [Entry])
+   return $ findItems (keepNonBackupEntries groups entries) term
 
 keepNonBackupEntries :: [Group] -> [Entry] -> [Entry]
 keepNonBackupEntries groups entries =
