@@ -83,6 +83,22 @@ startScotty scottyConfig agrippaConfig taskNamesToItems mvar keepass1MasterPassw
       addHeader "Content-Type" "application/javascript"
       file "web/agrippa.js"
 
+    get "/agrippa/axios.min.js" $ do
+      addHeader "Content-Type" "application/javascript"
+      file "web/axios.min.js"
+
+    get "/agrippa/axios.min.map" $ do
+      addHeader "Content-Type" "application/json"
+      file "web/axios.min.map"
+
+    get "/agrippa/sprintf.min.js" $ do
+      addHeader "Content-Type" "application/javascript"
+      file "web/sprintf.min.js"
+
+    get "/agrippa/sprintf.min.js.map" $ do
+      addHeader "Content-Type" "application/json"
+      file "web/sprintf.min.js.map"
+
     get "/agrippa/styles.css" $ do
       addHeader "Content-Type" "text/css"
       file "web/styles.css"
