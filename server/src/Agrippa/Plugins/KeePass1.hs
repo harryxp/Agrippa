@@ -4,6 +4,7 @@ module Agrippa.Plugins.KeePass1 (registerHandlers) where
 -- 1. KeePass-1.35-Src/KeePassLibCpp/Details/PwFileImpl.cpp
 -- 2. https://searchcode.com/codesearch/view/19368318/ (source downloadable at https://www.keepassx.org/downloads/0-4)
 
+import Control.Exception (Exception, throw, try)
 import Data.Aeson (Object, ToJSON(toJSON), Value(Null, Object, String))
 import Data.Bits (shiftL, (.&.))
 import Data.IORef (IORef, readIORef, writeIORef)
@@ -48,10 +49,12 @@ usesKeePass1Plugin :: Value -> Bool
 usesKeePass1Plugin (Object o) = maybe False (== "KeePass1") (lookupJSON "plugin" o :: Maybe String)
 usesKeePass1Plugin _          = False
 
-getKeePass1Entries :: String -> String -> String -> IO [Entry]
+getKeePass1Entries :: String -> String -> String -> IO (Maybe [Entry])
 getKeePass1Entries filePath password term = do
-  (groups, entries) <- readKeePass1File filePath password
-  return $ findItems (keepNonBackupEntries groups entries) term
+   eitherGroupsAndEntries <- try $ readKeePass1File filePath password :: IO (Either DecryptionException ([Group], [Entry]))
+   case eitherGroupsAndEntries of
+     Left  _                 -> return Nothing
+     Right (groups, entries) -> return $ Just $ findItems (keepNonBackupEntries groups entries) term
 
 keepNonBackupEntries :: [Group] -> [Entry] -> [Entry]
 keepNonBackupEntries groups entries =
@@ -74,6 +77,11 @@ findItems entries term = filter (\(Entry fields) -> any termMatchesEntryField fi
         termMatchesEntryField _                  = False
 
 -- TODO make below a library
+
+data DecryptionException = DecryptionException
+  deriving (Show)
+
+instance Exception DecryptionException
 
 headerSize      :: Int
 headerSize       = 124
@@ -99,11 +107,15 @@ readKeePass1File filePath pwd = do
   validateNumGroups hdr
   let algorithm = selectAlgorithm hdr
       finalKey = getFinalKey (fromString pwd) hdr
-      decryptedBuf = decrypt contents hdr algorithm finalKey
-      (groups, offsetAfterGroups) = parseGroups decryptedBuf (numGroups hdr)
-      (entries, _) = parseEntries decryptedBuf (numEntries hdr) offsetAfterGroups
-  return (groups, entries)
+      maybeDecryptedBuf = decrypt contents hdr algorithm finalKey
+  case maybeDecryptedBuf of
+    Just decryptedBuf ->
+      let (groups, offsetAfterGroups) = parseGroups decryptedBuf (numGroups hdr)
+          (entries, _) = parseEntries decryptedBuf (numEntries hdr) offsetAfterGroups
+      in return (groups, entries)
+    Nothing -> throw DecryptionException
 
+-- TODO file not found
 loadFile :: String -> IO B.ByteString
 loadFile filePath = do
   contents <- B.readFile filePath
@@ -179,7 +191,7 @@ getFinalKey pwd hdr =
           rawMasterKey' = iterate (A.encryptECB aes) rawMasterKey !! keyTransfRounds hdr
       in H.hash rawMasterKey'
 
-decrypt :: B.ByteString -> Header -> KeePass1Cipher -> B.ByteString -> B.ByteString
+decrypt :: B.ByteString -> Header -> KeePass1Cipher -> B.ByteString -> Maybe B.ByteString
 decrypt buffer hdr algorithm finalKey =
   let totalSize = B.length buffer in
     case algorithm of
@@ -189,8 +201,8 @@ decrypt buffer hdr algorithm finalKey =
                                             (B.drop headerSize buffer)
                             cryptoSize = totalSize - fromIntegral (B.last decryptedBuf) - headerSize
                         in if validateCryptoSize cryptoSize && validateContentsHash cryptoSize decryptedBuf
-                              then decryptedBuf
-                              else error "Error: decryption failed."
+                              then Just decryptedBuf
+                              else Nothing
       TwofishCipher  -> undefined -- TODO
   where
     validateCryptoSize cryptoSize = cryptoSize <= 2147483446 && not (cryptoSize == 0 && (numGroups hdr) > 0)
