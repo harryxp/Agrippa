@@ -1,0 +1,62 @@
+<!doctype html>
+
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Agrippa</title>
+    <meta name="description" content="Agrippa"/>
+    <link rel="stylesheet" href="styles.css?v=1.0"/>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+</head>
+
+<body>
+    <div id="agrippa-vue">
+        <div id="agrippa-title">AGRIPPA</div>
+        <div id="agrippa-input-container">
+            <input id="agrippa-input" v-bind:autofocus="'autofocus'" v-model="inputText" v-on:keyup.enter="activateTask"></input>
+            <button id="agrippa-help-button" v-on:click="isHelpVisible = !isHelpVisible">{{ helpButtonText }}</button>
+            <button id="agrippa-restart-button" >Restart Server</button>
+        </div>
+
+        <!-- TODO remove check once you have a default task -->
+        <div id="agrippa-current-task">{{ currentTask && currentTask.name }}</div>
+
+        <div id="agrippa-output"><component v-bind:is="output"></component></div>
+
+        <div id="agrippa-contact">
+            <a href="https://github.com/harryxp/Agrippa">Project Homepage</a> |
+            <a href="https://github.com/harryxp/Agrippa/issues">Report an Issue</a>
+        </div>
+
+        <div id="agrippa-help-contents" v-if="isHelpVisible">
+            <div v-on:click="isHelpVisible = false"><a id="agrippa-help-close">CLOSE [X]</a></div>
+            <strong>Agrippa is a keyboard-driven web application that helps the user perform various tasks.</strong>
+            <br>
+            <br>
+            Usage:
+            <ol>
+                <li>Please choose a task by typing a keyword, followed by a space.</li>
+                <li>Please make sure there's a space.</li>
+                <li>Or, when a keyword is absent, the default task configured in config.yaml is chosen.</li>
+                <li>As you type, follow the instructions and feedback.</li>
+            </ol>
+            Tasks are configured in config.yaml and implemented by plugins.
+            <br>
+            <br>
+            Currently configured tasks:
+            <br>
+            <br>
+            <table id="agrippa-help-table">
+                <tr><th>Keyword</th><th>Task</th></tr>
+                <tr v-for="(task, taskKey) in tasks">
+                    <td>{{ taskKey }}</td>
+                    <td>{{ task.name }}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    <script src="./axios.min.js"></script>
+    <script src="./sprintf.min.js"></script>
+    <script src="./agrippa.js"></script>
+</body>
+</html>

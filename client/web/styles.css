@@ -1,0 +1,124 @@
+#agrippa-title {
+    text-align: center;
+    font-size: 2em;
+    font-family: Arial, Helvetica, sans-serif;
+    color: #FFFFFF;
+}
+#agrippa-input-container {
+    margin: auto;
+    text-align: center;
+}
+#agrippa-input {
+    margin-top: 0.8em;
+    padding: 0.3em;
+    width: 55em;
+}
+#agrippa-help-button {
+    padding: 0.3em;
+    width: 8em;
+}
+#agrippa-restart-button {
+    padding: 0.3em;
+    width: 8em;
+}
+#agrippa-current-task {
+    margin: auto;
+    margin-top: 0.8em;
+    width: 60em;
+    height: 1em;
+    padding: 0.3em;
+    border-radius: 10px;
+    font-weight: bold;
+    color: #d33682;             /* magenta */
+    background-color: #FFFFFF;
+}
+#agrippa-current-task.minimal {
+    color: #000000;
+}
+#agrippa-output {
+    margin: auto;
+    margin-top: 0.8em;
+    width: 60em;
+    height: 30em;
+    padding: 0.3em;
+    overflow-x: auto;
+    overflow-y: auto;
+    border-radius: 10px;
+    background-color: #FFFFFF;
+}
+#agrippa-contact {
+    padding: 1em;
+    text-align: center;
+    color: #d33682;             /* magenta */
+}
+#agrippa-contact.minimal {
+    color: #000000;
+}
+#agrippa-contact a:link, #agrippa-contact a:visited {
+    color: #d33682;             /* magenta */
+}
+#agrippa-contact.minimal a:link, #agrippa-contact.minimal a:visited {
+    color: #000000;
+}
+#agrippa-help-contents {
+    margin: auto;
+    border-radius: 10px;
+    position: fixed;
+    width: 70%;
+    height: 70%;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 3em;
+    z-index: 100;
+    color: #FFFFFF;
+    background-color: rgba(0, 0, 0, 0.85);
+    overflow-x: auto;
+    overflow-y: auto;
+}
+#agrippa-help-close {
+    color: yellow;
+    float: right;
+}
+#agrippa-help-table td {
+    border: 1px solid;
+}
+.agrippa-highlighted-text:not(:empty) {
+    background-color: yellow;
+    color: #000000;
+    font-weight: bold;
+    border: 1px solid;
+}
+.agrippa-shortcut-prompt {
+    font-size: 0.8em;
+    font-style: italic;
+    color: #d33682;             /* magenta */
+    padding-left: 20px;
+}
+.agrippa-snippet {
+    width: 40em;
+}
+.agrippa-mortgage-calc-tr {
+    text-align: right;
+}
+.agrippa-keepass1-password {
+    background-color: #000000;
+}
+/* Make sure the selection background is also black for passwords. */
+.agrippa-keepass1-password::selection {
+    background-color: #000000;
+}
+.agrippa-keepass1-password::-moz-selection {
+    background-color: #000000;
+}
+strong {
+    font-size: 1.2em;
+}
+body {
+    background-color: #5CB5A1;
+}
+body.minimal {
+    color: #000000;
+    background-color: #FFFFFF;
+}
