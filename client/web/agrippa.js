@@ -26,7 +26,7 @@ const agrippa = {
         }
     },
     defaultTask: {
-        name: "Google Search",
+        name: "Google Search (default)",
         plugin: "OnlineSearch",
         url: "https://www.google.com/search?q=%s"
     },
@@ -153,26 +153,27 @@ new Vue({
             }
         },
         taskInput: function () {
-            if (this.inputSpaceIndex === -1) {
-                return "";
+            if (this.currentTask === agrippa.defaultTask) {
+                return this.inputText;
             } else {
-                return this.inputText.slice(this.inputSpaceIndex + 1);
+                if (this.inputSpaceIndex === -1) {
+                    return "";
+                } else {
+                    return this.inputText.slice(this.inputSpaceIndex + 1);
+                }
             }
         },
         currentTask: function () {
             if (this.taskKey in agrippa.tasks) {
                 return agrippa.tasks[this.taskKey];
             } else {
-                // TODO return agrippa.defaultTask;
-                return null;
+                return agrippa.defaultTask;
             }
         },
         currentPlugin: function () {
-            if (this.currentTask) {
-                return agrippa.plugins[this.currentTask.plugin];
-            } else {
-                return null;
-            }
+            // TODO what if plugin can't be found - maybe display an error in output below
+            // or validate tasks when loading them (think I prefer this one)
+            return agrippa.plugins[this.currentTask.plugin];
         },
         output: function () {
             if (this.currentPlugin) {
