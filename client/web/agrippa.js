@@ -4,32 +4,10 @@
 // Plugins and Tasks //
 ///////////////////////
 
+// holds defaultTask, tasks, and plugins
 const agrippa = {
-    tasks: {
-        g: {
-            name: "Google Search",
-            plugin: "OnlineSearch",
-            url: "https://www.google.com/search?q=%s"
-        },
-        c: {
-            name: "Clock",
-            plugin: "Clock",
-        },
-        "?": {
-            name: "Task Search",
-            plugin: "TaskSearch",
-
-        },
-        "k": {
-            name: "KeePass",
-            plugin: "KeePass1",
-        }
-    },
-    defaultTask: {
-        name: "Google Search (default)",
-        plugin: "OnlineSearch",
-        url: "https://www.google.com/search?q=%s"
-    },
+    tasks: {},
+    defaultTask: {},
     plugins: {
         OnlineSearch: {
             name: "OnlineSearch",
@@ -108,7 +86,7 @@ const agrippa = {
                 };
             },
             activate: function (task, taskInput) {
-                axios.get('http://localhost:3000/agrippa/config')
+                axios.get("/agrippa/config")
                     .then(function (response) {
                         // handle success
                         console.log(response);
@@ -127,6 +105,26 @@ const agrippa = {
     }
 };
 
+// load Agrippa config
+(function () {
+    axios.get("/agrippa/config")
+        .then(function (response) {
+            if ("tasks" in response.data && "defaultTask" in response.data) {
+                agrippa.tasks = response.data.tasks;
+                agrippa.defaultTask = response.data.defaultTask;
+            } else {
+                const errorMsg = "Config file is missing 'tasks' or 'defaultTask'. Please rectify.";
+                console.error(errorMsg);
+                alert(errorMsg);
+            }
+        })
+        .catch(function (error) {
+            const errorMsg = "Failed to load Agrippa config from /agrippa/config. Please check your config file.";
+            console.error(errorMsg);
+            alert(errorMsg);
+        });
+})();
+
 ///////////////
 // Vue Stuff //
 ///////////////
@@ -136,9 +134,11 @@ new Vue({
     data: {
         isHelpVisible: false,
         inputText: "",
-        tasks: agrippa.tasks
     },
     computed: {
+        tasks: function() {
+            return agrippa.tasks;
+        },
         helpButtonText: function () {
             return this.isHelpVisible ? "Got it!" : "What do I do?";
         },
@@ -152,6 +152,13 @@ new Vue({
                 return this.inputText.slice(0, this.inputSpaceIndex);
             }
         },
+        currentTask: function () {
+            if (this.taskKey in agrippa.tasks) {
+                return agrippa.tasks[this.taskKey];
+            } else {
+                return agrippa.defaultTask;
+            }
+        },
         taskInput: function () {
             if (this.currentTask === agrippa.defaultTask) {
                 return this.inputText;
@@ -163,17 +170,14 @@ new Vue({
                 }
             }
         },
-        currentTask: function () {
-            if (this.taskKey in agrippa.tasks) {
-                return agrippa.tasks[this.taskKey];
-            } else {
-                return agrippa.defaultTask;
-            }
-        },
         currentPlugin: function () {
-            // TODO what if plugin can't be found - maybe display an error in output below
-            // or validate tasks when loading them (think I prefer this one)
-            return agrippa.plugins[this.currentTask.plugin];
+            if ('plugin' in this.currentTask) {
+                return agrippa.plugins[this.currentTask.plugin];
+            } else {
+                // this could happen if the task is configured incorrectly
+                // or when agrippa.defaultTask is an empty object since it hasn't been populated yet
+                return null;
+            }
         },
         output: function () {
             if (this.currentPlugin) {
