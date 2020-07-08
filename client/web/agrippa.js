@@ -9,104 +9,106 @@ const agrippa = {
     tasks: {},
     defaultTask: {},
     plugins: {
-        OnlineSearch: {
-            name: "OnlineSearch",
-            prompt: function (task, taskInput) {
-                const targetUrl = sprintf(task.url, encodeURIComponent(taskInput));
-                return {
-                    template: `<span>Keep typing the query. Press &lt;Enter&gt; to visit ${targetUrl}.</span>`
-                };
-            },
-            activate: function (task, taskInput) {
-                const targetUrl = sprintf(task.url, encodeURIComponent(taskInput));
-                window.location.href = targetUrl;
-                return {};
-            },
-        },
+        // OnlineSearch: {
+        //     name: "OnlineSearch",
+        //     prompt: function (task, taskInput) {
+        //         const targetUrl = sprintf(task.url, encodeURIComponent(taskInput));
+        //         return {
+        //             template: `<span>Keep typing the query. Press &lt;Enter&gt; to visit ${targetUrl}.</span>`
+        //         };
+        //     },
+        //     activate: function (task, taskInput) {
+        //         const targetUrl = sprintf(task.url, encodeURIComponent(taskInput));
+        //         window.location.href = targetUrl;
+        //         return {};
+        //     },
+        // },
         Clock: {
             name: "Clock",
             prompt: function (task, taskInput) {
-                return {
-                    template: `<span>${new Date().toISOString()}</span>`
-                };
+                return new Promise(function (resolve, reject) {
+                    resolve({
+                        template: `<span>${new Date().toISOString()}</span>`
+                    });
+                });
             },
             activate: function (task, taskInput) {
                 return {};
             },
         },
-        TaskSearch: {
-            name: "TaskSearch",
-            prompt: function (task, taskInput) {
-                return {
-                    computed: {
-                        matchedTasks: function () {
-                            const matchedTasks = {};
-                            for (const taskKey in agrippa.tasks) {
-                                const taskName = agrippa.tasks[taskKey].name;
-                                const idx = taskName.toLowerCase().indexOf(taskInput.toLowerCase());
-                                if (idx !== -1) {
-                                    matchedTasks[taskKey] = {
-                                        prefix: taskName.slice(0, idx),
-                                        matched: taskName.slice(idx, idx + taskInput.length),
-                                        suffix: taskName.slice(idx + taskInput.length),
-                                    };
-                                }
-                            }
-                            return matchedTasks;
-                        }
-                    },
-                    template: `
-                        <div>
-                            <span>Press &lt;Enter&gt; to select first task.</span>
-                            <table>
-                                <tr><th>Keyword</th><th>Task</th></tr>
-                                <tr v-for="(taskName, taskKey) in matchedTasks">
-                                    <td>{{ taskKey }}</td>
-                                    <td>{{ taskName.prefix }}<span class="agrippa-highlighted-text">{{ taskName.matched }}</span>{{ taskName.suffix }}</td>
-                                </tr>
-                            </table>
-                        </div>
-                    `
-                };
-            },
-            activate: function (task, taskInput) {
-                const matchedTasks = this.prompt(task, taskInput).computed.matchedTasks();
-                const component = {};
-                if (matchedTasks) {
-                    component["inputText"] = Object.keys(matchedTasks)[0] + " ";
-                }
-                return component;
-            },
-        },
-        KeePass1: {
-            name: "KeePass1",
-            prompt: function (task, taskInput) {
-                return {
-                    template: `<span></span>`
-                };
-            },
-            activate: function (task, taskInput) {
-                axios.get("/agrippa/config")
-                    .then(function (response) {
-                        // handle success
-                        console.log(response);
-                    })
-                    .catch(function (error) {
-                        // handle error
-                        console.log(error);
-                    })
-                    .finally(function () {
-                        // always executed
-                    });
-                return {
-                };
-            }
-        }
+        // TaskSearch: {
+        //     name: "TaskSearch",
+        //     prompt: function (task, taskInput) {
+        //         return {
+        //             computed: {
+        //                 matchedTasks: function () {
+        //                     const matchedTasks = {};
+        //                     for (const taskKey in agrippa.tasks) {
+        //                         const taskName = agrippa.tasks[taskKey].name;
+        //                         const idx = taskName.toLowerCase().indexOf(taskInput.toLowerCase());
+        //                         if (idx !== -1) {
+        //                             matchedTasks[taskKey] = {
+        //                                 prefix: taskName.slice(0, idx),
+        //                                 matched: taskName.slice(idx, idx + taskInput.length),
+        //                                 suffix: taskName.slice(idx + taskInput.length),
+        //                             };
+        //                         }
+        //                     }
+        //                     return matchedTasks;
+        //                 }
+        //             },
+        //             template: `
+        //                 <div>
+        //                     <span>Press &lt;Enter&gt; to select first task.</span>
+        //                     <table>
+        //                         <tr><th>Keyword</th><th>Task</th></tr>
+        //                         <tr v-for="(taskName, taskKey) in matchedTasks">
+        //                             <td>{{ taskKey }}</td>
+        //                             <td>{{ taskName.prefix }}<span class="agrippa-highlighted-text">{{ taskName.matched }}</span>{{ taskName.suffix }}</td>
+        //                         </tr>
+        //                     </table>
+        //                 </div>
+        //             `
+        //         };
+        //     },
+        //     activate: function (task, taskInput) {
+        //         const matchedTasks = this.prompt(task, taskInput).computed.matchedTasks();
+        //         const component = {};
+        //         if (matchedTasks) {
+        //             component["inputText"] = Object.keys(matchedTasks)[0] + " ";
+        //         }
+        //         return component;
+        //     },
+        // },
+        // KeePass1: {
+        //     name: "KeePass1",
+        //     prompt: function (task, taskInput) {
+        //         return {
+        //             template: `<span></span>`
+        //         };
+        //     },
+        //     activate: async function (task, taskInput) {
+        //         axios.get("/agrippa/config")
+        //             .then(function (response) {
+        //                 // handle success
+        //                 console.log(response);
+        //             })
+        //             .catch(function (error) {
+        //                 // handle error
+        //                 console.log(error);
+        //             })
+        //             .finally(function () {
+        //                 // always executed
+        //             });
+        //         return {
+        //         };
+        //     }
+        // }
     }
 };
 
 // load Agrippa config
-(function () {
+(async function () {
     axios.get("/agrippa/config")
         .then(function (response) {
             if ("tasks" in response.data && "defaultTask" in response.data) {
@@ -134,6 +136,9 @@ new Vue({
     data: {
         isHelpVisible: false,
         inputText: "",
+        output: {
+            template: "<span></span>"
+        }
     },
     computed: {
         tasks: function() {
@@ -179,11 +184,20 @@ new Vue({
                 return null;
             }
         },
-        output: function () {
-            if (this.currentPlugin) {
-                return this.currentPlugin.prompt(this.currentTask, this.taskInput);
+    },
+    watch: {
+        currentPlugin: function (newPlugin, oldPlugin) {
+            const vueInstance = this;
+            if (newPlugin) {
+                newPlugin.prompt(this.currentTask, this.taskInput)
+                    .then(function (result) {
+                        vueInstance.output = result;
+                    })
+                    .catch(function (error) {
+                        // TODO
+                    });
             } else {
-                return {
+                vueInstance.output = {
                     template: "<span></span>"
                 };
             }
