@@ -58,13 +58,11 @@ readAgrippaConfig = do
   configDir <- getConfigDir
   let configFile = configDir </> "config.yaml"
   putStrLn ("Reading configuration from " ++ configFile ++ ".")
-  eitherAgrippaConfig <- decodeFileEither configFile        :: IO (Either ParseException Object)
+  eitherAgrippaConfig <- decodeFileEither configFile    :: IO (Either ParseException Object)
   return $ do
-    agrippaConfig <- eitherToMaybe eitherAgrippaConfig
-    prefs         <- lookupJSON "preferences" agrippaConfig :: Maybe Object
-    host'         <- lookupJSON "host"        prefs         :: Maybe String
-    port'         <- lookupJSON "port"        prefs         :: Maybe Int
-    Just (ScottyConfig {host = host', port = port'}, agrippaConfig)
+    agrippaConfig <- eitherToMaybe eitherAgrippaConfig  :: Maybe Object
+    port'         <- lookupJSON "port" agrippaConfig    :: Maybe Int
+    Just (ScottyConfig {host = "127.0.0.1", port = port'}, agrippaConfig)
 
 buildScottyOpts :: ScottyConfig -> Options
 buildScottyOpts (ScottyConfig { host = h, port = p }) =
@@ -121,4 +119,3 @@ startScotty scottyConfig agrippaConfig taskNamesToItems mvar keepass1MasterPassw
     WFS.registerHandlers taskNamesToItems "/agrippa/win-file/suggest"        "/agrippa/win-file/open"
 
     K.registerHandlers   agrippaConfig    "/agrippa/keepass1/suggest"        "/agrippa/keepass1/unlock"      keepass1MasterPasswordBox
-
