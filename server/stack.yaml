@@ -64,3 +64,12 @@ packages:
 #
 # Allow a newer minor version of GHC than the snapshot specifies
 # compiler-check: newer-minor
+
+# this is needed for building regex-posix on Windows, which is a dependency of wai-logger
+# see ttps://github.com/haskell-hvr/regex-posix/issues/4
+extra-deps:
+  - regex-posix-clib-2.7
+
+flags:
+  regex-posix:
+    _regex-posix-clib: true
