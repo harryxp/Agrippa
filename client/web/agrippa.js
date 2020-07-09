@@ -33,53 +33,49 @@ const agrippa = {
                 });
             },
             activate: function (task, taskInput) {
-                return {};
+                return this.prompt(task, taskInput);
             },
         },
-        // TaskSearch: {
-        //     name: "TaskSearch",
-        //     prompt: function (task, taskInput) {
-        //         return {
-        //             computed: {
-        //                 matchedTasks: function () {
-        //                     const matchedTasks = {};
-        //                     for (const taskKey in agrippa.tasks) {
-        //                         const taskName = agrippa.tasks[taskKey].name;
-        //                         const idx = taskName.toLowerCase().indexOf(taskInput.toLowerCase());
-        //                         if (idx !== -1) {
-        //                             matchedTasks[taskKey] = {
-        //                                 prefix: taskName.slice(0, idx),
-        //                                 matched: taskName.slice(idx, idx + taskInput.length),
-        //                                 suffix: taskName.slice(idx + taskInput.length),
-        //                             };
-        //                         }
-        //                     }
-        //                     return matchedTasks;
-        //                 }
-        //             },
-        //             template: `
-        //                 <div>
-        //                     <span>Press &lt;Enter&gt; to select first task.</span>
-        //                     <table>
-        //                         <tr><th>Keyword</th><th>Task</th></tr>
-        //                         <tr v-for="(taskName, taskKey) in matchedTasks">
-        //                             <td>{{ taskKey }}</td>
-        //                             <td>{{ taskName.prefix }}<span class="agrippa-highlighted-text">{{ taskName.matched }}</span>{{ taskName.suffix }}</td>
-        //                         </tr>
-        //                     </table>
-        //                 </div>
-        //             `
-        //         };
-        //     },
-        //     activate: function (task, taskInput) {
-        //         const matchedTasks = this.prompt(task, taskInput).computed.matchedTasks();
-        //         const component = {};
-        //         if (matchedTasks) {
-        //             component["inputText"] = Object.keys(matchedTasks)[0] + " ";
-        //         }
-        //         return component;
-        //     },
-        // },
+        TaskSearch: {
+            name: "TaskSearch",
+            prompt: function (task, taskInput) {
+                return new Promise(function (resolve, reject) {
+                    resolve({
+                        computed: {
+                            matchedTasks: function () {
+                                const matchedTasks = {};
+                                for (const taskKey in agrippa.tasks) {
+                                    const taskName = agrippa.tasks[taskKey].name;
+                                    const idx = taskName.toLowerCase().indexOf(taskInput.toLowerCase());
+                                    if (idx !== -1) {
+                                        matchedTasks[taskKey] = {
+                                            prefix: taskName.slice(0, idx),
+                                            matched: taskName.slice(idx, idx + taskInput.length),
+                                            suffix: taskName.slice(idx + taskInput.length),
+                                        };
+                                    }
+                                }
+                                return matchedTasks;
+                            }
+                        },
+                        template: `
+                            <div>
+                                <table>
+                                    <tr><th>Keyword</th><th>Task</th></tr>
+                                    <tr v-for="(taskName, taskKey) in matchedTasks">
+                                        <td>{{ taskKey }}</td>
+                                        <td>{{ taskName.prefix }}<span class="agrippa-highlighted-text">{{ taskName.matched }}</span>{{ taskName.suffix }}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        `
+                    });
+                });
+            },
+            activate: function (task, taskInput) {
+                return this.prompt(task, taskInput);
+            },
+        },
         // KeePass1: {
         //     name: "KeePass1",
         //     prompt: function (task, taskInput) {
@@ -206,10 +202,17 @@ new Vue({
     methods: {
         activateTask: function (event) {
             if (this.currentPlugin) {
-                const stateDelta = this.currentPlugin.activate(this.currentTask, this.taskInput);
-                for (const key in stateDelta) {
-                    this[key] = stateDelta[key];
-                }
+                this.currentPlugin.activate(this.currentTask, this.taskInput)
+                    .then(function (result) {
+                        this.output = result;
+                    })
+                    .catch(function (error) {
+                        // TODO
+                    });
+            } else {
+                this.output = {
+                    template: "<span></span>"
+                };
             }
         }
     }
