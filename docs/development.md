@@ -1,8 +1,7 @@
 Environment setup
 =================
 
-1. Install PureScript stuff - purescript, pulp, bower.  Pulp might need npm.
-2. Install Haskell stuff (Stack).
+Install Haskell stuff (Stack).
 
 Development
 ===========
@@ -10,29 +9,7 @@ Development
 Client
 ------
 
-1. Note that though PureScript packages in bower.json have fixed versions, they
-   only work with certain versions of the PureScript compiler - 0.12.* as of now.
-
-2. Dependencies are in `bower.json`.
-
-        $ cd client/
-        $ bower update
-
-3. Some useful commands during development (to see more try `pulp`):
-
-        $ pulp browserify -O --main Agrippa.Main --to web/agrippa.js    # generate
-
-        $ pulp build            # type check
-        $ pulp psci             # or `pulp repl`
-        > import Agrippa.Main
-
-4. Haskell's `undefined` can be mimiced by `unsafeCoerce unit`.
-
-        import Unsafe.Coerce (unsafeCoerce)
-
-See [Differences from
-Haskell](https://github.com/purescript/documentation/blob/master/language/Differences-from-Haskell.md).
-There's also a purescript-undefined package but I've never tried it.
+Just edit files under `Agrippa/client/web/`.
 
 Server
 ------
@@ -83,33 +60,24 @@ TODO
 General
 -------
 
+- Make an installation script.
+- Frontend could use a better approach for development - webpack etc.
 - Make the minimal theme default?
-- Replace PureScript with GHCJS?
 - Move config file to .config/Agrippa.
 - Make KeePass plugin more secure.
   - Look at how ssh agent stores private keys.
 - Config validation.
-- A delayed async output could wipe out what a user expects to see.
 - https
 - Better documentation - document each plugin, hotkey setup.
-- Installation utility?
 - Better error handling
   - Backend: readFile catch exception?
-- Formatted string instead of <> (Text.Formatting?)
-- Learn Except
 - Make backend RESTful
-
-TaskSearch plugin
------------------
-
-- Add more tips, espectially for activation.
 
 KeePass plugin
 --------------
 
 - A bunch of TODOs in the code
 - Encrypt password in memory?
-- Handle wrong master key case
 - Master key file?
 - Decrypt only once?
 - Shortcuts
@@ -118,12 +86,6 @@ Clock plugin
 ------------
 
 - Support different time zones
-
-Calculator plugin
------------------
-
-- Support power.  See purescript-math's Math.pow
-- `fix`
 
 File System plugins
 -------------------
@@ -138,6 +100,5 @@ File System plugins
 Online Search plugin
 --------------------
 
-- Query using a template library?  Text.Formatting?
 - Only one query parameter is allowed now
 - Allow sending one query to multiple websites?
