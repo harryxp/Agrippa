@@ -86,16 +86,36 @@ const agrippa = {
             name: "KeePass1",
             prompt: function (task, taskInput) {
                 return axios.post("/agrippa/keepass1/suggest", {
+                        term: taskInput
                     })
                     .then(function (response) {
                         const entries = response.data;
                         if (entries === null) {
                             return {
-                                template: "<span>Please provide the master password to unlock the database.</span>"
+                                data: function () {
+                                    return {
+                                        masterPassword: ""
+                                    };
+                                },
+                                // TODO how to focus on password input
+                                template: `
+                                    <div>
+                                        <span>Please provide the master password and press Enter to unlock the database.</span>
+                                        <input id="agrippa-keepass1-master-password" type="password" v-model="masterPassword" v-on:keyup.enter="unlock"></input>
+                                    </div>
+                                `,
+                                methods: {
+                                    unlock: function () {
+                                        axios.post("/agrippa/keepass1/unlock", {
+                                            password: this.masterPassword
+                                        });
+                                    }
+                                }
                             };
                         } else {
+                            console.log(entries);
                             return {
-                                template: "<span>Show me some entries!</span>"
+                                template: "<span>OK</span>"
                             };
                         }
                     })
@@ -143,10 +163,11 @@ new Vue({
         inputText: "",
         output: {
             template: "<span></span>"
-        }
+        },
+        promptFunctionTimerId: null
     },
     computed: {
-        tasks: function() {
+        tasks: function () {
             return agrippa.tasks;
         },
         helpButtonText: function () {
@@ -181,7 +202,7 @@ new Vue({
             }
         },
         currentPlugin: function () {
-            if ('plugin' in this.currentTask) {
+            if ("plugin" in this.currentTask) {
                 return agrippa.plugins[this.currentTask.plugin];
             } else {
                 // this could happen if the task is configured incorrectly
@@ -191,11 +212,17 @@ new Vue({
         },
     },
     watch: {
-        currentPlugin: function (newPlugin, oldPlugin) {
-            this.updateOutput(this, false);
+        // call plugin's prompt function
+        taskInput: function (newInput, oldInput) {
+            if (newInput !== oldInput) {
+                clearTimeout(this.promptFunctionTimerId);
+                const timeout = "keyTimeoutInMs" in this.currentTask ? this.currentTask.keyTimeoutInMs : 0;
+                this.promptFunctionTimerId = setTimeout(() => this.updateOutput(this, false), timeout);
+            }
         }
     },
     methods: {
+        // call plugin's activate function
         activateTask: function (event) {
             this.updateOutput(this, true);
         },
@@ -221,6 +248,7 @@ new Vue({
 ///////////////
 // Utilities //
 ///////////////
+// TODO alert box https://vuejs.org/v2/guide/components.html#Using-v-model-on-Components
 function agrippaReportError(msg) {
     console.error(errorMsg);
     alert(errorMsg);
