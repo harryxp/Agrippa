@@ -18,8 +18,7 @@
             <button id="agrippa-restart-button" >Restart Server</button>
         </div>
 
-        <!-- TODO remove check once you have a default task -->
-        <div id="agrippa-current-task">{{ currentTask && currentTask.name }}</div>
+        <div id="agrippa-current-task">{{ currentTask.name }}</div>
 
         <div id="agrippa-output"><component v-bind:is="output"></component></div>
 

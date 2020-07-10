@@ -9,20 +9,26 @@ const agrippa = {
     tasks: {},
     defaultTask: {},
     plugins: {
-        // OnlineSearch: {
-        //     name: "OnlineSearch",
-        //     prompt: function (task, taskInput) {
-        //         const targetUrl = sprintf(task.url, encodeURIComponent(taskInput));
-        //         return {
-        //             template: `<span>Keep typing the query. Press &lt;Enter&gt; to visit ${targetUrl}.</span>`
-        //         };
-        //     },
-        //     activate: function (task, taskInput) {
-        //         const targetUrl = sprintf(task.url, encodeURIComponent(taskInput));
-        //         window.location.href = targetUrl;
-        //         return {};
-        //     },
-        // },
+        OnlineSearch: {
+            name: "OnlineSearch",
+            prompt: function (task, taskInput) {
+                return new Promise(function (resolve, reject) {
+                    const targetUrl = sprintf(task.url, encodeURIComponent(taskInput));
+                    resolve({
+                        template: `<span>Keep typing the query. Press &lt;Enter&gt; to visit ${targetUrl}.</span>`
+                    });
+                });
+            },
+            activate: function (task, taskInput) {
+                return new Promise(function (resolve, reject) {
+                    const targetUrl = sprintf(task.url, encodeURIComponent(taskInput));
+                    window.location.href = targetUrl;
+                    resolve({
+                        template: `<span>Visiting ${targetUrl}...</span>`
+                    });
+                });
+            },
+        },
         Clock: {
             name: "Clock",
             prompt: function (task, taskInput) {
@@ -76,35 +82,40 @@ const agrippa = {
                 return this.prompt(task, taskInput);
             },
         },
-        // KeePass1: {
-        //     name: "KeePass1",
-        //     prompt: function (task, taskInput) {
-        //         return {
-        //             template: `<span></span>`
-        //         };
-        //     },
-        //     activate: async function (task, taskInput) {
-        //         axios.get("/agrippa/config")
-        //             .then(function (response) {
-        //                 // handle success
-        //                 console.log(response);
-        //             })
-        //             .catch(function (error) {
-        //                 // handle error
-        //                 console.log(error);
-        //             })
-        //             .finally(function () {
-        //                 // always executed
-        //             });
-        //         return {
-        //         };
-        //     }
-        // }
+        KeePass1: {
+            name: "KeePass1",
+            prompt: function (task, taskInput) {
+                return axios.post("/agrippa/keepass1/suggest", {
+                    })
+                    .then(function (response) {
+                        const entries = response.data;
+                        if (entries === null) {
+                            return {
+                                template: "<span>Please provide the master password to unlock the database.</span>"
+                            };
+                        } else {
+                            return {
+                                template: "<span>Show me some entries!</span>"
+                            };
+                        }
+                    })
+                    .catch(function (error) {
+                        // TODO
+                    });
+            },
+            activate: function (task, taskInput) {
+                return new Promise(function (resolve, reject) {
+                    resolve({
+                        template: "<span>TODO</span>"
+                    });
+                });
+            }
+        }
     }
 };
 
 // load Agrippa config
-(async function () {
+(function () {
     axios.get("/agrippa/config")
         .then(function (response) {
             if ("tasks" in response.data && "defaultTask" in response.data) {
@@ -112,14 +123,12 @@ const agrippa = {
                 agrippa.defaultTask = response.data.defaultTask;
             } else {
                 const errorMsg = "Config file is missing 'tasks' or 'defaultTask'. Please rectify.";
-                console.error(errorMsg);
-                alert(errorMsg);
+                agrippaReportError(errorMsg);
             }
         })
         .catch(function (error) {
             const errorMsg = "Failed to load Agrippa config from /agrippa/config. Please check your config file.";
-            console.error(errorMsg);
-            alert(errorMsg);
+            agrippaReportError(errorMsg);
         });
 })();
 
@@ -183,28 +192,19 @@ new Vue({
     },
     watch: {
         currentPlugin: function (newPlugin, oldPlugin) {
-            const vueInstance = this;
-            if (newPlugin) {
-                newPlugin.prompt(this.currentTask, this.taskInput)
-                    .then(function (result) {
-                        vueInstance.output = result;
-                    })
-                    .catch(function (error) {
-                        // TODO
-                    });
-            } else {
-                vueInstance.output = {
-                    template: "<span></span>"
-                };
-            }
+            this.updateOutput(this, false);
         }
     },
     methods: {
         activateTask: function (event) {
+            this.updateOutput(this, true);
+        },
+        updateOutput: function (vueInstance, isActivate) {
             if (this.currentPlugin) {
-                this.currentPlugin.activate(this.currentTask, this.taskInput)
+                const action = isActivate ? this.currentPlugin.activate : this.currentPlugin.prompt;
+                action(this.currentTask, this.taskInput)
                     .then(function (result) {
-                        this.output = result;
+                        vueInstance.output = result;
                     })
                     .catch(function (error) {
                         // TODO
@@ -217,3 +217,11 @@ new Vue({
         }
     }
 });
+
+///////////////
+// Utilities //
+///////////////
+function agrippaReportError(msg) {
+    console.error(errorMsg);
+    alert(errorMsg);
+}
