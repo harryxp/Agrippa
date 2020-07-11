@@ -1,3 +1,5 @@
+{-# LANGUAGE ScopedTypeVariables #-}
+
 module Agrippa.Plugins.KeePass1 (registerHandlers) where
 
 -- Reference implementations:
@@ -26,7 +28,7 @@ registerHandlers agrippaConfig suggestUrl unlockUrl passwordBox = do
   post suggestUrl $ do
     password <- liftAndCatchIO (readIORef passwordBox)
     params   <- jsonData :: ActionM Object
-    let maybeEntriesActionM = do
+    let maybeEntriesActionM :: Maybe (ActionM [Entry]) = do
           tasks    <- lookupJSON "tasks" agrippaConfig :: Maybe Object
           task     <- case (filter usesKeePass1Plugin . M.elems) tasks of
             [t] -> Just t  -- TODO what about multiple KeePass1 tasks?
@@ -113,7 +115,6 @@ readKeePass1File filePath pwd = do
       in return (groups, entries)
     Nothing -> throw DecryptionException
 
--- TODO file not found
 loadFile :: String -> IO B.ByteString
 loadFile filePath = do
   contents <- B.readFile filePath
