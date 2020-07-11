@@ -90,7 +90,38 @@ const agrippa = {
                     })
                     .then(function (response) {
                         const entries = response.data;
-                        if (entries === null) {
+                        console.log(entries);
+                        return {
+                            data: function () {
+                                return {
+                                    entries: entries
+                                };
+                            },
+                            template: `
+                                <div>
+                                    <div v-for="entry in entries">
+                                        <div>{{ entry.Title }}</div>
+                                        <div><a v-bind:href="entry.URL">{{ entry.URL }}</a></div>
+
+                                        <span>UserName</span>
+                                        <input readonly="" v-bind:value="entry.UserName">
+                                        <button>Copy</button>
+
+                                        <span>Password</span>
+                                        <input readonly="" class="agrippa-keepass1-password" v-bind:value="entry.Password">
+                                        <button>Copy</button>
+
+                                        <pre>{{ entry.Comment }}</pre>
+                                        <hr>
+
+                                    </div>
+                                </div>
+                            `
+                        };
+                    })
+                    .catch(function (error) {
+                        var userMessage = "Unknown error";
+                        if (error.response.status === 401) {
                             return {
                                 data: function () {
                                     return {
@@ -98,10 +129,11 @@ const agrippa = {
                                     };
                                 },
                                 // TODO how to focus on password input
+                                // TODO try searching automatically after unlocking
                                 template: `
                                     <div>
                                         <span>Please provide the master password and press Enter to unlock the database.</span>
-                                        <input id="agrippa-keepass1-master-password" type="password" v-model="masterPassword" v-on:keyup.enter="unlock"></input>
+                                        <input id="agrippa-keepass1-master-password" type="password" v-model="masterPassword" v-on:keyup.enter="unlock">
                                     </div>
                                 `,
                                 methods: {
@@ -112,15 +144,41 @@ const agrippa = {
                                     }
                                 }
                             };
-                        } else {
-                            console.log(entries);
+                        } else if (error.response.data.endsWith("ConfigError")) {
+                            userMessage = "Please make sure 'tasks' or 'databaseFilePath' is properly set in your config file.";
+                        } else if (error.response.data.endsWith("FileNotFoundError")) {
+                            userMessage = `Failed to read KeePass file.
+                                           Please make sure 'databaseFilePath' is properly set in your config file.
+                                           `;
+                        } else if (error.response.data.endsWith("DecryptionError")) {
+                            // TODO this is (almost) copy-paste now
                             return {
-                                template: "<span>OK</span>"
+                                data: function () {
+                                    return {
+                                        masterPassword: ""
+                                    };
+                                },
+                                // TODO how to focus on password input
+                                // TODO try searching automatically after unlocking
+                                template: `
+                                    <div>
+                                        <span>Failed to decrypt KeePass file.  Please provide the master password and press Enter to unlock the database.</span>
+                                        <input id="agrippa-keepass1-master-password" type="password" v-model="masterPassword" v-on:keyup.enter="unlock">
+                                    </div>
+                                `,
+                                methods: {
+                                    unlock: function () {
+                                        axios.post("/agrippa/keepass1/unlock", {
+                                            password: this.masterPassword
+                                        });
+                                    }
+                                }
                             };
                         }
-                    })
-                    .catch(function (error) {
-                        // TODO
+
+                        return {
+                            template: `<span>${ userMessage }</span>`
+                        };
                     });
             },
             activate: function (task, taskInput) {

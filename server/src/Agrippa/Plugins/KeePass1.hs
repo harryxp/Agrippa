@@ -6,29 +6,51 @@ module Agrippa.Plugins.KeePass1 (registerHandlers) where
 -- 1. KeePass-1.35-Src/KeePassLibCpp/Details/PwFileImpl.cpp
 -- 2. https://searchcode.com/codesearch/view/19368318/ (source downloadable at https://www.keepassx.org/downloads/0-4)
 
-import Control.Exception (Exception, throw)
+import Control.Exception (Exception, Handler(..), catches, throw, try)
 import Data.Aeson (Object, ToJSON(toJSON), Value(Null, Object, String))
 import Data.Bits (shiftL, (.&.))
+import Data.Either (Either(..))
 import Data.IORef (IORef, readIORef, writeIORef)
 import Data.String (fromString)
 import Data.Word (Word16, Word32, Word8)
-import Web.Scotty (ActionM, RoutePattern, ScottyM, json, jsonData, liftAndCatchIO, post)
+import Network.HTTP.Types.Status (status400, status401)
+import Web.Scotty (ActionM, RoutePattern, ScottyM, addHeader, finish, json, jsonData, liftAndCatchIO, post, raiseStatus)
 
 import qualified Crypto.Cipher.AES         as A (decryptCBC, encryptECB, initAES)
 import qualified Crypto.Hash.SHA256        as H (hash)
 import qualified Data.ByteString           as B (ByteString, append, drop, head, last, length, readFile, take)
 import qualified Data.ByteString.UTF8      as U (toString)
 import qualified Data.HashMap.Strict       as M (HashMap, elems, empty, insert)
-import qualified Data.Text                 as T (Text, dropWhileEnd, isInfixOf, null, pack, toLower)
+import qualified Data.Text                 as T (Text, dropWhileEnd, isInfixOf, null, pack, toLower, unlines)
+import qualified Data.Text.Lazy            as TL (fromStrict)
 
 import Agrippa.Utils (lookupJSON)
 
+data KeePass1Error = PasswordNotSetError
+                   | ConfigError
+                   | FileNotFoundError
+                   | DecryptionError
+  deriving (Show)
+
+-- 5 outcomes:
+-- if password hasn't been provided, return HTTP status code 401 with "PasswordNotSet"
+-- else, if we can't find kdb path ()databaseFilePath) from config file, return HTTP status code 400 with "ConfigError"
+-- else, if we can't find the kdb file, return HTTP status code 400 with "FileNotFoundError"
+-- else, if we can't decrypt the kdb file, return HTTP status code 400 with "DecryptionError"
+-- else, return HTTP status code 200 with matched entries
 registerHandlers :: Object -> RoutePattern -> RoutePattern -> IORef (Maybe String) -> ScottyM ()
 registerHandlers agrippaConfig suggestUrl unlockUrl passwordBox = do
   post suggestUrl $ do
-    password <- liftAndCatchIO (readIORef passwordBox)
-    params   <- jsonData :: ActionM Object
-    let maybeEntriesActionM :: Maybe (ActionM [Entry]) = do
+    password <- liftAndCatchIO (readIORef passwordBox) :: ActionM (Maybe String)
+    -- check whether password has been set or not
+    -- if not, return "PasswordNotSet" and do not continue
+    maybe
+      (raiseStatus status401 $ (TL.fromStrict . T.pack . show) PasswordNotSetError)
+      (const (return ()))
+      password
+
+    params   <- jsonData                               :: ActionM Object
+    let maybeInput :: Maybe (String, String, String) = do
           tasks    <- lookupJSON "tasks" agrippaConfig :: Maybe Object
           task     <- case (filter usesKeePass1Plugin . M.elems) tasks of
             [t] -> Just t  -- TODO what about multiple KeePass1 tasks?
@@ -38,14 +60,28 @@ registerHandlers agrippaConfig suggestUrl unlockUrl passwordBox = do
             _        -> Nothing
           pwd      <- password
           term     <- lookupJSON "term" params
-          Just $ liftAndCatchIO $ getKeePass1Entries filePath pwd term
-    maybe (json Null) (>>= json) maybeEntriesActionM
+          Just (filePath, pwd, term)
+    outcome <- (liftAndCatchIO . suggestEntries) maybeInput :: ActionM (Either KeePass1Error [Entry])
+    case outcome of
+      Left  err     -> raiseStatus status400 $ (TL.fromStrict . T.pack . show) err
+      Right entries -> json entries
 
   post unlockUrl $ do
     params   <- jsonData :: ActionM Object
     case lookupJSON "password" params :: Maybe String of
-      Just password -> liftAndCatchIO (writeIORef passwordBox (Just password)) >> json ("OK" :: String)
+      Just password -> liftAndCatchIO (writeIORef passwordBox (Just password)) >> json ("OK" :: T.Text)
       Nothing       -> json ("Incorrect parameter." :: String)
+  where
+    suggestEntries :: Maybe (String, String, String) -> IO (Either KeePass1Error [Entry])
+    suggestEntries (Just (filePath, password, term)) =
+      (Right <$> (getKeePass1Entries filePath password term)) `catches` [ Handler handleIOError
+                                                                        , Handler handleDecryptionException
+                                                                        ]
+    suggestEntries Nothing = (return . Left) ConfigError
+    handleIOError :: IOError -> IO (Either KeePass1Error [Entry])
+    handleIOError _ = (return . Left) FileNotFoundError
+    handleDecryptionException :: DecryptionException -> IO (Either KeePass1Error [Entry])
+    handleDecryptionException _ = (return . Left) DecryptionError
 
 usesKeePass1Plugin :: Value -> Bool
 usesKeePass1Plugin (Object o) = maybe False (== "KeePass1") (lookupJSON "plugin" o :: Maybe String)

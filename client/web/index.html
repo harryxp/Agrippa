@@ -13,7 +13,7 @@
     <div id="agrippa-vue">
         <div id="agrippa-title">AGRIPPA</div>
         <div id="agrippa-input-container">
-            <input id="agrippa-input" v-bind:autofocus="'autofocus'" v-model="inputText" v-on:keyup.enter="activateTask"></input>
+            <input id="agrippa-input" v-bind:autofocus="'autofocus'" v-model="inputText" v-on:keyup.enter="activateTask">
             <button id="agrippa-help-button" v-on:click="isHelpVisible = !isHelpVisible">{{ helpButtonText }}</button>
             <button id="agrippa-restart-button" >Restart Server</button>
         </div>
