@@ -6,22 +6,21 @@ module Agrippa.Plugins.KeePass1 (registerHandlers) where
 -- 1. KeePass-1.35-Src/KeePassLibCpp/Details/PwFileImpl.cpp
 -- 2. https://searchcode.com/codesearch/view/19368318/ (source downloadable at https://www.keepassx.org/downloads/0-4)
 
-import Control.Exception (Exception, Handler(..), catches, throw, try)
-import Data.Aeson (Object, ToJSON(toJSON), Value(Null, Object, String))
+import Control.Exception (Exception, Handler(Handler), catches, throw)
+import Data.Aeson (Object, ToJSON(toJSON), Value(Object, String))
 import Data.Bits (shiftL, (.&.))
-import Data.Either (Either(..))
 import Data.IORef (IORef, readIORef, writeIORef)
 import Data.String (fromString)
 import Data.Word (Word16, Word32, Word8)
 import Network.HTTP.Types.Status (status400, status401)
-import Web.Scotty (ActionM, RoutePattern, ScottyM, addHeader, finish, json, jsonData, liftAndCatchIO, post, raiseStatus)
+import Web.Scotty (ActionM, RoutePattern, ScottyM, json, jsonData, liftAndCatchIO, post, raiseStatus)
 
 import qualified Crypto.Cipher.AES         as A (decryptCBC, encryptECB, initAES)
 import qualified Crypto.Hash.SHA256        as H (hash)
 import qualified Data.ByteString           as B (ByteString, append, drop, head, last, length, readFile, take)
 import qualified Data.ByteString.UTF8      as U (toString)
 import qualified Data.HashMap.Strict       as M (HashMap, elems, empty, insert)
-import qualified Data.Text                 as T (Text, dropWhileEnd, isInfixOf, null, pack, toLower, unlines)
+import qualified Data.Text                 as T (Text, dropWhileEnd, isInfixOf, null, pack, toLower)
 import qualified Data.Text.Lazy            as TL (fromStrict)
 
 import Agrippa.Utils (lookupJSON)

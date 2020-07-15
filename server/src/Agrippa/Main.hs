@@ -11,7 +11,7 @@ import Network.Wai.Handler.Warp (defaultSettings, setHost, setPort)
 import System.Exit (exitFailure)
 import System.FilePath ((</>))
 import System.IO (hPutStrLn, stderr)
-import Web.Scotty (Options(Options), addHeader, file, get, json, liftAndCatchIO, settings, scottyOpts, verbose)
+import Web.Scotty (Options(Options), addHeader, file, get, json, liftAndCatchIO, param, regex, settings, scottyOpts, verbose)
 
 import qualified Data.HashMap.Lazy    as M (HashMap)
 import qualified Data.Text.Lazy       as T (Text)
@@ -77,25 +77,15 @@ startScotty scottyConfig agrippaConfig taskNamesToItems mvar keepass1MasterPassw
       addHeader "Content-Type" "text/html"
       file "web/index.html"
 
-    get "/agrippa/agrippa.js" $ do
+    get (regex "^/agrippa/(.*).js$") $ do
+      jsFileName <- param "1"
       addHeader "Content-Type" "application/javascript"
-      file "web/agrippa.js"
+      file $ mconcat ["web/", jsFileName, ".js"]
 
-    get "/agrippa/axios.min.js" $ do
-      addHeader "Content-Type" "application/javascript"
-      file "web/axios.min.js"
-
-    get "/agrippa/axios.min.map" $ do
+    get (regex "^/agrippa/(.*).map$") $ do
+      jsMapFileName <- param "1"
       addHeader "Content-Type" "application/json"
-      file "web/axios.min.map"
-
-    get "/agrippa/sprintf.min.js" $ do
-      addHeader "Content-Type" "application/javascript"
-      file "web/sprintf.min.js"
-
-    get "/agrippa/sprintf.min.js.map" $ do
-      addHeader "Content-Type" "application/json"
-      file "web/sprintf.min.js.map"
+      file $ mconcat ["web/", jsMapFileName, ".map"]
 
     get "/agrippa/styles.css" $ do
       addHeader "Content-Type" "text/css"
