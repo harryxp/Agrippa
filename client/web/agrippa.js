@@ -10,166 +10,10 @@ const agrippa = {
     defaultTask: {},
     plugins: {
         OnlineSearch: agrippaPluginOnlineSearch,
-        Clock: {
-            name: "Clock",
-            prompt: function (task, taskInput) {
-                return new Promise(function (resolve, reject) {
-                    resolve({
-                        template: `<span>${new Date().toISOString()}</span>`
-                    });
-                });
-            },
-            activate: function (task, taskInput) {
-                return this.prompt(task, taskInput);
-            },
-        },
-        TaskSearch: {
-            name: "TaskSearch",
-            prompt: function (task, taskInput) {
-                return new Promise(function (resolve, reject) {
-                    resolve({
-                        computed: {
-                            matchedTasks: function () {
-                                const matchedTasks = {};
-                                for (const taskKey in agrippa.tasks) {
-                                    const taskName = agrippa.tasks[taskKey].name;
-                                    const idx = taskName.toLowerCase().indexOf(taskInput.toLowerCase());
-                                    if (idx !== -1) {
-                                        matchedTasks[taskKey] = {
-                                            prefix: taskName.slice(0, idx),
-                                            matched: taskName.slice(idx, idx + taskInput.length),
-                                            suffix: taskName.slice(idx + taskInput.length),
-                                        };
-                                    }
-                                }
-                                return matchedTasks;
-                            }
-                        },
-                        template: `
-                            <div>
-                                <table>
-                                    <tr><th>Keyword</th><th>Task</th></tr>
-                                    <tr v-for="(taskName, taskKey) in matchedTasks">
-                                        <td>{{ taskKey }}</td>
-                                        <td>{{ taskName.prefix }}<span class="agrippa-highlighted-text">{{ taskName.matched }}</span>{{ taskName.suffix }}</td>
-                                    </tr>
-                                </table>
-                            </div>
-                        `
-                    });
-                });
-            },
-            activate: function (task, taskInput) {
-                return this.prompt(task, taskInput);
-            },
-        },
-        KeePass1: {
-            name: "KeePass1",
-            prompt: function (task, taskInput) {
-                return axios.post("/agrippa/keepass1/suggest", {
-                        term: taskInput
-                    })
-                    .then(function (response) {
-                        const entries = response.data;
-                        console.log(entries);
-                        return {
-                            data: function () {
-                                return {
-                                    entries: entries
-                                };
-                            },
-                            template: `
-                                <div>
-                                    <div v-for="entry in entries">
-                                        <div>{{ entry.Title }}</div>
-                                        <div><a v-bind:href="entry.URL">{{ entry.URL }}</a></div>
-
-                                        <span>UserName</span>
-                                        <input readonly="" v-bind:value="entry.UserName">
-                                        <button>Copy</button>
-
-                                        <span>Password</span>
-                                        <input readonly="" class="agrippa-keepass1-password" v-bind:value="entry.Password">
-                                        <button>Copy</button>
-
-                                        <pre>{{ entry.Comment }}</pre>
-                                        <hr>
-
-                                    </div>
-                                </div>
-                            `
-                        };
-                    })
-                    .catch(function (error) {
-                        var userMessage = "Unknown error";
-                        if (error.response.status === 401) {
-                            return {
-                                data: function () {
-                                    return {
-                                        masterPassword: ""
-                                    };
-                                },
-                                // TODO how to focus on password input
-                                // TODO try searching automatically after unlocking
-                                template: `
-                                    <div>
-                                        <span>Please provide the master password and press Enter to unlock the database.</span>
-                                        <input id="agrippa-keepass1-master-password" type="password" v-model="masterPassword" v-on:keyup.enter="unlock">
-                                    </div>
-                                `,
-                                methods: {
-                                    unlock: function () {
-                                        axios.post("/agrippa/keepass1/unlock", {
-                                            password: this.masterPassword
-                                        });
-                                    }
-                                }
-                            };
-                        } else if (error.response.data.endsWith("ConfigError")) {
-                            userMessage = "Please make sure 'tasks' or 'databaseFilePath' is properly set in your config file.";
-                        } else if (error.response.data.endsWith("FileNotFoundError")) {
-                            userMessage = `Failed to read KeePass file.
-                                           Please make sure 'databaseFilePath' is properly set in your config file.
-                                           `;
-                        } else if (error.response.data.endsWith("DecryptionError")) {
-                            // TODO this is (almost) copy-paste now
-                            return {
-                                data: function () {
-                                    return {
-                                        masterPassword: ""
-                                    };
-                                },
-                                // TODO how to focus on password input
-                                // TODO try searching automatically after unlocking
-                                template: `
-                                    <div>
-                                        <span>Failed to decrypt KeePass file.  Please provide the master password and press Enter to unlock the database.</span>
-                                        <input id="agrippa-keepass1-master-password" type="password" v-model="masterPassword" v-on:keyup.enter="unlock">
-                                    </div>
-                                `,
-                                methods: {
-                                    unlock: function () {
-                                        axios.post("/agrippa/keepass1/unlock", {
-                                            password: this.masterPassword
-                                        });
-                                    }
-                                }
-                            };
-                        }
-
-                        return {
-                            template: `<span>${ userMessage }</span>`
-                        };
-                    });
-            },
-            activate: function (task, taskInput) {
-                return new Promise(function (resolve, reject) {
-                    resolve({
-                        template: "<span>TODO</span>"
-                    });
-                });
-            }
-        }
+        Clock: agrippaPluginClock,
+        KeePass1: agrippaPluginKeePass1,
+        MortgageCalc: agrippaPluginMortgageCalc,
+        TaskSearch: agrippaPluginTaskSearch
     }
 };
 
@@ -268,7 +112,8 @@ new Vue({
         updateOutput: function (vueInstance, isActivate) {
             if (this.currentPlugin) {
                 const action = isActivate ? this.currentPlugin.activate : this.currentPlugin.prompt;
-                action(this.currentTask, this.taskInput)
+                // TODO figure out a way for plugin functions to reference plugin so we don't have to pass in this.currentPlugin here
+                action(this.currentTask, this.taskInput, this.currentPlugin)
                     .then(function (result) {
                         vueInstance.output = result;
                     })
