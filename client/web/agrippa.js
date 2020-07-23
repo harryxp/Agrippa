@@ -112,8 +112,7 @@ new Vue({
         updateOutput: function (vueInstance, isActivate) {
             if (this.currentPlugin) {
                 const action = isActivate ? this.currentPlugin.activate : this.currentPlugin.prompt;
-                // TODO figure out a way for plugin functions to reference plugin so we don't have to pass in this.currentPlugin here
-                action(this.currentTask, this.taskInput, this.currentPlugin)
+                action(this.currentTask, this.taskInput)
                     .then(function (result) {
                         vueInstance.output = result;
                     })

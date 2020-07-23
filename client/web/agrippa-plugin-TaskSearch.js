@@ -1,6 +1,6 @@
 const agrippaPluginTaskSearch = {
     name: "TaskSearch",
-    prompt: function (task, taskInput, plugin) {
+    prompt: function (task, taskInput) {
         return new Promise(function (resolve, reject) {
             resolve({
                 computed: {
@@ -34,7 +34,7 @@ const agrippaPluginTaskSearch = {
             });
         });
     },
-    activate: function (task, taskInput, plugin) {
-        return plugin.prompt(task, taskInput);
+    activate: function (task, taskInput) {
+        return agrippaPluginTaskSearch.prompt(task, taskInput);
     },
 };

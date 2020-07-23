@@ -1,6 +1,6 @@
 const agrippaPluginMortgageCalc = {
     name: "MortgageCalc",
-    prompt: function (task, taskInput, plugin) {
+    prompt: function (task, taskInput) {
         return new Promise(function (resolve, reject) {
             resolve({
                 template: `
@@ -12,18 +12,18 @@ const agrippaPluginMortgageCalc = {
             });
         });
     },
-    activate: function (task, taskInput, plugin) {
+    activate: function (task, taskInput) {
         const inputArray = taskInput.split(" ").filter(word => word.length > 0);
         if (inputArray.length !== 3) {
-            return plugin.prompt(task, taskInput, plugin);
+            return agrippaPluginMortgageCalc.prompt(task, taskInput);
         } else {
             const loanAmount = inputArray[0];
             const interestRate = inputArray[1] / 100;
             const years = inputArray[2];
             // TODO validate input: loanAmount, interestRate, years
             return new Promise(function (resolve, reject) {
-                const monthlyPayment = plugin._calcMonthlyPayment(loanAmount, interestRate, years);
-                const amortization = plugin._calcAmortization(monthlyPayment, loanAmount, interestRate, years);
+                const monthlyPayment = agrippaPluginMortgageCalc._calcMonthlyPayment(loanAmount, interestRate, years);
+                const amortization = agrippaPluginMortgageCalc._calcAmortization(monthlyPayment, loanAmount, interestRate, years);
                 resolve({
                     data: function () {
                         return {

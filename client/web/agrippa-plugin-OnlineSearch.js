@@ -1,6 +1,6 @@
 const agrippaPluginOnlineSearch = {
     name: "OnlineSearch",
-    prompt: function (task, taskInput, plugin) {
+    prompt: function (task, taskInput) {
         return new Promise(function (resolve, reject) {
             const targetUrl = sprintf(task.url, encodeURIComponent(taskInput));
             resolve({
@@ -8,7 +8,7 @@ const agrippaPluginOnlineSearch = {
             });
         });
     },
-    activate: function (task, taskInput, plugin) {
+    activate: function (task, taskInput) {
         return new Promise(function (resolve, reject) {
             const targetUrl = sprintf(task.url, encodeURIComponent(taskInput));
             window.location.href = targetUrl;

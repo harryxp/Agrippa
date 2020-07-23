@@ -1,13 +1,13 @@
 const agrippaPluginClock = {
     name: "Clock",
-    prompt: function (task, taskInput, plugin) {
+    prompt: function (task, taskInput) {
         return new Promise(function (resolve, reject) {
             resolve({
                 template: `<span>${new Date().toISOString()}</span>`
             });
         });
     },
-    activate: function (task, taskInput, plugin) {
-        return plugin.prompt(task, taskInput, plugin);
+    activate: function (task, taskInput) {
+        return agrippaPluginClock.prompt(task, taskInput);
     },
 };

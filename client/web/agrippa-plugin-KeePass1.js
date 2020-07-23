@@ -1,6 +1,6 @@
 const agrippaPluginKeePass1 = {
     name: "KeePass1",
-    prompt: function (task, taskInput, plugin) {
+    prompt: function (task, taskInput) {
         return axios.post("/agrippa/keepass1/suggest", {
                 term: taskInput
             })
@@ -103,7 +103,7 @@ const agrippaPluginKeePass1 = {
                 };
             });
     },
-    activate: function (task, taskInput, plugin) {
+    activate: function (task, taskInput) {
         return new Promise(function (resolve, reject) {
             resolve({
                 template: "<span>TODO</span>"
