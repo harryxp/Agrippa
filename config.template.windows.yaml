@@ -1,11 +1,8 @@
-preferences:
-  host: "127.0.0.1"
-  port: 3000
-  # theme: "minimal"
-  defaultTask:
-    name: "Google Search by Default"
-    plugin: OnlineSearch
-    url: "https://www.google.com/search?q=${q}"
+port: 3000
+defaultTask:
+  name: "Google Search (default)"
+  plugin: OnlineSearch
+  url: "https://www.google.com/search?q=%s"
 tasks:
   "?":
     name: TaskSearch
@@ -15,7 +12,7 @@ tasks:
     plugin: Calculator
   m:
     name: "Mortgage Calculator"
-    plugin: "Mortgage Calculator"
+    plugin: MortgageCalc
   e:
     name: "Launch Executables"
     plugin: WinExecutableSearch
@@ -27,49 +24,49 @@ tasks:
     keyTimeoutInMs: 500
     paths: []
   # k:
-  #   name: KeePass
+  #   name: KeePass1
   #   plugin: KeePass1
   #   databaseFilePath: "<database file location>"
   d:
     name: Dictionary
     plugin: OnlineSearch
-    url: "https://www.merriam-webster.com/dictionary/${q}"
+    url: "https://www.merriam-webster.com/dictionary/%s"
   g:
     name: "Google Search"
     plugin: OnlineSearch
-    url: "https://www.google.com/search?q=${q}"
+    url: "https://www.google.com/search?q=%s"
   h:
     name: "Haskell Search"
     plugin: OnlineSearch
-    url: "https://www.google.com/search?q=haskell+${q}"
+    url: "https://www.google.com/search?q=haskell+%s"
   ho:
     name: Home
     plugin: OnlineSearch
-    url: "http://unfetteredmind.us"
+    url: "http://unfettered-mind.net"
   pu:
     name: "Pursuit Search"
     plugin: OnlineSearch
-    url: "https://pursuit.purescript.org/search?q=${q}"
+    url: "https://pursuit.purescript.org/search?q=%s"
   py:
     name: "Python Search"
     plugin: OnlineSearch
-    url: "https://www.google.com/search?q=python+${q}"
+    url: "https://www.google.com/search?q=python+%s"
   u:
     name: "USPS Tracking"
     plugin: OnlineSearch
-    url: "https://tools.usps.com/go/TrackConfirmAction?tLabels=${q}"
+    url: "https://tools.usps.com/go/TrackConfirmAction?tLabels=%s"
   w:
     name: "Wikipedia Search"
     plugin: OnlineSearch
-    url: "https://wikipedia.org/wiki/Special:Search/${q}"
+    url: "https://wikipedia.org/wiki/Special:Search/%s"
   y:
     name: "YouTube Search"
     plugin: OnlineSearch
-    url: "https://www.youtube.com/results?search_query=${q}"
+    url: "https://www.youtube.com/results?search_query=%s"
   z:
     name: "Amazon Search"
     plugin: OnlineSearch
-    url: "https://www.amazon.com/s?field-keywords=${q}"
+    url: "https://www.amazon.com/s?field-keywords=%s"
   s:
     name: Snippets
     plugin: Snippets

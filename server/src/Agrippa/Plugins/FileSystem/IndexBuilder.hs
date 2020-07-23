@@ -1,7 +1,6 @@
 module Agrippa.Plugins.FileSystem.IndexBuilder (buildSearchIndices) where
 
 import Data.Aeson (Object, Value(Object))
-import Data.List (elem)
 import System.FilePath.Find (FileType(Directory, RegularFile, SymbolicLink), FilterPredicate, RecursionPredicate, always, extension, find, fileType, (==?), (/=?), (&&?), (||?))
 import System.TimeIt (timeItT)
 
@@ -86,4 +85,3 @@ isFile = fileType ==? RegularFile ||? fileType ==? SymbolicLink
 
 isMacApp :: FilterPredicate
 isMacApp = fileType ==? Directory &&? (extension ==? ".app" ||? extension ==? ".prefPane")
-
