@@ -30,7 +30,7 @@ const agrippa = {
             }
         })
         .catch(function (error) {
-            const errorMsg = "Failed to load Agrippa config from /agrippa/config. Please check your config file.";
+            const errorMsg = `Failed to load Agrippa config from /agrippa/config - ${error}. Please check your config file.`;
             agrippaReportError(errorMsg);
         });
 })();
@@ -100,30 +100,48 @@ new Vue({
             if (newInput !== oldInput) {
                 clearTimeout(this.promptFunctionTimerId);
                 const timeout = "keyTimeoutInMs" in this.currentTask ? this.currentTask.keyTimeoutInMs : 0;
-                this.promptFunctionTimerId = setTimeout(() => this.updateOutput(this, false), timeout);
+                this.promptFunctionTimerId = setTimeout(() => this.executeTask(false), timeout);
             }
         }
     },
     methods: {
         // call plugin's activate function
         activateTask: function (event) {
-            this.updateOutput(this, true);
+            this.executeTask(true);
         },
-        updateOutput: function (vueInstance, isActivate) {
+        executeTask: function (isActivate) {
             if (this.currentPlugin) {
                 const action = isActivate ? this.currentPlugin.activate : this.currentPlugin.prompt;
+                const vueInstance = this;
                 action(this.currentTask, this.taskInput)
                     .then(function (result) {
                         vueInstance.output = result;
                     })
                     .catch(function (error) {
-                        // TODO
+                        const errorMsg = `Failed to execute task - ${error}`;
+                        agrippaReportError(errorMsg);
                     });
             } else {
                 this.output = {
                     template: "<span></span>"
                 };
             }
+        },
+        restartServer: function (event) {
+            this.output = {
+                template: "<span>Restarting server...</span>"
+            };
+            const vueInstance = this;
+            axios.get("/agrippa/restart")
+                .then(function (response) {
+                    vueInstance.output = {
+                        template: "<span>Server restarted.</span>"
+                    };
+                })
+                .catch(function (error) {
+                    const errorMsg = `Failed to restart server - ${error}`;
+                    agrippaReportError(errorMsg);
+                });
         }
     }
 });
@@ -132,7 +150,7 @@ new Vue({
 // Utilities //
 ///////////////
 // TODO alert box https://vuejs.org/v2/guide/components.html#Using-v-model-on-Components
-function agrippaReportError(msg) {
+function agrippaReportError(errorMsg) {
     console.error(errorMsg);
     alert(errorMsg);
 }
