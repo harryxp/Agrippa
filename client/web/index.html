@@ -46,10 +46,11 @@
             <br>
             <br>
             <table id="agrippa-help-table">
-                <tr><th>Keyword</th><th>Task</th></tr>
+                <tr><th>Keyword</th><th>Task</th><th>Plugin</th></tr>
                 <tr v-for="(task, taskKey) in tasks">
                     <td>{{ taskKey }}</td>
                     <td>{{ task.name }}</td>
+                    <td>{{ task.plugin }}</td>
                 </tr>
             </table>
         </div>

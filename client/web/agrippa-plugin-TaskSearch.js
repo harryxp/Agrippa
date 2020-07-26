@@ -8,12 +8,14 @@ const agrippaPluginTaskSearch = {
                         const matchedTasks = {};
                         for (const taskKey in agrippa.tasks) {
                             const taskName = agrippa.tasks[taskKey].name;
+                            const plugin = agrippa.tasks[taskKey].plugin;
                             const idx = taskName.toLowerCase().indexOf(taskInput.toLowerCase());
                             if (idx !== -1) {
                                 matchedTasks[taskKey] = {
                                     prefix: taskName.slice(0, idx),
                                     matched: taskName.slice(idx, idx + taskInput.length),
                                     suffix: taskName.slice(idx + taskInput.length),
+                                    plugin: plugin
                                 };
                             }
                         }
@@ -23,10 +25,11 @@ const agrippaPluginTaskSearch = {
                 template: `
                     <div>
                         <table>
-                            <tr><th>Keyword</th><th>Task</th></tr>
-                            <tr v-for="(taskName, taskKey) in matchedTasks">
+                            <tr><th>Keyword</th><th>Task</th><th>Plugin</th></tr>
+                            <tr v-for="(taskInfo, taskKey) in matchedTasks">
                                 <td>{{ taskKey }}</td>
-                                <td>{{ taskName.prefix }}<span class="agrippa-highlighted-text">{{ taskName.matched }}</span>{{ taskName.suffix }}</td>
+                                <td>{{ taskInfo.prefix }}<span class="agrippa-highlighted-text">{{ taskInfo.matched }}</span>{{ taskInfo.suffix }}</td>
+                                <td>{{ taskInfo.plugin }}</td>
                             </tr>
                         </table>
                     </div>
