@@ -1,19 +1,30 @@
 const agrippaPluginSnippets = {
     name: "Clock",
     prompt: function (task, taskInput) {
-        console.log(task.snippets);
         return new Promise(function (resolve, reject) {
             resolve({
-                data: function () {
-                    return {
-                        snippets: task.snippets
-                    };
+                computed: {
+                    matchedSnippets: function () {
+                        const matchedSnippets = {};
+                        for (const snippetKey in task.snippets) {
+                            const idx = snippetKey.toLowerCase().indexOf(taskInput.toLowerCase());
+                            if (idx !== -1) {
+                                matchedSnippets[snippetKey] = {
+                                    prefix: snippetKey.slice(0, idx),
+                                    matched: snippetKey.slice(idx, idx + taskInput.length),
+                                    suffix: snippetKey.slice(idx + taskInput.length),
+                                    snippetValue: task.snippets[snippetKey]
+                                };
+                            }
+                        }
+                        return matchedSnippets;
+                    }
                 },
                 template: `
                     <table>
-                        <tr v-for="(snippet, key) in snippets">
-                            <td>{{ key }}</td>
-                            <td><input class="agrippa-snippet" readonly="" v-bind:value="snippet"></td>
+                        <tr v-for="(snippetInfo, snippetKey) in matchedSnippets">
+                            <td>{{ snippetInfo.prefix }}<span class="agrippa-highlighted-text">{{ snippetInfo.matched }}</span>{{ snippetInfo.suffix }}</td>
+                            <td><input class="agrippa-snippet" readonly="" v-bind:value="snippetInfo.snippetValue"></td>
                             <td><button v-on:click="copySnippet">Copy</button></td>
                         </tr>
                     </table>
