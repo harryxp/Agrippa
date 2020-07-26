@@ -1,3 +1,5 @@
+"use strict";
+
 const agrippaPluginTaskSearch = {
     name: "TaskSearch",
     prompt: function (task, taskInput) {

@@ -1,3 +1,5 @@
+"use strict";
+
 const agrippaPluginSnippets = {
     name: "Clock",
     prompt: function (task, taskInput) {

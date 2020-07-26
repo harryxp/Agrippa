@@ -1,3 +1,5 @@
+"use strict";
+
 const agrippaPluginClock = {
     name: "Clock",
     prompt: function (task, taskInput) {

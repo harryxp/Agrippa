@@ -1,3 +1,5 @@
+"use strict";
+
 const agrippaPluginKeePass1 = {
     name: "KeePass1",
     prompt: function (task, taskInput) {

@@ -114,14 +114,18 @@ new Vue({
             if (this.currentPlugin) {
                 const action = isActivate ? this.currentPlugin.activate : this.currentPlugin.prompt;
                 const vueInstance = this;
-                action(this.currentTask, this.taskInput)
-                    .then(function (result) {
-                        vueInstance.output = result;
-                    })
-                    .catch(function (error) {
-                        const errorMsg = `Failed to execute task - ${error}`;
-                        agrippaReportError(errorMsg);
-                    });
+                try {
+                    action(this.currentTask, this.taskInput)
+                        .then(function (result) {
+                            vueInstance.output = result;
+                        })
+                        .catch(function (error) {
+                            throw error;
+                        });
+                } catch (e) {
+                    const errorMsg = `Failed to execute task - ${error}`;
+                    agrippaReportError(errorMsg);
+                }
             } else {
                 this.output = {
                     template: "<span></span>"

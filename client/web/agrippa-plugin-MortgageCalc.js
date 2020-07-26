@@ -1,3 +1,5 @@
+"use strict";
+
 const agrippaPluginMortgageCalc = {
     name: "MortgageCalc",
     prompt: function (task, taskInput) {
