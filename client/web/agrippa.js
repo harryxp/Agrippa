@@ -13,6 +13,7 @@ const agrippa = {
         Clock: agrippaPluginClock,
         KeePass1: agrippaPluginKeePass1,
         MortgageCalc: agrippaPluginMortgageCalc,
+        Snippets: agrippaPluginSnippets,
         TaskSearch: agrippaPluginTaskSearch
     }
 };
