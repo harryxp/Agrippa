@@ -32,10 +32,21 @@ const agrippaPluginTaskSearch = {
                                 <td>{{ taskKey }}</td>
                                 <td>{{ taskInfo.prefix }}<span class="agrippa-highlighted-text">{{ taskInfo.matched }}</span>{{ taskInfo.suffix }}</td>
                                 <td>{{ taskInfo.pluginName }}</td>
+                                <td><button v-on:click="selectTask">Select Task</button></td>
                             </tr>
                         </table>
                     </div>
-                `
+                `,
+                methods: {
+                    selectTask: function (event) {
+                        const keyword = event.target.parentNode.parentNode.childNodes[0].childNodes[0];
+                        const agrippaInput = document.getElementById("agrippa-input");
+                        agrippaInput.value = keyword.textContent + " ";
+                        // directly setting input value does not trigger Vue v-model update so we need this
+                        agrippaInput.dispatchEvent(new Event('input'));
+                        agrippaInput.focus();
+                    }
+                }
             });
         });
     },

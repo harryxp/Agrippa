@@ -48,12 +48,10 @@ new Vue({
         output: {
             template: "<span></span>"
         },
+        tasks: agrippa.tasks,
         promptFunctionTimerId: null
     },
     computed: {
-        tasks: function () {
-            return agrippa.tasks;
-        },
         helpButtonText: function () {
             return this.isHelpVisible ? "Got it!" : "What do I do?";
         },

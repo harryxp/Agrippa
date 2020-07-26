@@ -20,6 +20,7 @@
       #+END_SRC
 
 * Release
+** TODO Switch to Vue production mode
 ** Tag the commit
    #+BEGIN_SRC sh
      git tag -a v<version> -m 'Version <version>'
@@ -59,7 +60,7 @@
      - Backend: readFile catch exception?
    - Make backend RESTful
 
-** KeePass plugin
+** KeePass1 plugin
    - A bunch of TODOs in the code
    - Encrypt password in memory?
    - Master key file?
