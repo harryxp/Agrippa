@@ -1,82 +1,85 @@
 * Environment setup
 
-  Install Haskell stuff (Stack).
+Install Haskell stuff (Stack).
 
 * Development
 
 ** Client
 
-   Just edit files under =Agrippa/client/web/=.
+Just edit files under =Agrippa/client/web/=.
 
 ** Server
 
-   1. Dependencies are in =agrippa-server.cabal=.
-   2. Some useful commands during development (to see more try =stack=):
-      #+BEGIN_SRC sh
-        cd server/
-        stack build
-        stack ghci
-        stack exec agrippad -- ../client/     # run the server and use ../client/ as server root
-      #+END_SRC
+1. Dependencies are in =agrippa-server.cabal=.
+2. Some useful commands during development (to see more try =stack=):
+   #+BEGIN_SRC sh
+     cd server/
+     stack build
+     stack ghci
+     stack exec agrippad -- ../client/     # run the server and use ../client/ as server root
+   #+END_SRC
 
 * Release
 ** TODO Switch to Vue production mode
 ** Tag the commit
-   #+BEGIN_SRC sh
-     git tag -a v<version> -m 'Version <version>'
-     git push --tags
-   #+END_SRC
+#+BEGIN_SRC sh
+  git tag -a v<version> -m 'Version <version>'
+  git push --tags
+#+END_SRC
 
-   If you made a mistake
-   #+BEGIN_SRC sh
-     git tag --delete v<version>
-     git push --delete origin v<version>
-   #+END_SRC
+If you made a mistake
+#+BEGIN_SRC sh
+  git tag --delete v<version>
+  git push --delete origin v<version>
+#+END_SRC
 
 ** Linux and Mac
-   #+BEGIN_SRC sh
-     ./dist.pl <version> <os>  # run it under the project directory
-   #+END_SRC
+#+BEGIN_SRC sh
+  ./dist.pl <version> <os>  # run it under the project directory
+#+END_SRC
 
 ** Windows
-   The current process is that we build the server binary on Windows but build the client on a Unix-like system, and also create the archive there.
+The current process is that we build the server binary on Windows but build the client on a Unix-like system, and also create the archive there.
 
-   1. Install [[http://cmder.net/][Cmder]] and [[https://www.haskellstack.org/][Stack]] on Windows.
-   2. Build =agrippad.exe= on Windows, copy it to Linux or Mac, and put it under the project directory.
-   3. Then run on Mac or Linux: =./dist.pl <version> Windows=.
+1. Install [[http://cmder.net/][Cmder]] and [[https://www.haskellstack.org/][Stack]] on Windows.
+2. Build =agrippad.exe= on Windows, copy it to Linux or Mac, and put it under the project directory.
+3. Then run on Mac or Linux: =./dist.pl <version> Windows=.
 
 * TODO
 ** General
-   - Make an installation script.
-   - Frontend could use a better approach for development - webpack etc.
-   - Make the minimal theme default?
-   - Move config file to .config/Agrippa.
-   - Make KeePass plugin more secure.
-     + Look at how ssh agent stores private keys.
-   - Config validation.
-   - https
-   - Better documentation - document each plugin, hotkey setup.
-   - Better error handling
-     - Backend: readFile catch exception?
-   - Make backend RESTful
+- Upgrade to Vue 3.
+- Write file system plugins.
+- Write Calculator plugin.
+- Make an installation script.
+- Frontend could use a better approach for development - webpack etc.
+- Make the minimal theme default?
+- Move config file to .config/Agrippa.
+- Make KeePass plugin more secure.
+  + Look at how ssh agent stores private keys.
+- Config validation.
+- https
+- Better documentation - document each plugin, hotkey setup.
+- Better error handling
+  - Backend: readFile catch exception?
+- Make backend RESTful
 
 ** KeePass1 plugin
-   - A bunch of TODOs in the code
-   - Encrypt password in memory?
-   - Master key file?
-   - Decrypt only once?
-   - Shortcuts
+- A bunch of TODOs in the code
+- Encrypt password in memory?
+- Master key file?
+- Decrypt only once?
+- Shortcuts
 
 ** Clock plugin
-   - Support different time zones
+- Support different time zones
 
 ** File System plugins
-   - Still slow on the backend side - arrays in IndexBuilder?  trie?
-   - It does not detect new items automatically.
-   - Frontend max recursion level exceeded if too many items.
-   - Highlight keyword.
-   - On Linux when a child process is not reaped, it becomes a zombie after termination. On Mac this is not a problem because =open= handles it properly.
+- Still slow on the backend side - arrays in IndexBuilder?  trie?
+- It does not detect new items automatically.
+- Frontend max recursion level exceeded if too many items.
+- Highlight keyword.
+- On Linux when a child process is not reaped, it becomes a zombie after termination. On Mac this is not a problem because =open= handles it properly.
 
 ** Online Search plugin
-   - Only one query parameter is allowed now
-   - Allow sending one query to multiple websites?
+- Only one query parameter is allowed now
+- Allow sending one query to multiple websites?

@@ -14,20 +14,12 @@ and their features are implemented by
 
 Existing plugins and their features:
 
-- Calculator
 - Clock
 - KeePass1: search KeePass 1.x databases.
 - MortgageCalc: compute your monthly payment and amortization.
 - OnlineSearch: quick-access to websites and web searches.
 - Snippets: search \& recall pieces of text.
 - TaskSearch: search currently configured tasks by task names
-- [File System plugins]
-    - LinuxFileSearch: search \& open files on Linux.
-    - MacAppSearch: search \& launch applications on Mac.
-    - MacFileSearch: search \& open files on Mac.
-    - UnixExecutableSearch: search \& launch executables on Unix-like systems.
-    - WinExecutableSearch: search \& launch executables on Windows.
-    - WinFileSearch: search \& open files on Windows.
 
 Installation
 ============
