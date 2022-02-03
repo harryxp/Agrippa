@@ -36,7 +36,10 @@ const agrippaPluginKeePass1 = {
                     methods: {
                         copyPrevInput: function (event) {
                             event.target.previousElementSibling.select();
+                            // TODO deprecated
                             document.execCommand("copy");
+                            // TODO hack - move focus back to agrippa-input to avoid showing password
+                            document.getElementById("agrippa-input").focus();
                         }
                     }
                 };
