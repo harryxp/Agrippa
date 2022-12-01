@@ -86,3 +86,4 @@ tasks:
       "tmux move window to the right": "swap-window -t +1"
       "wget directory": "wget -r -k -np -nH --cut-dirs=3 http://HOST/~USER/some-dir/"
       "zsh for loop": "for n in {1..5}; do echo $n; done"
+      "permanently delete": "permanently delete"
