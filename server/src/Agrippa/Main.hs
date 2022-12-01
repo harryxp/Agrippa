@@ -11,7 +11,7 @@ import Network.Wai.Handler.Warp (defaultSettings, setHost, setPort)
 import System.Exit (exitFailure)
 import System.FilePath ((</>))
 import System.IO (hPutStrLn, stderr)
-import Web.Scotty (Options(Options), addHeader, file, get, json, liftAndCatchIO, param, regex, settings, scottyOpts, verbose)
+import Web.Scotty (Options(Options), addHeader, file, get, json, liftAndCatchIO, settings, scottyOpts, verbose)
 
 import qualified Data.HashMap.Lazy    as M (HashMap)
 import qualified Data.Text.Lazy       as T (Text)
@@ -77,15 +77,41 @@ startScotty scottyConfig agrippaConfig taskNamesToItems mvar keepass1MasterPassw
       addHeader "Content-Type" "text/html"
       file "web/index.html"
 
-    get (regex "^/agrippa/(.*).js$") $ do
-      jsFileName <- param "1"
+    get "/agrippa/axios.min.js" $ do
       addHeader "Content-Type" "application/javascript"
-      file $ mconcat ["web/", jsFileName, ".js"]
+      file "web/axios.min.js"
 
-    get (regex "^/agrippa/(.*).map$") $ do
-      jsMapFileName <- param "1"
-      addHeader "Content-Type" "application/json"
-      file $ mconcat ["web/", jsMapFileName, ".map"]
+    get "/agrippa/sprintf.min.js" $ do
+      addHeader "Content-Type" "application/javascript"
+      file "web/sprintf.min.js"
+
+    get "/agrippa/agrippa-plugin-Clock.js" $ do
+      addHeader "Content-Type" "application/javascript"
+      file "web/agrippa-plugin-Clock.js"
+
+    get "/agrippa/agrippa-plugin-KeePass1.js" $ do
+      addHeader "Content-Type" "application/javascript"
+      file "web/agrippa-plugin-KeePass1.js"
+
+    get "/agrippa/agrippa-plugin-MortgageCalc.js" $ do
+      addHeader "Content-Type" "application/javascript"
+      file "web/agrippa-plugin-MortgageCalc.js"
+
+    get "/agrippa/agrippa-plugin-OnlineSearch.js" $ do
+      addHeader "Content-Type" "application/javascript"
+      file "web/agrippa-plugin-OnlineSearch.js"
+
+    get "/agrippa/agrippa-plugin-Snippets.js" $ do
+      addHeader "Content-Type" "application/javascript"
+      file "web/agrippa-plugin-Snippets.js"
+
+    get "/agrippa/agrippa-plugin-TaskSearch.js" $ do
+      addHeader "Content-Type" "application/javascript"
+      file "web/agrippa-plugin-TaskSearch.js"
+
+    get "/agrippa/agrippa.js" $ do
+      addHeader "Content-Type" "application/javascript"
+      file "web/agrippa.js"
 
     get "/agrippa/styles.css" $ do
       addHeader "Content-Type" "text/css"
