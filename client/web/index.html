@@ -6,7 +6,7 @@
     <title>Agrippa</title>
     <meta name="description" content="Agrippa"/>
     <link rel="stylesheet" href="styles.css?v=1.0"/>
-    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 </head>
 
 <body>
@@ -65,4 +65,128 @@
     <script src="./agrippa-plugin-TaskSearch.js"></script>
     <script src="./agrippa.js"></script>
 </body>
+<script>
+    const { createApp } = Vue
+
+    const app = createApp({
+        data() {
+            return {
+                isHelpVisible: false,
+                inputText: "",
+                output: {
+                    template: "<span></span>"
+                },
+                promptFunctionTimerId: null
+            }
+        },
+        computed: {
+            tasks() {
+                return agrippa.tasks;
+            },
+            helpButtonText() {
+                return this.isHelpVisible ? "Got it!" : "What do I do?";
+            },
+            inputSpaceIndex() {
+                return this.inputText.trimStart().indexOf(" ");
+            },
+            taskKey() {
+                if (this.inputSpaceIndex === -1) {
+                    return "";
+                } else {
+                    return this.inputText.slice(0, this.inputSpaceIndex);
+                }
+            },
+            currentTask() {
+                if (this.taskKey in agrippa.tasks) {
+                    return agrippa.tasks[this.taskKey];
+                } else {
+                    return agrippa.defaultTask;
+                }
+            },
+            taskInput() {
+                if (this.currentTask === agrippa.defaultTask) {
+                    return this.inputText;
+                } else {
+                    if (this.inputSpaceIndex === -1) {
+                        return "";
+                    } else {
+                        return this.inputText.slice(this.inputSpaceIndex + 1);
+                    }
+                }
+            },
+            currentPlugin() {
+                if ("plugin" in this.currentTask) {
+                    return agrippa.plugins[this.currentTask.plugin];
+                } else {
+                    // this could happen if the task is configured incorrectly
+                    // or when agrippa.defaultTask is an empty object since it hasn't been populated yet
+                    return null;
+                }
+            },
+        },
+        watch: {
+            // call plugin's prompt function
+            taskInput(newInput, oldInput) {
+                if (newInput !== oldInput) {
+                    clearTimeout(this.promptFunctionTimerId);
+                    const timeout = "keyTimeoutInMs" in this.currentTask ? this.currentTask.keyTimeoutInMs : 0;
+                    this.promptFunctionTimerId = setTimeout(() => this.executeTask(false), timeout);
+                }
+            }
+        },
+        methods: {
+            // call plugin's activate function
+            activateTask(event) {
+                this.executeTask(true);
+            },
+            executeTask(isActivate) {
+                if (this.currentPlugin) {
+                    const action = isActivate ? this.currentPlugin.activate : this.currentPlugin.prompt;
+                    const vueInstance = this;
+                    try {
+                        action(this.currentTask, this.taskInput)
+                            .then(function (result) {
+                                vueInstance.output = result;
+                            })
+                            .catch(function (error) {
+                                throw error;
+                            });
+                    } catch (e) {
+                        const errorMsg = `Failed to execute task - ${error}`;
+                        // TODO
+                        agrippaReportError(errorMsg);
+                    }
+                } else {
+                    this.output = {
+                        template: "<span></span>"
+                    }
+                }
+            },
+            restartServer(event) {
+                this.output = {
+                    template: "<span>Restarting server...</span>"
+                };
+                const vueInstance = this;
+                axios.get("/agrippa/restart")
+                    .then(function (response) {
+                        vueInstance.output = {
+                            template: "<span>Server restarted.</span>"
+                        }
+                    })
+                    .catch(function (error) {
+                        const errorMsg = `Failed to restart server - ${error}`;
+                        // TODO
+                        agrippaReportError(errorMsg);
+                    });
+            }
+        }
+    })
+
+    app.config.errorHandler = (err) => {
+        console.error(errorMsg);
+        alert(errorMsg);
+    }
+
+    app.mount("#agrippa-vue")
+</script>
 </html>
