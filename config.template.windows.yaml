@@ -13,16 +13,6 @@ tasks:
   m:
     name: "Mortgage Calculator"
     plugin: MortgageCalc
-  e:
-    name: "Launch Executables"
-    plugin: WinExecutableSearch
-    keyTimeoutInMs: 500
-    paths: []
-  f:
-    name: "Search for Files"
-    plugin: WinFileSearch
-    keyTimeoutInMs: 500
-    paths: []
   # k:
   #   name: KeePass1
   #   plugin: KeePass1
@@ -35,18 +25,6 @@ tasks:
     name: "Google Search"
     plugin: OnlineSearch
     url: "https://www.google.com/search?q=%s"
-  h:
-    name: "Haskell Search"
-    plugin: OnlineSearch
-    url: "https://www.google.com/search?q=haskell+%s"
-  ho:
-    name: Home
-    plugin: OnlineSearch
-    url: "http://unfettered-mind.net"
-  pu:
-    name: "Pursuit Search"
-    plugin: OnlineSearch
-    url: "https://pursuit.purescript.org/search?q=%s"
   py:
     name: "Python Search"
     plugin: OnlineSearch

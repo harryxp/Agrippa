@@ -13,29 +13,6 @@ tasks:
   m:
     name: "Mortgage Calculator"
     plugin: MortgageCalc
-  # a:
-  #   name: "Launch Mac Apps"
-  #   keyTimeoutInMs: 500
-  #   plugin: MacAppSearch
-  #   paths:
-  #     - "/Applications/"
-  #     - "/Users/<user>/Applications/"
-  #     - "/System/Library/PreferencePanes"
-  e:
-    name: "Launch Executables"
-    plugin: UnixExecutableSearch
-    keyTimeoutInMs: 500
-    paths:
-      - "/bin/"
-      - "/usr/bin/"
-      - "/usr/local/bin/"
-  # f:
-  #   name: "Search for Files"
-  #   plugin: MacFileSearch
-  #   keyTimeoutInMs: 500
-  #   paths:
-  #     - "/Users/<user>/Documents/"
-  #     - "/Users/<user>/Downloads/"
   # k:
   #   name: KeePass1
   #   plugin: KeePass1
@@ -48,18 +25,6 @@ tasks:
     name: "Google Search"
     plugin: OnlineSearch
     url: "https://www.google.com/search?q=%s"
-  h:
-    name: "Haskell Search"
-    plugin: OnlineSearch
-    url: "https://www.google.com/search?q=haskell+%s"
-  ho:
-    name: Home
-    plugin: OnlineSearch
-    url: "http://unfettered-mind.net"
-  pu:
-    name: "Pursuit Search"
-    plugin: OnlineSearch
-    url: "https://pursuit.purescript.org/search?q=%s"
   py:
     name: "Python Search"
     plugin: OnlineSearch

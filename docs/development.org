@@ -57,7 +57,6 @@ The current process is that we build the server binary on Windows but build the 
 - https
 - Better documentation - document each plugin, hotkey setup.
 - Better error handling
-  - Backend: readFile catch exception?
 - Make backend RESTful
 
 ** KeePass1 plugin

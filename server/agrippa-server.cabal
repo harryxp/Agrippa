@@ -1,5 +1,5 @@
 name:                agrippa-server
-version:             0.4.0.0
+version:             0.5.0.0
 -- synopsis:
 -- description:
 homepage:            https://github.com/harryxp/Agrippa#readme
@@ -19,14 +19,6 @@ library
   default-extensions:  OverloadedStrings
   exposed-modules:     Agrippa.Main
                      , Agrippa.Utils
-                     , Agrippa.Plugins.FileSystem.Commons
-                     , Agrippa.Plugins.FileSystem.IndexBuilder
-                     , Agrippa.Plugins.FileSystem.LinuxFileSearch
-                     , Agrippa.Plugins.FileSystem.MacAppSearch
-                     , Agrippa.Plugins.FileSystem.MacFileSearch
-                     , Agrippa.Plugins.FileSystem.UnixExecutableSearch
-                     , Agrippa.Plugins.FileSystem.WinExecutableSearch
-                     , Agrippa.Plugins.FileSystem.WinFileSearch
                      , Agrippa.Plugins.KeePass1
   build-depends:       base >= 4.13.0.0
                      , aeson >= 1.4.7.1
@@ -36,7 +28,6 @@ library
                      , cryptohash >= 0.11.9
                      , directory >= 1.3.6.0
                      , extra >= 1.7.3
-                     , filemanip >= 0.3.6.3
                      , filepath >= 1.4.2.1
                      , http-types >= 0.12.3
                      , process >= 1.6.8.0
