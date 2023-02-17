@@ -9,7 +9,7 @@ const agrippaPluginKeePass1 = {
             .then(function (response) {
                 const entries = response.data;
                 return {
-                    data: function () {
+                    data() {
                         return {
                             entries: entries
                         };
@@ -48,7 +48,7 @@ const agrippaPluginKeePass1 = {
                 var userMessage = "Unknown error";
                 if (error.response.status === 401) {
                     return {
-                        data: function () {
+                        data() {
                             return {
                                 masterPassword: ""
                             };
@@ -79,7 +79,7 @@ const agrippaPluginKeePass1 = {
                 } else if (error.response.status === 400 && error.response.data.endsWith("DecryptionError")) {
                     // TODO this is (almost) copy-paste now
                     return {
-                        data: function () {
+                        data() {
                             return {
                                 masterPassword: ""
                             };

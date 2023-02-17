@@ -66,16 +66,16 @@
     <script src="./agrippa.js"></script>
 </body>
 <script>
-    const { createApp } = Vue
+    const { createApp, markRaw } = Vue
 
     const app = createApp({
         data() {
             return {
                 isHelpVisible: false,
                 inputText: "",
-                output: {
+                output: markRaw({
                     template: "<span></span>"
-                },
+                }),
                 promptFunctionTimerId: null
             }
         },
@@ -146,7 +146,7 @@
                     try {
                         action(this.currentTask, this.taskInput)
                             .then(function (result) {
-                                vueInstance.output = result;
+                                vueInstance.output = markRaw(result);
                             })
                             .catch(function (error) {
                                 throw error;
@@ -157,21 +157,21 @@
                         agrippaReportError(errorMsg);
                     }
                 } else {
-                    this.output = {
+                    this.output = markRaw({
                         template: "<span></span>"
-                    }
+                    })
                 }
             },
             restartServer(event) {
-                this.output = {
+                this.output = markRaw({
                     template: "<span>Restarting server...</span>"
-                };
+                });
                 const vueInstance = this;
                 axios.get("/agrippa/restart")
                     .then(function (response) {
-                        vueInstance.output = {
+                        vueInstance.output = markRaw({
                             template: "<span>Server restarted.</span>"
-                        }
+                        })
                     })
                     .catch(function (error) {
                         const errorMsg = `Failed to restart server - ${error}`;
