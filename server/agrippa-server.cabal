@@ -7,7 +7,7 @@ license:             BSD3
 license-file:        LICENSE
 author:              Harry Pan
 maintainer:          pan.xingzhi@gmail.com
-copyright:           2017-2020 Harry Pan
+copyright:           2017-2023 Harry Pan
 category:            Web
 build-type:          Simple
 extra-source-files:  README.md
