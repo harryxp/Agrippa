@@ -6,7 +6,7 @@
     <title>Agrippa</title>
     <meta name="description" content="Agrippa"/>
     <link rel="stylesheet" href="styles.css?v=1.0"/>
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
 </head>
 
 <body>
@@ -153,7 +153,6 @@
                             });
                     } catch (e) {
                         const errorMsg = `Failed to execute task - ${error}`;
-                        // TODO
                         agrippaReportError(errorMsg);
                     }
                 } else {
@@ -175,18 +174,19 @@
                     })
                     .catch(function (error) {
                         const errorMsg = `Failed to restart server - ${error}`;
-                        // TODO
                         agrippaReportError(errorMsg);
                     });
             }
         }
     })
 
-    app.config.errorHandler = (err) => {
+    app.config.errorHandler = agrippaReportError;
+
+    function agrippaReportError(errorMsg) {
         console.error(errorMsg);
         alert(errorMsg);
     }
 
-    app.mount("#agrippa-vue")
+    app.mount("#agrippa-vue");
 </script>
 </html>

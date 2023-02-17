@@ -20,7 +20,6 @@ Just edit files under =Agrippa/client/web/=.
    #+END_SRC
 
 * Release
-** TODO Switch to Vue production mode
 ** Tag the commit
 #+BEGIN_SRC sh
   git tag -a v<version> -m 'Version <version>'
