@@ -3,7 +3,6 @@
 Install Haskell stuff (Stack).
 
 * Development
-
 ** Client
 
 Just edit files under =Agrippa/client/web/=.
@@ -18,7 +17,18 @@ Just edit files under =Agrippa/client/web/=.
      stack ghci
      stack exec agrippad -- ../client/     # run the server and use ../client/ as server root
    #+END_SRC
+* Docker
+#+begin_src shell
+  cd Agrippa/
+  ./dist.pl 0.5 Linux
 
+  sudo docker build .
+
+  sudo docker container ls -a
+  sudo docker image ls -a
+
+  sudo docker run --mount type=bind,source=/home/harry/.agrippa.d/,target=/root/.agrippa.d/ -p 3000:3000 <image sha>
+#+end_src
 * Release
 ** Tag the commit
 #+BEGIN_SRC sh

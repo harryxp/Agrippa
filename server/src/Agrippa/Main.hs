@@ -51,7 +51,7 @@ readAgrippaConfig = do
   return $ do
     agrippaConfig <- eitherToMaybe eitherAgrippaConfig  :: Maybe Object
     port'         <- lookupJSON "port" agrippaConfig    :: Maybe Int
-    Just (ScottyConfig {host = "127.0.0.1", port = port'}, agrippaConfig)
+    Just (ScottyConfig {host = "*", port = port'}, agrippaConfig)
 
 buildScottyOpts :: ScottyConfig -> Options
 buildScottyOpts (ScottyConfig { host = h, port = p }) =
